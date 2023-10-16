@@ -12,8 +12,8 @@
     "tsconfig": "*",
     "turbo": "latest"
   },
-  "name": "NextTurboTemplate",
-  "packageManager": "yarn@1.22.19",
+  "name": "next-turbo-template",
+  "packageManager": "pnpm@8.6.10",
   "workspaces": [
     "apps/*",
     "packages/*"
