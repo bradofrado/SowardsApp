@@ -17,7 +17,7 @@ function Gradient({
         styles.gradient,
         conic ? styles.glowConic : undefined,
         small ? styles.gradientSmall : styles.gradientLarge,
-        className,
+        className
       ]
         .filter(Boolean)
         .join(" ")}

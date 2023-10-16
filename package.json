@@ -4,18 +4,17 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "turbo run format",
+		"compose": "docker compose -f devops/docker-compose.yml -p my-app up --build -d",
+		"db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push"
   },
   "devDependencies": {
     "eslint": "^8.48.0",
     "prettier": "^3.0.3",
-    "tsconfig": "*",
+    "tsconfig": "workspace:*",
     "turbo": "latest"
   },
   "name": "next-turbo-template",
-  "packageManager": "pnpm@8.6.10",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "packageManager": "pnpm@8.6.10"
 }
