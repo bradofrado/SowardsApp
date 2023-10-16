@@ -24,5 +24,6 @@
       "cache": false,
       "persistent": true
     }
-  }
+  },
+	"globalEnv": ["PORT", "DATABASE_URL", "VERCEL_URL", "NODE_ENV"]
 }
