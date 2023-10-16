@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { api } from "../utils/api";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,4 +21,4 @@ function RootLayout({
   );
 }
 
-export default api.withTRPC(RootLayout);
+export default RootLayout;
