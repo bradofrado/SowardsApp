@@ -30,6 +30,7 @@
     "prettier": "^3.0.3",
     "prettier-config": "workspace:^",
     "tsconfig": "workspace:^",
+		"model": "workspace:*",
     "typescript": "^5.2.2"
   }
 }
