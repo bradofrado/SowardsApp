@@ -25,6 +25,7 @@
     "react-pdf": "^7.4.0",
     "react-stately": "^3.23.0",
     "tailwind-config": "workspace:^",
+		"model": "workspace:*",
     "zod": "^3.22.2"
   },
   "devDependencies": {

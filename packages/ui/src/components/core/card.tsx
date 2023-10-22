@@ -1,7 +1,6 @@
 import type { AllOrNothing } from "model/src/core/utils";
-
 import { DropdownIcon, type DropdownItem, type ItemAction } from "./dropdown";
-import { TridotIcon } from "./icons";
+import { EllipsisHorizontalIcon } from "./icons";
 
 interface CardDropdown {
   items: DropdownItem<string>[];
@@ -36,7 +35,7 @@ export const Card: React.FunctionComponent<CardProps> = ({
         {items ? (
           <DropdownIcon
             className="text-gray-500 dark:text-gray-400"
-            icon={TridotIcon}
+            icon={EllipsisHorizontalIcon}
             items={items}
             onChange={onChange}
           />

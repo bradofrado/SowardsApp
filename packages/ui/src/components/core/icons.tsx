@@ -115,20 +115,9 @@ export const CheckIcon: IconComponent = (props) => {
 
 export const ChevronDownIcon: IconComponent = (props) => {
   return (
-    <svg
-      {...props}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+			<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+		</svg>
   );
 };
 
@@ -352,6 +341,15 @@ export const DocumentDuplicateIcon: IconComponent = (props) => {
 	)
 }
 
+export const MapPinIcon: IconComponent = (props) => {
+	return (
+		<svg {...props} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+			<path d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round" />
+			<path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" strokeLinecap="round" strokeLinejoin="round" />
+		</svg>
+	)
+}
+
 export const HamburgerIcon: IconComponent = (props) => {
   return (
     <svg
@@ -394,19 +392,21 @@ export const AttachmentIcon: IconComponent = (props) => {
   );
 };
 
-export const TridotIcon: IconComponent = (props) => {
+export const EllipsisHorizontalIcon: IconComponent = (props) => {
   return (
-    <svg
-      {...props}
-      aria-hidden="true"
-      fill="currentColor"
-      viewBox="0 0 16 3"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
-    </svg>
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+			<path d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" strokeLinecap="round" strokeLinejoin="round" />
+		</svg>
   );
 };
+
+export const ClockIcon: IconComponent = (props) => {
+	return (
+		<svg {...props} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+			<path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+		</svg>
+	)
+}
 
 export const Bars3Icon: IconComponent = (props) => {
 	return (

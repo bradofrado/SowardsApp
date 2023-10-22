@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import type { AllOrNothing } from "model/src/core/utils";
-import { getClass } from "model/src/utils";
+import { classNames } from "model/src/utils";
 
-import { Popover as ReactPopover } from "./date-picker";
+import { Popover as ReactPopover } from "./calendar/date-picker";
 
 type PopoverProps = React.PropsWithChildren<
   {
@@ -57,7 +57,7 @@ export const Popover: React.FunctionComponent<PopoverProps> = ({
       </div>
       {isOpenActual ? (
         <ReactPopover
-          className={getClass(className, "overflow-hidden")}
+          className={classNames(className, "overflow-hidden")}
           state={state}
           triggerRef={ref}
         >

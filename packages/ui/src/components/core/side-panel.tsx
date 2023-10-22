@@ -7,10 +7,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import type { IconComponent } from './icons';
 import { Bars3Icon, XMarkIcon } from './icons';
 import { Header } from './header';
-
-function classNames(...classes: string[]): string {
-  return classes.filter(Boolean).join(' ')
-}
+import { classNames } from 'model/src/utils';
 
 export interface SidePanelItems {
   label: string;

@@ -1,10 +1,10 @@
 import type { NextPage } from 'next';
-import { SideNav } from '../../utils/sidenav'
+import { CalendarView } from '../../utils/calendar-view';
 
 
 const PlaygroundPage: NextPage = () => {
 	return (
-		<SideNav/>
+		<CalendarView/>
 	)
 }
 
