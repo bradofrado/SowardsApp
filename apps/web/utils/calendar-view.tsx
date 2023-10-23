@@ -2,6 +2,7 @@
 
 import {CalendarExample, CalendarView as Real} from 'ui/src/components/core/calendar/calendar';
 import {FeedExample} from 'ui/src/components/core/feed';
+import {StatsExample} from 'ui/src/components/core/stats';
 
 export const CalendarView = () => {
 	return (
@@ -14,5 +15,11 @@ export const CalendarView = () => {
 export const FeedView = () => {
 	return (
 		<FeedExample/>
+	)
+}
+
+export const StatsView = () => {
+	return (
+		<StatsExample/>
 	)
 }

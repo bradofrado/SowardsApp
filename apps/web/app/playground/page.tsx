@@ -1,11 +1,11 @@
 import type { NextPage } from 'next';
-import { CalendarView, FeedView } from '../../utils/calendar-view';
+import { CalendarView, FeedView, StatsView } from '../../utils/calendar-view';
 
 
 const PlaygroundPage: NextPage = () => {
 	return (
 		<div className="mx-auto max-w-lg px-6 py-8 lg:max-w-4xl xl:max-w-6xl h-0 min-h-[768px]">
-			<FeedView/>
+			<StatsView/>
 		</div>
 	)
 }
