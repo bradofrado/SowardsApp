@@ -12,3 +12,6 @@ export type Replace<T, K extends keyof T, Q> = ReplaceWithName<
 >;
 
 export type RecordType<T> = { [P in keyof T]: T[P] };
+
+export type ForceValueType<T, Value, As extends Value> = {[P in keyof T]: T[P] extends Value ? As : ForceValueType<T[P], Value, As>}
+

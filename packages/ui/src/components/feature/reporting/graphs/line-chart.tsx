@@ -1,10 +1,8 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from "react"
 import { formatDollarAmount } from "model/src/utils";
 import type { PropsOf } from "../../../../types/polymorphics";
+import { colors } from "../../../../../tailwind.config";
 import type { GraphValue } from "./types";
-
-type DataPoint = [number, number];
-const dataPoints: DataPoint[] = [[1, 3500], [2, 6700], [3, 500], [4, 18768], [5, 10100], [6, 19000], [7, 20000], [8, 17500], [9, 1000], [10, -4000], [11, -1200], [12, -3000], [13, 1500]];
 
 type CanvasProps = PropsOf<'canvas'> & {
 	draw: (context: CanvasRenderingContext2D, frameCount: number) => void
@@ -40,18 +38,19 @@ const Canvas: React.FunctionComponent<CanvasProps> = ({draw, ...rest}) => {
 	); 
 }
 
-export interface LineChartProps {
-	values: GraphValue[],
+type DataPoint = [number, number];
+interface NormalizeGraphDataRequest {
 	axisLabels: number[],
-	popupContent: (value: number, index: number) => React.ReactNode,
+	values: GraphValue[],
 	width: number,
 	height: number,
-	spacing?: number
+	spacing: number
 }
-export const LineChart: React.FunctionComponent<LineChartProps> = ({values, axisLabels, popupContent, width, height, spacing=30}) => {
-	const [hoverPosition, setHoverPosition] = useState<DataPoint | undefined>();
-	const [closestPoint, setClosestPoint] = useState<[DataPoint, number] | undefined>();
-	const _data = useMemo<DataPoint[]>(() => [...axisLabels.map<DataPoint>(label => [0, label]), ...values.map<DataPoint>(({value}, i) => [i + 1, value])], [values, axisLabels])
+interface NormalizeGraphDataRespone {
+	axisValuePositions: number[],
+	dataPoints: DataPoint[]
+}
+const useNormalizeGraphData = ({axisLabels, values, width, height, spacing}: NormalizeGraphDataRequest): NormalizeGraphDataRespone => {
 	const normalizedPoints = useMemo<DataPoint[]>(() => {
 		const getNormalizerAndMin = (index: 0 | 1, data: DataPoint[], size: DataPoint): DataPoint => {
 			const sorted = data.slice().sort((a, b) => a[index] - b[index]);
@@ -63,39 +62,85 @@ export const LineChart: React.FunctionComponent<LineChartProps> = ({values, axis
 		}
 		//Put things in an array so it is consistent with the points also being in an array
 		const size: DataPoint = [width, height];
-
+		const dataAndLabels = [...axisLabels.map<DataPoint>(label => [0, label]), ...values.map<DataPoint>(({value}, i) => [i + 1, value])];
 		const normalizerX = [1/spacing, 0]//getNormalizerAndMin(0, data, size);
-		const normalizerY = getNormalizerAndMin(1, _data, size);
+		const normalizerY = getNormalizerAndMin(1, dataAndLabels, size);
 
-		return _data.map(([x, y]) => [(x / normalizerX[0]) - normalizerX[1], (y / normalizerY[0]) - normalizerY[1]]);
-	}, [_data, width, height, spacing]);
+		return dataAndLabels.map(([x, y]) => [(x / normalizerX[0]) - normalizerX[1], (y / normalizerY[0]) - normalizerY[1]]);
+	}, [axisLabels, values, width, height, spacing]);
 
-	useEffect(() => {
-		if (hoverPosition) {
-			const [_, _1, _2, _3, ...data] = normalizedPoints;
-			const _closestPointIndex = findClosestPoint(hoverPosition, data);
-			const _closestPoint: [DataPoint, number] = [data[_closestPointIndex], _closestPointIndex];
-			setClosestPoint(_closestPoint);
-		} else {
-			setClosestPoint(undefined);
+	const axisValuePositions = useMemo<number[]>(() => normalizedPoints.slice(0, axisLabels.length).map(point => point[1]), [normalizedPoints, axisLabels.length]);
+	const dataPoints = useMemo<DataPoint[]>(() => normalizedPoints.slice(axisLabels.length), [normalizedPoints, axisLabels.length]);
+
+
+	return {
+		axisValuePositions,
+		dataPoints
+	}
+}
+
+interface ClosestPointResponse {
+	onMouseMove: React.MouseEventHandler,
+	onMouseLeave: React.MouseEventHandler,
+	closestPointIndex: number | undefined
+}
+const useClosestDataPointToMouse = (dataPoints: DataPoint[]): ClosestPointResponse => {
+	const [hoverPosition, setHoverPosition] = useState<DataPoint | undefined>();
+	const closestPointIndex = useMemo<number | undefined>(() => {
+		const findClosestPoint = (point: DataPoint, data: DataPoint[]): number => {
+			const sortedPoints = data.map(([x], index) => ({index, distance: Math.abs(point[0] - x)})).sort((a, b) => a.distance - b.distance);
+	
+			return sortedPoints[0].index;
 		}
-	}, [hoverPosition, normalizedPoints])
 
-	const findClosestPoint = (point: DataPoint, data: DataPoint[]): number => {
-		const sortedPoints = data.map(([x], index) => ({index, distance: Math.abs(point[0] - x)})).sort((a, b) => a.distance - b.distance);
+		if (hoverPosition) {
+			const _closestPointIndex = findClosestPoint(hoverPosition, dataPoints);
+			return _closestPointIndex;
+		} 
 
-		return sortedPoints[0].index;
+		return undefined;
+	}, [hoverPosition, dataPoints]);
+
+	const onMouseMove: React.MouseEventHandler = (e) => {
+		const rect = e.currentTarget.getBoundingClientRect();
+		setHoverPosition([e.clientX - (rect.left), e.clientY - rect.top]);
 	}
 
+	const onMouseLeave: React.MouseEventHandler = () => {
+		setHoverPosition(undefined);
+	}
+
+	return {
+		onMouseMove,
+		onMouseLeave,
+		closestPointIndex
+	}
+}
+
+export interface LineChartProps {
+	values: GraphValue[],
+	axisLabels: number[],
+	children: (value: GraphValue) => React.ReactNode,
+	width: number,
+	height: number,
+	spacing?: number
+}
+export const LineChart: React.FunctionComponent<LineChartProps> = ({values, axisLabels, children, width, height, spacing=30}) => {
+	const {dataPoints, axisValuePositions} = useNormalizeGraphData({axisLabels, values, width, height, spacing});
+	const {onMouseLeave, onMouseMove, closestPointIndex} = useClosestDataPointToMouse(dataPoints);
+	
 	const draw = useCallback((ctx: CanvasRenderingContext2D): void => {
 		const drawPoints = (data: DataPoint[]): void => {
 			const _height = ctx.canvas.height;
 		
 			ctx.setLineDash([]);
-			ctx.lineWidth = 2;
+			ctx.fillStyle = '#fff';
 			let last: DataPoint = [0, _height];
 			for (let i = 0; i < data.length; i++) {
 				const [x, y] = data[i];
+
+				//Draw line
+				ctx.lineWidth = 2;
 				ctx.beginPath();
 				ctx.moveTo(...last);
 				ctx.strokeStyle = values[i].fill;
@@ -116,56 +161,57 @@ export const LineChart: React.FunctionComponent<LineChartProps> = ({values, axis
 				ctx.fill();	
 			}
 		}
+		const drawHoverLine = (_closestPointIndex: number): void => {
+			ctx.beginPath();
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = values[_closestPointIndex].fill;
+			ctx.setLineDash([]);
+			ctx.moveTo(dataPoints[_closestPointIndex][0], 0);
+			
+			ctx.lineTo(dataPoints[_closestPointIndex][0], ctx.canvas.height);
+			ctx.stroke();
+		}
+		const drawAxisLines = (axisPoints: number[]): void => {
+			ctx.beginPath();
+			ctx.setLineDash([2]);
+			ctx.strokeStyle = '#d1d5db';
+			ctx.lineWidth = 1;
+			for (const point of axisPoints) {
+				ctx.moveTo(0, ctx.canvas.height - point);
+				ctx.lineTo(ctx.canvas.width, ctx.canvas.height - point);
+			}
+			ctx.stroke();
+		}
+
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 		ctx.fillStyle = '#000000'
 
-		const [l1, l2, l3, l4, ...data] = normalizedPoints;
-		
-		if (hoverPosition && closestPoint) {
-			ctx.beginPath();
-			ctx.lineWidth = 1;
-			ctx.strokeStyle = values[closestPoint[1]].fill;
-			ctx.setLineDash([]);
-			ctx.moveTo(closestPoint[0][0], 0);
-			
-			ctx.lineTo(closestPoint[0][0], ctx.canvas.height);
-			ctx.stroke();
+		if (closestPointIndex !== undefined) {
+			drawHoverLine(closestPointIndex);
 		} 
 
-		//Draw axis labels
-		ctx.beginPath();
-		ctx.setLineDash([2]);
-		ctx.strokeStyle = '#d1d5db';
-		ctx.lineWidth = 1;
-		ctx.moveTo(l1[0], ctx.canvas.height - l1[1]);
-		ctx.lineTo(ctx.canvas.width, ctx.canvas.height - l1[1]);
-		ctx.moveTo(l2[0], ctx.canvas.height - l2[1]);
-		ctx.lineTo(ctx.canvas.width, ctx.canvas.height - l2[1]);
-		ctx.moveTo(l3[0], ctx.canvas.height - l3[1]);
-		ctx.lineTo(ctx.canvas.width, ctx.canvas.height - l3[1]);
-		ctx.moveTo(l4[0], ctx.canvas.height - l4[1]);
-		ctx.lineTo(ctx.canvas.width, ctx.canvas.height - l4[1]);
-		ctx.stroke();
+		drawAxisLines(axisValuePositions);
+		drawPoints(dataPoints);
+	}, [closestPointIndex, values, axisValuePositions, dataPoints]);
 
-		drawPoints(data);
-	}, [closestPoint, hoverPosition, normalizedPoints, values]);
-
-	const onMouseMove: React.MouseEventHandler<HTMLDivElement> = (e) => {
-		const rect = e.currentTarget.getBoundingClientRect();
-		setHoverPosition([e.clientX - (rect.left), e.clientY - rect.top]);
-	}
-
-	const onMouseLeave: React.MouseEventHandler<HTMLDivElement> = () => {
-		setHoverPosition(undefined);
-	}
 	return (
 		<div className="relative">
 			<div className="absolute left-10" onMouseLeave={onMouseLeave} onMouseMove={onMouseMove}>
-				<Canvas className="" draw={draw}  height={height} width={width}/>
-				{closestPoint ? <ChartInfoPopup data={closestPoint[0]}>{popupContent(_data[closestPoint[1] + 4][1], closestPoint[1])}</ChartInfoPopup> : null}
+				<Canvas draw={draw} height={height} width={width}/>
+				{closestPointIndex !== undefined ? <ChartInfoPopup data={dataPoints[closestPointIndex]}>{children(values[closestPointIndex])}</ChartInfoPopup> : null}
 			</div>
-			{normalizedPoints.slice(0, 4).map((point, i) => <div className="absolute text-xs text-gray-400" key={point[1]} style={{left: 0, top: `${height - point[1] - 8}px`}}>${_data[i][1]/1000}K</div>)}
+			{axisValuePositions.map((point, i) => <AxisLabel chartHeight={height} key={point} label={axisLabels[i]} position={point}/>)}
 		</div>
+	)
+}
+
+const AxisLabel: React.FunctionComponent<{position: number, label: number, chartHeight: number}> = ({position, label, chartHeight}) => {
+	const ref = useRef<HTMLDivElement>(null);
+	const divHeight = ref.current?.getBoundingClientRect().height ?? 16;
+	const divPosition = chartHeight - position - (divHeight / 2);
+
+	return (
+		<div className="absolute text-xs text-gray-400" ref={ref} style={{left: 0, top: `${divPosition}px`}}>${label/1000}K</div>
 	)
 }
 
@@ -173,8 +219,9 @@ const ChartInfoPopup: React.FunctionComponent<{data: DataPoint, children: React.
 	const ref = useRef<HTMLDivElement>(null);
 	
 	const rect = ref.current?.getBoundingClientRect();
+	const centeredXPosition = data[0] - ((rect?.width ?? 0) / 2)
 	return (
-		<div className="absolute" ref={ref} style={{left: `${data[0] - ((rect?.width ?? 0) / 2)}px`, top: `0px`}}>
+		<div className="absolute" ref={ref} style={{left: `${centeredXPosition}px`, top: `0px`}}>
 			<div className="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700 p-2">
 				{children}
 			</div>
@@ -182,18 +229,16 @@ const ChartInfoPopup: React.FunctionComponent<{data: DataPoint, children: React.
 	)
 }
 
+const _dataPoints: DataPoint[] = [[1, 3500], [2, 6700], [3, 500], [4, 18768], [5, 10100], [6, 19000], [7, 20000], [8, 17500], [9, 1000], [10, -4000], [11, -1200], [12, -3000], [13, 1500]];
 export const LineChartExample: React.FunctionComponent = () => {
-	const popupContent = (value: number): React.ReactNode => {
-		return (
-			<div>
+	const dataValues: GraphValue[] = _dataPoints.map(([_, value]) => ({value, fill: value > 0 ? colors.primary.DEFAULT : colors.red[500]}))
+	
+	return (
+		<LineChart axisLabels={[40000, 20000, 0, -5000]} height={150} spacing={40} values={dataValues} width={600}>
+			{({value}) => <div>
 				<div className="text-sm text-center text-gray-600">Projected Balance</div>
 				<div className={`text-sm ${value > 0 ? 'text-primary' : 'text-red-500'}`}>{formatDollarAmount(value)}</div>
-			</div>
-		)
-	}
-
-	const dataValues: GraphValue[] = dataPoints.map(([_, value]) => ({value, fill: value > 0 ? '#379BDA' : '#ef4444'}))
-	return (
-		<LineChart axisLabels={[40000, 20000, 0, -5000]} height={150} popupContent={popupContent} spacing={40} values={dataValues} width={600}/>
+			</div>}
+		</LineChart>
 	)
 }
