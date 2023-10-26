@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { DragOverlay, type UniqueIdentifier } from "@dnd-kit/core";
 import type { HexColor } from "model/src/core/colors";
-
-import { Header } from "../../components/core/header";
-import type { SortableContainerItem } from "../../components/core/sortable-container";
+import { Header } from "../../core/header";
+import type { SortableContainerItem } from "../../core/sortable-container";
 import {
   SortableContainer,
   SortableContainerContext,
-} from "../../components/core/sortable-container";
-import { ToggleButton } from "../../components/core/toggle-button";
+} from "../../core/sortable-container";
+import { ToggleButton } from "../../core/toggle-button";
 import { PieChart } from "./graphs/pie-chart";
 import { ProgressBarMultiValue } from "./graphs/progressbar-multivalue";
 import type { GraphComponent, GraphValue } from "./graphs/types";

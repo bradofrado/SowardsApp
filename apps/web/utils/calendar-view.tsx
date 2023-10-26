@@ -3,6 +3,7 @@
 import {CalendarExample, CalendarView as Real} from 'ui/src/components/core/calendar/calendar';
 import {FeedExample} from 'ui/src/components/core/feed';
 import {StatsExample} from 'ui/src/components/core/stats';
+import {LineChartExample} from 'ui/src/components/feature/reporting/graphs/line-chart';
 
 export const CalendarView = () => {
 	return (
@@ -21,5 +22,11 @@ export const FeedView = () => {
 export const StatsView = () => {
 	return (
 		<StatsExample/>
+	)
+}
+
+export const ReportingView = () => {
+	return (
+		<LineChartExample/>
 	)
 }
