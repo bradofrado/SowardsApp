@@ -9,6 +9,20 @@ export const displayTime = (date: Date): string => {
 	return dayjs(date).format("h:mm A");
 }
 
+export const displayDateLong = (date: Date): string => {
+	return dayjs(date).format('MMM, DD YYYY');
+}
+
+export const displayWeekDayShort = (date: Date): string => {
+	return dayjs(date).format('dd');
+}
+
+export const displayWeekDay = (date: Date): string => {
+	return dayjs(date).format('ddd');
+}
+
+export const datesEqual = (d1: Date, d2: Date): boolean => displayDate(d1) === displayDate(d2);
+
 export const formatDollarAmount = (amount: number): string => {
   const digits = Math.floor(amount).toString().split("").reverse();
   let str = "";
@@ -106,8 +120,8 @@ export const compare = (f1: string | number, f2: string | number): number => {
   return 0;
 };
 
-export const getClass = (...strings: (string | undefined)[]) => {
-  return strings.filter((x) => !!x).join(" ");
+export const classNames = (...strings: (string | undefined | boolean)[]) => {
+  return strings.filter(Boolean).join(" ");
 };
 
 export const groupBy = function <T extends Pick<T, K>, K extends keyof T>(

@@ -48,7 +48,7 @@ export const ListBox = <T,>({
 }: ListBoxProps<T>): JSX.Element => {
   const button = (
     <Button className={className} mode={mode}>
-      <div className="flex items-center w-full">{children}</div>
+      <div className="flex items-center w-full px-1 py-1">{children}</div>
     </Button>
   );
   return (
@@ -113,7 +113,7 @@ export const Dropdown = <T,>({
       className={className}
       isOpen={isOpen}
       items={dropdownItems}
-      mode={value === undefined ? "secondary" : "primary"}
+      mode={value === undefined ? "secondary" : "secondary"}
       setIsOpen={setIsOpen}
     >
       <div className="flex w-full justify-between items-center">{value === undefined ? children : value.name}{" "}

@@ -54,7 +54,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationIcon,
-} from "./icons";
+} from "../icons";
 
 const dateToCalendarDate = (date: Date): CalendarDate =>
   new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
