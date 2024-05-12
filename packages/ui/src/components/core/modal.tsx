@@ -1,6 +1,9 @@
-import type { ReplaceWithName } from "model/src/core/utils";
+'use client';
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
-import { usePrevious } from "../../hooks/previous";
+import { createPortal } from "react-dom";
+import type { ReplaceWithName } from "model/src/core/utils";
+import { classNames } from "model/src/utils";
+import { ClosableContent } from "./closable-content";
 
 interface ModalContextType {
 	addModal: (newModal: React.ReactNode) => void,
@@ -23,7 +26,7 @@ export const ModalProvider: React.FunctionComponent<React.PropsWithChildren> = (
 		setModals(copy);
 		if (container)
 			container.style.overflow = 'hidden';
-	}, [modals]);
+	}, [modals, container]);
 
 	const removeModal = useCallback((toRemove: number): void => {
 		const copy = modals.slice();
@@ -37,7 +40,7 @@ export const ModalProvider: React.FunctionComponent<React.PropsWithChildren> = (
 		}
 			
 		setModals(copy);
-	}, [modals]);
+	}, [modals, container]);
 
 	return (
 		<ModalContext.Provider value={{addModal, removeModal, nextId: modals.length, container}}>
@@ -49,29 +52,49 @@ export const ModalProvider: React.FunctionComponent<React.PropsWithChildren> = (
 	)
 }
 
-export const ModalPortal: React.FunctionComponent<{children: React.ReactNode, show: boolean}> = ({children, show}) => {
-	const {addModal, removeModal} = useModal();
-	const prevShow = usePrevious(show);
-	
-	useEffect(() => {
-		if (prevShow !== show) {
-			if (show) {
-				addModal(children);
-			} else {
-				removeModal();
-			}
-		}
-	}, [show, prevShow]);
+interface ModalPortalProps {
+	container?: HTMLElement;
+	children: React.ReactNode;
+	show: boolean;
+}
+export const ModalPortal: React.FunctionComponent<ModalPortalProps> = ({children, show, container}) => {
+	const _container = container || document.body;
 
-	return <></>
+	return <>
+	{createPortal(show ? <div className="fixed top-0 left-0 w-full z-50 bg-gray-500/90 h-screen overflow-auto">
+		{children}
+	</div> : null, _container)}
+	</>
 }
 
 export const useModal = (): ReplaceWithName<ModalContextType, 'nextId' | 'removeModal', {removeModal: () => void}> => {
 	const {nextId, removeModal, ...rest} = useContext(ModalContext);
-	const [id] = useState(nextId);
 	const remove = (): void => {
-		removeModal(id);
+		removeModal(nextId);
 	}
 
 	return {...rest, removeModal: remove};
+}
+
+interface BaseModalProps {
+	children: React.ReactNode,
+	show: boolean,
+	onClose: () => void,
+	editor?: boolean;
+	maxWidthClassName?: string;
+}
+export const BaseModal: React.FunctionComponent<BaseModalProps> = ({children, show, onClose, maxWidthClassName, editor=false}) => {
+	return (
+		<ModalPortal container={editor ? document.getElementById('harmony-container') || undefined : undefined} show={show}>
+			<div className="flex justify-center items-center h-full w-full">
+				<ClosableContent className={classNames("mx-auto w-full", maxWidthClassName || 'max-w-3xl')} onClose={onClose}>
+					<div className="bg-white shadow sm:rounded-lg">
+						<div className="px-4 py-5 sm:p-6">
+							{children}
+						</div>
+					</div>	
+				</ClosableContent>
+			</div>
+		</ModalPortal>
+	)
 }

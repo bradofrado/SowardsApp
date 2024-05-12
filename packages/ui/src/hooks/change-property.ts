@@ -1,8 +1,14 @@
-interface ChangePropertyType<T> {
+
+type KeysMatching<T extends object, V> = {
+  [K in keyof T]-?: T[K] extends V ? K : never
+}[keyof T];
+interface ChangePropertyType<T extends object> {
   <K extends keyof T>(item: T, key: K, value: T[K]): T;
   function: (item: T) => void;
+	formFunc: <K extends keyof T>(key: K, item: T) => (value: T[K]) => void;
+  formFuncNumber: <K extends KeysMatching<T, number>>(key: K, item: T) => (value: string) => void;
 }
-export const useChangeProperty = <T>(
+export const useChangeProperty = <T extends object>(
   func: (item: T) => void,
 ): ChangePropertyType<T> => {
   const ret: ChangePropertyType<T> = <K extends keyof T>(
@@ -18,6 +24,12 @@ export const useChangeProperty = <T>(
     return copy;
   };
   ret.function = func;
+	ret.formFunc = (key, item) => (value) => {
+		ret(item, key, value);
+	};
+  ret.formFuncNumber  = (key, item) => (value) => {
+    ret(item, key, Number(value) as T[typeof key]);
+  }
 
   return ret;
 };

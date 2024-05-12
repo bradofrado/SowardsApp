@@ -310,7 +310,7 @@ const getColorClasses = (color: CalendarColorType): CalendarColor<typeof color> 
 	}
 }
 
-interface CalendarEvent {
+export interface CalendarEvent {
 	id: number,
 	name: string,
 	date: Date,
@@ -330,7 +330,7 @@ const _events: CalendarEvent[] = [
 	{ id: 7, name: 'Cinema with friends', date: new Date('2023-10-04T21:00'), durationMinutes: 60, href: '#', color: 'blue' }
 ]
 
-type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[]}>
+type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void}>
 
 export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 	const days: (Day & {events: CalendarEvent[]})[] = pureDays.map(day => ({...day, events: events.filter(event => datesEqual(event.date, day.date))}))
@@ -468,7 +468,7 @@ export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 	</>)
 }
 
-export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidden: boolean, className?: string}> = ({event, hidden, className}) => {
+export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidden: boolean, onClick: () => void, className?: string}> = ({event, hidden, onClick, className}) => {
 	const ref = useRef<HTMLLIElement>(null);
 	const color = getColorClasses(event.color);
 	const gridRow = event.date.getHours() * 12 + (event.date.getMinutes() / 60) * 6 + 2;
@@ -480,19 +480,20 @@ export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidde
 		}
 	}, [ref, colStart])
 	return <li className={`relative mt-px sm:flex sm:col-start-[var(--col-start)] ${hidden ? 'hidden' : ''} ${className}`} key={event.id} ref={ref} style={{ gridRow: `${gridRow} / span ${gridSpan}` }}>
-		<a
+		<button
+			type='button'
+			onClick={onClick}
 			className={`group absolute inset-1 flex flex-col overflow-y-auto rounded-lg ${color.background} p-2 text-xs leading-5 ${color.backgroundHover}`}
-			href="#"
 		>
 			<p className={`order-1 font-semibold ${color.text}`}>{event.name}</p>
 			<p className={`${color.textLight} ${color.groupHoverText}`}>
 				<time dateTime={event.date.toLocaleDateString()}>{displayTime(event.date)} <span>{displayWeekDay(event.date)}</span></time>
 			</p>
-		</a>
+		</button>
 	</li>
 }
 
-export const CalendarWeekView: CalendarView = ({days: pureDays, events}) => {
+export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventClick}) => {
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 	const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
@@ -727,7 +728,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events}) => {
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
 							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
 						>	
-							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id}/> : null)}
+							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -736,7 +737,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events}) => {
 	)
 }
 
-export const CalendarDayView: CalendarView = ({days: pureDays, events}) => {
+export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventClick}) => {
 	const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 	const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
@@ -942,7 +943,7 @@ export const CalendarDayView: CalendarView = ({days: pureDays, events}) => {
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1"
 							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
 						>
-							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id}/> : null)}
+							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -973,8 +974,13 @@ type DateStepperDropdownItem = {
 	[P in DateStepperType]: {id: P, name: string}
 }[DateStepperType]
 
-export const CalendarView: React.FunctionComponent = () => {
-	const [view, setView] = useState<DateStepperType>('month');
+interface CalendarViewProps {
+	onAddEvent: () => void;
+	events: CalendarEvent[];
+	onEventClick: (event: CalendarEvent) => void;
+}
+export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events}) => {
+	const [view, setView] = useState<DateStepperType>('week');
 	const {increment, decrement, days, date, setDate} = useDateStepper(view);
 
 	const dateDisplay = `${view !== 'year' ? `${date.toLocaleDateString('default', { month: 'long' })} ` : ''}${date.getFullYear()}`;
@@ -1039,17 +1045,14 @@ export const CalendarView: React.FunctionComponent = () => {
           <div className="hidden md:ml-4 md:flex md:items-center">
 						<Dropdown initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
             <div className="ml-6 h-6 w-px bg-gray-300" />
-            <button
-              className="ml-6 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              type="button"
-            >
-              Add event
-            </button>
+            <Button className="ml-6" onClick={onAddEvent}>
+				Add Event
+			</Button>
           </div>
 					<Dropdown className="ml-6 md:hidden" initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
         </div>
       </header>
-			<CurrView days={days} events={_events}/>
+			<CurrView days={days} events={events} onEventClick={onEventClick}/>
     </div>
 	)
 }

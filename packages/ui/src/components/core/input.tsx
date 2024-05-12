@@ -1,6 +1,9 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-confusing-void-expression -- ok*/
+/* eslint-disable react/button-has-type -- ok*/
+import React, { useEffect, useState } from "react";
 import { CheckmarkIcon } from "./icons";
 import { Label } from "./label";
+import { usePrevious } from "../../hooks/previous";
 
 interface InputProps {
   onChange?: (value: string) => void;
@@ -25,7 +28,7 @@ export const Input: React.FunctionComponent<InputProps> = ({
   const props = {
     className: `${
       className || ""
-    } bg-gray-50 border shadow-sm rounded-md px-3  py-1.5 text-sm text-gray-900 focus:ring-primary focus:ring-1 transition-[box-shadow] focus-visible:outline-none `,
+    } bg-white border shadow-sm rounded-md px-3  py-1.5 text-sm text-gray-900 focus:ring-primary focus:ring-1 transition-[box-shadow] focus-visible:outline-none `,
     onChange: (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -48,6 +51,22 @@ export const Input: React.FunctionComponent<InputProps> = ({
   }
   return input;
 };
+
+export const InputBlur: React.FunctionComponent<Omit<InputProps, 'onBlur'>> = ({onChange, value: valueProps, ...rest}) => {
+	const [value, setValue] = useState(valueProps);
+  const prevValue = usePrevious(valueProps);
+
+  useEffect(() => {
+    if (prevValue !== valueProps) {
+      setValue(valueProps);
+    }
+  }, [prevValue, valueProps])
+
+	const onInputChange = (_value: string): void => {
+		setValue(_value);
+	}
+	return <Input {...rest} value={value} onChange={onInputChange} onBlur={onChange} />
+}
 
 export interface CheckboxInputProps {
   className?: string;
@@ -88,3 +107,40 @@ export const CheckboxInput: React.FunctionComponent<CheckboxInputProps> = ({
 
   return input;
 };
+
+interface NumberStepperInputProps {
+  value: number;
+  onChange: (value: number) => void;
+}
+export const NumberStepperInput: React.FunctionComponent<NumberStepperInputProps> = ({value: valueProp, onChange: onChangeProps}) => {
+  const [value, setValue] = useState(String(valueProp));
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const _value = e.target.value;
+    setValue(_value);
+  }
+
+
+  const changeValue = (newVal: number) => {
+    const _newVal = Math.min(Math.max(0, newVal), 99);
+    setValue(String(_newVal));
+    onChangeProps(_newVal);
+  }
+
+  const onBlur = () => {
+    let num = parseInt(value);
+    if (isNaN(num)) {
+      num = valueProp;
+    }
+
+    changeValue(num);
+  }
+
+  return (
+    <div className="hw-flex hw-rounded-[3px] hw-border hw-border-gray-400 hw-items-center hw-overflow-auto">
+      <button className="hover:hw-bg-gray-100 hw-py-[1px] hw-px-2.5 hw-border-r hw-border-gray-400" onClick={() => changeValue(valueProp - 1)}>-</button>
+      <input className="hw-px-1.5 hw-text-sm hw-py-[1px] hw-border-none hw-w-8 focus:hw-ring-0" value={value} onChange={onChange} onBlur={onBlur}/>
+      <button className="hover:hw-bg-gray-100 hw-py-[1px] hw-px-2.5 hw-border-l hw-border-gray-400" onClick={() => changeValue(valueProp + 1)}>+</button>
+    </div>
+  )
+}
