@@ -21,7 +21,7 @@ importers:
         specifier: latest
         version: 1.10.14
 
-  apps/web:
+  apps/vacations:
     dependencies:
       '@prisma/nextjs-monorepo-workaround-plugin':
         specifier: ^5.3.1
@@ -44,6 +44,12 @@ importers:
       api:
         specifier: workspace:^
         version: link:../../packages/api
+      db:
+        specifier: workspace:*
+        version: link:../../packages/db
+      dotenv-cli:
+        specifier: ^7.3.0
+        version: 7.3.0
       model:
         specifier: workspace:*
         version: link:../../packages/model
@@ -105,6 +111,9 @@ importers:
       db:
         specifier: workspace:^
         version: link:../db
+      model:
+        specifier: workspace:^
+        version: link:../model
       superjson:
         specifier: ^1.13.1
         version: 1.13.1
@@ -118,9 +127,6 @@ importers:
       eslint-config-custom:
         specifier: workspace:^
         version: link:../../tooling/eslint-config-custom
-      model:
-        specifier: workspace:*
-        version: link:../model
       prettier:
         specifier: ^3.0.3
         version: 3.0.3

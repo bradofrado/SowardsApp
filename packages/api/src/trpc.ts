@@ -22,7 +22,7 @@ import { ZodError } from "zod";
 interface CreateContextOptions {
 }
 
-export interface TRPCContext {
+export interface TRPCContext extends CreateContextOptions {
 	prisma: PrismaClient,
 }
 
@@ -36,8 +36,9 @@ export interface TRPCContext {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = ({}: CreateContextOptions): TRPCContext => {
+const createInnerTRPCContext = (opts: CreateContextOptions): TRPCContext => {
   return {
+    ...opts,
     prisma,
   };
 };
@@ -48,7 +49,7 @@ const createInnerTRPCContext = ({}: CreateContextOptions): TRPCContext => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions): Promise<TRPCContext> => {
+export const createTRPCContext = async (): Promise<TRPCContext> => {
 	return createInnerTRPCContext({});
 };
 

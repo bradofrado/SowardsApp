@@ -1,3 +1,4 @@
+'use client';
 import { Header } from "ui/src/components/core/header";
 import {Label} from 'ui/src/components/core/label';
 import { BaseModal } from "ui/src/components/core/modal";
@@ -7,16 +8,15 @@ import {useChangeProperty} from 'ui/src/hooks/change-property';
 import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
+import { VacationEvent } from "model/src/vacation";
 
 type EventAmountType = 'all' | 'adult' | 'child'
 interface EventAmount {
     amount: number;
     type: EventAmountType;
 }
-export interface Event extends CalendarEvent {
-    location: string;
-    amounts: EventAmount[];
-    notes: string;
+export interface Event extends CalendarEvent, VacationEvent {
+
 }
 
 interface EventFormProps {

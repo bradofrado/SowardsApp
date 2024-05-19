@@ -1,13 +1,17 @@
-// eslint-disable-next-line -- need to import the generated code
-import { PrismaClient as PrismaClientReal } from "@prisma/client";
+import { PrismaClient } from "./generated/client";
 
-const globalForPrisma: { prisma?: PrismaClientReal } = global as unknown as {
-  prisma: PrismaClientReal;
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
 };
 
-export const prisma: PrismaClientReal =
-  globalForPrisma.prisma || new PrismaClientReal();
-
-export type PrismaClient = PrismaClientReal;
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log:
+      process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+export type Db = typeof prisma;
+export {Prisma, PrismaClient} from './generated/client';

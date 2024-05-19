@@ -311,7 +311,7 @@ const getColorClasses = (color: CalendarColorType): CalendarColor<typeof color> 
 }
 
 export interface CalendarEvent {
-	id: number,
+	id: string,
 	name: string,
 	date: Date,
 	durationMinutes: number,

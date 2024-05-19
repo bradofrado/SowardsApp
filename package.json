@@ -5,7 +5,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "turbo run format",
-		"compose": "docker compose -f devops/docker-compose.yml -p my-app up --build -d",
+		"compose": "docker compose -f devops/docker-compose.yml -p my-app-sowards up --build -d",
 		"db:generate": "turbo run db:generate",
     "db:push": "turbo run db:push"
   },
