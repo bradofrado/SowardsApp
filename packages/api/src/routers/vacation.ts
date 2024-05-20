@@ -1,7 +1,7 @@
 import type { Db, Prisma } from "db/lib/prisma";
 import {vacationEventSchema, vactionAmountSchema, type VacationEvent} from 'model/src/vacation'
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const vacationRouter = createTRPCRouter({
 	getVacationEvents: publicProcedure
@@ -9,7 +9,7 @@ export const vacationRouter = createTRPCRouter({
 		.query(async ({ctx}) => {
 			return getVacationEvents({db: ctx.prisma});
 		}),
-	createVacationEvent: publicProcedure
+	createVacationEvent: protectedProcedure
 		.input(vacationEventSchema)
 		.output(vacationEventSchema)
 		.mutation(async ({ctx, input}) => {
@@ -22,12 +22,13 @@ export const vacationRouter = createTRPCRouter({
 					durationMinutes: input.durationMinutes,
 					is_public: input.isPublic,
 					location: input.location,
+					createdById: ctx.session.auth.user.id
 				}
 			});
 
 			return prismaToVacationEvent(newEvent);
 		}),
-	updateVacationEvent: publicProcedure
+	updateVacationEvent: protectedProcedure
 		.input(vacationEventSchema)
 		.output(vacationEventSchema)
 		.mutation(async ({ctx, input}) => {
@@ -48,7 +49,7 @@ export const vacationRouter = createTRPCRouter({
 
 			return prismaToVacationEvent(newEvent);
 		}),
-	deleteVacationEvent: publicProcedure
+	deleteVacationEvent: protectedProcedure
 		.input(z.string())
 		.mutation(async ({ctx, input}) => {
 			await ctx.prisma.vacationEvent.delete({
@@ -75,6 +76,7 @@ const prismaToVacationEvent = (event: Prisma.VacationEventGetPayload<true>): Vac
 		isPublic: event.is_public,
 		notes: event.notes,
 		location: event.location,
+		createdById: event.createdById,
 		amounts: z.array(vactionAmountSchema).parse(event.amounts)
 	}
 }

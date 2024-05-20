@@ -320,14 +320,14 @@ export interface CalendarEvent {
 }
 
 const _events: CalendarEvent[] = [
-	{ id: 1, name: 'Design review', date: new Date('2023-10-03T10:00'), durationMinutes: 60, href: '#', color: 'blue' },
-	{ id: 2, name: 'Sales meeting', date: new Date('2023-10-03T14:00'), durationMinutes: 60, href: '#', color: 'pink' },
-	{ id: 8, name: 'Sales meeting', date: new Date('2023-10-03T16:00'), durationMinutes: 60, href: '#', color: 'gray' },
-	{ id: 3, name: 'Date night', date: new Date('2023-10-08T18:00'), durationMinutes: 60, href: '#', color: 'blue' },
-	{ id: 4, name: 'Maple syrup museum', date: new Date('2023-10-22T15:00'), durationMinutes: 60, href: '#', color: 'blue' },
-	{ id: 5, name: 'Hockey game', date: new Date('2023-10-22T19:00'), durationMinutes: 60, href: '#', color: 'pink' },
-	{ id: 6, name: "Sam's birthday party", date: new Date('2023-10-25T14:00'), durationMinutes: 60, href: '#', color: 'blue' },
-	{ id: 7, name: 'Cinema with friends', date: new Date('2023-10-04T21:00'), durationMinutes: 60, href: '#', color: 'blue' }
+	{ id: '1', name: 'Design review', date: new Date('2023-10-03T10:00'), durationMinutes: 60, href: '#', color: 'blue' },
+	{ id: '2', name: 'Sales meeting', date: new Date('2023-10-03T14:00'), durationMinutes: 60, href: '#', color: 'pink' },
+	{ id: '8', name: 'Sales meeting', date: new Date('2023-10-03T16:00'), durationMinutes: 60, href: '#', color: 'gray' },
+	{ id: '3', name: 'Date night', date: new Date('2023-10-08T18:00'), durationMinutes: 60, href: '#', color: 'blue' },
+	{ id: '4', name: 'Maple syrup museum', date: new Date('2023-10-22T15:00'), durationMinutes: 60, href: '#', color: 'blue' },
+	{ id: '5', name: 'Hockey game', date: new Date('2023-10-22T19:00'), durationMinutes: 60, href: '#', color: 'pink' },
+	{ id: '6', name: "Sam's birthday party", date: new Date('2023-10-25T14:00'), durationMinutes: 60, href: '#', color: 'blue' },
+	{ id: '7', name: 'Cinema with friends', date: new Date('2023-10-04T21:00'), durationMinutes: 60, href: '#', color: 'blue' }
 ]
 
 type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void}>
@@ -524,7 +524,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 					ref={containerNav}
 				>
 					<div className="grid grid-cols-7 text-sm leading-6 text-gray-500 sm:hidden">
-						{days.map(day => <button className={`flex flex-col items-center pb-3 pt-2 ${datesEqual(day.date, selectedDate) ? 'bg-primary-light' : ''}`} key={day.date.toLocaleDateString()} onClick={() => {setSelectedDate(day.date)}} type="button">
+						{days.map(day => <button className={`flex flex-col items-center pb-3 pt-2 ${datesEqual(day.date, selectedDate || new Date()) ? 'bg-primary-light' : ''}`} key={day.date.toLocaleDateString()} onClick={() => {setSelectedDate(day.date)}} type="button">
 							{day.isToday ? <>
 								{displayWeekDayShort(day.date)}{' '}
 								<span className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary font-semibold text-white">

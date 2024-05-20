@@ -147,7 +147,7 @@ export const groupByDistinct = function <
 >(arr: T[], key: K) {
   return arr.reduce<Record<T[K], T>>((prev, curr) => {
     if (prev[curr[key]]) {
-      throw new DOMException("Each key value in the list must be unique");
+      throw new Error("Each key value in the list must be unique");
     }
 
     prev[curr[key]] = curr;

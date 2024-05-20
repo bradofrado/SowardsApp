@@ -1,30 +1,26 @@
 import { z } from "zod";
-import { User } from "./user";
 import { stringUnionSchema } from "./utils";
 
 export type AuthContext = {
 	userId: string;
 	user: User
-} | null;
+};
 
 export interface Session {
   auth: AuthContext,
 }
 
-export interface Login {
-  email: Email;
-  password: string;
-}
-
-export const SignupSchema = z.object({
-  name: z.string(),
-  password: z.string(),
-  email: z.string().email(),
-});
-export type Signup = z.infer<typeof SignupSchema>;
+export const userSchema = z.object({
+  id: z.string(),
+  firstname: z.string(),
+  lastname: z.string(),
+  email: z.string(),
+  roles: z.array(z.string()),
+})
+export type User = z.infer<typeof userSchema>;
 
 export type Email = `${string}@${string}`;
-export const EmailSchema = z.custom<Email>((val) => {
+export const emailSchema = z.custom<Email>((val) => {
   if (!(typeof val === "string")) return false;
 
   const indexOfAt = val.indexOf("@");
@@ -35,4 +31,4 @@ export const EmailSchema = z.custom<Email>((val) => {
 
 const roles = ["user", "admin"] as const;
 export type UserRole = (typeof roles)[number];
-export const UserRoleSchema = stringUnionSchema(roles);
+export const userRoleSchema = stringUnionSchema(roles);

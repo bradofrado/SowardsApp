@@ -5,6 +5,9 @@ import {httpBatchLink} from "@trpc/client"
 import {useState} from "react"
 import { api } from "./api"
 import superjson from "superjson";
+import { Clerk } from "@clerk/clerk-js"
+
+const clerk = new Clerk(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '');
 
 const getBaseUrl = (): string => {
   if (typeof window !== "undefined") return ""; // browser should use relative url
@@ -38,6 +41,19 @@ export const TrpcProvider: React.FC<{children: React.ReactNode}> = p => {
 						// }),
 						httpBatchLink({
 							url: `${getBaseUrl()}/api/trpc`,
+							fetch(url, options) {
+								return fetch(url, options).then(async (response) => {
+									if (response.status === 401) {
+										if (!clerk.loaded) {
+											await clerk.load();
+										}
+										// Redirect to Clerk sign-in page
+										await clerk.redirectToSignIn();
+										return Promise.reject(new Error('Unauthorized'));
+									  }
+									  return response;
+								})
+							}
 						}),
 					],
 		// 		};

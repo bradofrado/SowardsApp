@@ -14,8 +14,7 @@
     },
 		"format": {},
 		"db:generate": {
-      "inputs": ["packages/db/prisma/schema.prisma"],
-      "outputs": ["packages/db/lib/generated"]
+      
     },
 		"db:push": {
       "cache": false
@@ -23,7 +22,8 @@
     "db:studio": {
       "cache": false,
       "persistent": true
-    }
+    },
+    "typecheck": {}
   },
 	"globalEnv": ["PORT", "DATABASE_URL", "VERCEL_URL", "NODE_ENV"]
 }

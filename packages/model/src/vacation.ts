@@ -16,5 +16,6 @@ export const vacationEventSchema = z.object({
     amounts: z.array(vactionAmountSchema),
     isPublic: z.boolean(),
     userIds: z.array(z.string()),
+    createdById: z.string()
 })
 export type VacationEvent = z.infer<typeof vacationEventSchema>;

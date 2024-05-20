@@ -2,9 +2,8 @@
 import React, { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from './icons'
-import {classNames} from 'model/src/utils'
 
-export const Navbar: React.FunctionComponent = () => {
+export const Navbar: React.FunctionComponent<{profileItem: React.ReactNode}> = ({profileItem}) => {
   return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
@@ -62,7 +61,7 @@ export const Navbar: React.FunctionComponent = () => {
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
 
                 {/* Profile dropdown */}
-                <Menu as="div" className="relative ml-3">
+                {/* <Menu as="div" className="relative ml-3">
                   <div>
                     <Menu.Button className="relative flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                       <span className="absolute -inset-1.5" />
@@ -116,7 +115,8 @@ export const Navbar: React.FunctionComponent = () => {
                       </Menu.Item>
                     </Menu.Items>
                   </Transition>
-                </Menu>
+                </Menu> */}
+                {profileItem}
               </div>
             </div>
           </div>
