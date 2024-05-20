@@ -9,9 +9,9 @@ import { EventFormModal } from './event-form';
 
 export const CalendarView: React.FunctionComponent<{events: VacationEvent[]}> = ({events: eventsProps}) => {
 	const [currEvent, setCurrEvent] = useState<number>(-1);
-	const {mutate: createEvent} = api.vacation.createVacationEvent.useMutation();
-	const {mutate: updateEvent} = api.vacation.updateVacationEvent.useMutation();
-	const {mutate: removeEvent} = api.vacation.deleteVacationEvent.useMutation();
+	const {mutate: createEvent} = api.vacationEvent.createVacationEvent.useMutation();
+	const {mutate: updateEvent} = api.vacationEvent.updateVacationEvent.useMutation();
+	const {mutate: removeEvent} = api.vacationEvent.deleteVacationEvent.useMutation();
 
 	const router = useRouter();
 	

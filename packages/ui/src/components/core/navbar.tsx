@@ -1,9 +1,15 @@
 'use client'
 import React, { Fragment } from 'react'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
+import { Disclosure} from '@headlessui/react'
+import { classNames } from 'model/src/utils';
 import { Bars3Icon, XMarkIcon } from './icons'
 
-export const Navbar: React.FunctionComponent<{profileItem: React.ReactNode}> = ({profileItem}) => {
+export interface NavItem {
+  label: string;
+  href: string;
+  selected: boolean;
+}
+export const Navbar: React.FunctionComponent<{profileItem: React.ReactNode, items: NavItem[]}> = ({profileItem, items}) => {
   return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
@@ -16,28 +22,24 @@ export const Navbar: React.FunctionComponent<{profileItem: React.ReactNode}> = (
                   <span className="absolute -inset-0.5" />
                   <span className="sr-only">Open main menu</span>
                   {open ? (
-                    <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                    <XMarkIcon aria-hidden="true" className="block h-6 w-6" />
                   ) : (
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                    <Bars3Icon aria-hidden="true" className="block h-6 w-6" />
                   )}
                 </Disclosure.Button>
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <a className="flex flex-shrink-0 items-center" href="/">
                   <img
+                    alt="Your Company"
                     className="h-8 w-auto"
                     src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                    alt="Your Company"
                   />
                 </a>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                   {/* Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
-                  <a
-                    className="inline-flex items-center border-b-2 border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900"
-                    href="/plan"
-                  >
-                    Plan
-                  </a>
+                  {items.map(item => <a className={classNames('inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium text-gray-500', item.selected ? 'border-indigo-500' : 'hover:border-gray-300 hover:text-gray-700 border-transparent')} href={item.href} key={item.href}>{item.label}</a>)}
+                 
                   {/* <a
                     href="#"
                     className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
@@ -124,13 +126,15 @@ export const Navbar: React.FunctionComponent<{profileItem: React.ReactNode}> = (
           <Disclosure.Panel className="sm:hidden">
             <div className="space-y-1 pb-4 pt-2">
               {/* Current: "bg-indigo-50 border-indigo-500 text-indigo-700", Default: "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700" */}
-              <Disclosure.Button
+              {items.map(item => <Disclosure.Button
                 as="a"
-                href="/plan"
-                className="block border-l-4 border-indigo-500 bg-indigo-50 py-2 pl-3 pr-4 text-base font-medium text-indigo-700"
+                className={classNames('block border-l-4 py-2 pl-3 pr-4 text-base font-medium ', item.selected ? "border-indigo-500 bg-indigo-50 text-indigo-700" : 'border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700')}
+                href={item.href}
+                key={item.href}
               >
-                Plan
-              </Disclosure.Button>
+                {item.label}
+              </Disclosure.Button>)}
+              
             </div>
           </Disclosure.Panel>
         </>

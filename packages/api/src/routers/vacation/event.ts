@@ -1,9 +1,9 @@
 import type { Db, Prisma } from "db/lib/prisma";
 import {vacationEventSchema, vactionAmountSchema, type VacationEvent} from 'model/src/vacation'
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../../trpc";
 
-export const vacationRouter = createTRPCRouter({
+export const vacationEventRouter = createTRPCRouter({
 	getVacationEvents: publicProcedure
 		.output(z.array(vacationEventSchema))
 		.query(async ({ctx}) => {

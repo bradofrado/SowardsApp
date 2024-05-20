@@ -1,4 +1,4 @@
-import { getVacationEvents } from 'api/src/routers/vacation';
+import { getVacationEvents } from 'api/src/routers/vacation/event';
 import { prisma } from 'db/lib/prisma';
 import { CalendarView} from './components/calendar-view';
 
