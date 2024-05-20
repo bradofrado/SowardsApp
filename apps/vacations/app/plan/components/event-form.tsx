@@ -8,7 +8,7 @@ import {useChangeProperty} from 'ui/src/hooks/change-property';
 import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
-import { VacationEvent } from "model/src/vacation";
+import type { VacationEvent } from "model/src/vacation";
 
 type EventAmountType = 'all' | 'adult' | 'child'
 interface EventAmount {
@@ -22,24 +22,29 @@ export interface Event extends CalendarEvent, VacationEvent {
 interface EventFormProps {
     event: Event;
     onSave: (event: Event) => void;
+    onRemove: (event: Event) => void;
+    edit: boolean
 }
 interface EventFormModalProps extends EventFormProps {
     show: boolean;
     onClose: () => void;
 }
-export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, ...rest}) => {
+export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, onRemove, ...rest}) => {
     return <BaseModal onClose={onClose} show={show}>
-        <EventForm onSave={(event) => {
+        <EventForm onRemove={(event) => {
+            onRemove(event);
+            onClose();
+        }} onSave={(event) => {
             onSave(event);
             onClose();
         }} {...rest}/>
     </BaseModal>
 }
-export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave}) => {
+export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave, onRemove, edit}) => {
     const [event, setEvent] = useState<Event>(eventProp);
     const changeProperty = useChangeProperty<Event>(setEvent);
     return <div>
-        <Header>Add New Event</Header>
+        <Header>{edit ? 'Edit Event' : 'Add Event'}</Header>
         <Label label="Name">
             <Input onChange={changeProperty.formFunc('name', event)} value={event.name}/>
         </Label>
@@ -53,7 +58,7 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
             <Input onChange={changeProperty.formFunc('location', event)} value={event.location}/>
         </Label>
         <Label label="Amount">
-            <AmountField onChange={(amount) => changeProperty(event, 'amounts', [amount])} value={event.amounts[0] || {value: 0, type: 'all'}}/>
+            <AmountFields amounts={event.amounts} onChange={changeProperty.formFunc('amounts', event)}/>
         </Label>
         <Label label="Notes">
             <Input onChange={changeProperty.formFunc('notes', event)} type='textarea' value={event.notes}/>
@@ -61,6 +66,7 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
         <Button onClick={() => {onSave(event)}}>
             Save
         </Button>
+        {edit ? <Button onClick={() => {onRemove(event)}}>Remove</Button> : null}
     </div>
 }
 
@@ -95,16 +101,49 @@ const TimeRangeInput: React.FunctionComponent<TimeRangeInputProps> = ({value, on
     )
 }
 
+const AmountFields: React.FunctionComponent<{amounts: EventAmount[], onChange: (value: EventAmount[]) => void}> = ({amounts, onChange}) => {
+    const onAmountChange = (value: EventAmount, index: number): void => {
+        if (index < 0 || index >= amounts.length) return;
+
+        const copy = amounts.slice();
+        copy[index] = value;
+        onChange(copy);
+    }   
+
+    const onAmountRemove = (index: number): void => {
+        if (index < 0 || index >= amounts.length) return;
+
+        const copy = amounts.slice();
+        copy.splice(index, 1)
+        onChange(copy);
+    }   
+
+    const onAmountAdd= (): void => {
+        const copy = amounts.slice();
+        copy.push({amount: 5, type: 'all'});
+        onChange(copy);
+    }   
+    
+    return (
+        <div>
+            {amounts.map((amount, i) => <AmountField key={amount.type} onChange={(value) => {onAmountChange(value, i)}} onRemove={() => {onAmountRemove(i)}} value={amount}/>)}
+            <Button onClick={onAmountAdd}>Add</Button>
+        </div>
+    )
+}
+
 interface AmountFieldProps {
     value: EventAmount;
-    onChange: (vale: EventAmount) => void;
+    onChange: (value: EventAmount) => void;
+    onRemove: () => void;
 }
-const AmountField: React.FunctionComponent<AmountFieldProps> = ({value, onChange}) => {
+const AmountField: React.FunctionComponent<AmountFieldProps> = ({value, onChange, onRemove}) => {
     const changeProperty = useChangeProperty<EventAmount>(onChange);
     return (
         <div>
             <Input onChange={(val) => changeProperty(value, 'amount', Number(val))} value={value.amount}/>
             <Input onChange={(type) => changeProperty(value, 'type', type as EventAmountType)} value={value.type}/>
+            <Button onClick={onRemove}>Remove</Button>
         </div>
     )
 }

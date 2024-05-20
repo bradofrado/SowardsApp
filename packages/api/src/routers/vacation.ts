@@ -26,6 +26,36 @@ export const vacationRouter = createTRPCRouter({
 			});
 
 			return prismaToVacationEvent(newEvent);
+		}),
+	updateVacationEvent: publicProcedure
+		.input(vacationEventSchema)
+		.output(vacationEventSchema)
+		.mutation(async ({ctx, input}) => {
+			const newEvent = await ctx.prisma.vacationEvent.update({
+				data: {
+					name: input.name,
+					date: input.date,
+					amounts: input.amounts,
+					notes: input.notes,
+					durationMinutes: input.durationMinutes,
+					is_public: input.isPublic,
+					location: input.location,
+				},
+				where: {
+					id: input.id
+				}
+			});
+
+			return prismaToVacationEvent(newEvent);
+		}),
+	deleteVacationEvent: publicProcedure
+		.input(z.string())
+		.mutation(async ({ctx, input}) => {
+			await ctx.prisma.vacationEvent.delete({
+				where: {
+					id: input
+				}
+			});
 		})
 })
 
