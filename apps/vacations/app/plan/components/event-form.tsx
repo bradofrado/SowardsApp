@@ -9,8 +9,8 @@ import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import type { VacationEvent } from "model/src/vacation";
-import { VacationGroupDropdown } from "../../../utils/vacation-group-dropdown";
-import { Dropdown, DropdownItem } from "ui/src/components/core/dropdown";
+import type { DropdownItem } from "ui/src/components/core/dropdown";
+import { Dropdown } from "ui/src/components/core/dropdown";
 
 type EventAmountType = 'all' | 'adult' | 'child'
 interface EventAmount {
@@ -25,24 +25,27 @@ interface EventFormProps {
     event: Event;
     onSave: (event: Event) => void;
     onRemove: (event: Event) => void;
+    onJoin: (event: Event) => void;
+    onLeave: (event: Event) => void;
     edit: boolean
+    joined: boolean
+    inGroup: boolean
 }
 interface EventFormModalProps extends EventFormProps {
     show: boolean;
     onClose: () => void;
 }
-export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, onRemove, ...rest}) => {
+export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, onJoin, onLeave, onRemove, ...rest}) => {
+    const closeIt = <Props, Ret>(func: (props: Props) => Ret) => (prop: Props): Ret => {
+        const ret = func(prop);
+        onClose();
+        return ret;
+    }
     return <BaseModal onClose={onClose} show={show}>
-        <EventForm onRemove={(event) => {
-            onRemove(event);
-            onClose();
-        }} onSave={(event) => {
-            onSave(event);
-            onClose();
-        }} {...rest}/>
+        <EventForm onJoin={closeIt(onJoin)} onLeave={closeIt(onLeave)} onRemove={closeIt(onRemove)} onSave={closeIt(onSave)} {...rest}/>
     </BaseModal>
 }
-export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave, onRemove, edit}) => {
+export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave, onRemove, onJoin, onLeave, edit, joined, inGroup}) => {
     const [event, setEvent] = useState<Event>(eventProp);
     const changeProperty = useChangeProperty<Event>(setEvent);
 
@@ -66,13 +69,16 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
         <Label label="Notes">
             <Input onChange={changeProperty.formFunc('notes', event)} type='textarea' value={event.notes}/>
         </Label>
-        <Label label="Group">
+        {/* <Label label="Group">
             <VacationGroupDropdown onChange={changeProperty.formFunc('groupIds', event)} value={event.groupIds}/>
-        </Label>
+        </Label> */}
         <Button onClick={() => {onSave(event)}}>
             Save
         </Button>
-        {edit ? <Button onClick={() => {onRemove(event)}}>Remove</Button> : null}
+        {edit ? <>
+            <Button onClick={() => {onRemove(event)}}>Delete</Button>
+            {!inGroup ? <>{!joined ? <Button onClick={() => {onJoin(event)}}>Join</Button> : <Button onClick={() => {onLeave(event)}}>Leave</Button>}</>: null}
+        </> : null}
     </div>
 }
 

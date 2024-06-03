@@ -8,7 +8,6 @@ import { Label } from "ui/src/components/core/label"
 import { useChangeProperty } from "ui/src/hooks/change-property"
 import type { AmountType, VacationDependent } from "model/src/vacation"
 import { Input } from "ui/src/components/core/input"
-import { VacationGroupDropdown } from "../../../utils/vacation-group-dropdown";
 import type { SetupUser } from "./actions";
 
 
@@ -22,9 +21,9 @@ export const SetupForm: React.FunctionComponent<{onSubmit: (user: SetupUser) => 
 			<Label className="sm:col-span-full" label="Person Type">
                 <AmountTypeDropdown onChange={changeProperty.formFunc('amountType', userVacation)} value={userVacation.amountType}/>
             </Label>
-			<Label className="sm:col-span-full" label="Groups">
+			{/* <Label className="sm:col-span-full" label="Groups">
                 <VacationGroupDropdown onChange={changeProperty.formFunc('groupIds', userVacation)} value={userVacation.groupIds}/>
-            </Label>
+            </Label> */}
             <Label className="sm:col-span-full" label="Dependents">
                 <DependentsForm dependents={userVacation.dependents} onChange={changeProperty.formFunc('dependents', userVacation)}/>
             </Label>

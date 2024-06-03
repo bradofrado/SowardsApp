@@ -17,7 +17,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
 	const session = result.session
 	return (
 		<div className="mx-auto max-w-lg px-6 py-8 lg:max-w-4xl xl:max-w-6xl h-0 min-h-[768px]">
-			<CalendarView events={events}/>
+			<CalendarView events={events} user={session?.auth.userVacation}/>
 			<StatsView events={events} groups={groups} session={session}/>
 		</div>
 	)

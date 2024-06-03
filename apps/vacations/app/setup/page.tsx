@@ -1,5 +1,6 @@
 import { getAuthSession } from "../../utils/auth"
-import { createUser, SetupUser, updateUser } from "./components/actions"
+import type { SetupUser} from "./components/actions";
+import { createUser, updateUser } from "./components/actions"
 import { SetupForm } from "./components/setup-form"
 
 const SetupPage = async (): Promise<JSX.Element> => {

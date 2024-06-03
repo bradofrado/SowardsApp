@@ -12,11 +12,11 @@ export const Nav = () => {
             href: '/plan',
             selected: pathname.includes('plan'),
         },
-        {
-            label: 'Group',
-            href: '/group',
-            selected: pathname.includes('group')
-        }
+        // {
+        //     label: 'Group',
+        //     href: '/group',
+        //     selected: pathname.includes('group')
+        // }
     ]
     return (
         <Navbar items={items} profileItem={<>

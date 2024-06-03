@@ -44,6 +44,24 @@ export const vacationEventRouter = createTRPCRouter({
 		.input(vacationEventSchema)
 		.output(vacationEventSchema)
 		.mutation(async ({ctx, input}) => {
+			const currGroups = await ctx.prisma.vacationGroup.findMany({
+				where: {
+					userIds: {
+						has: ctx.session.auth.userVacation.id
+					}
+				}
+			});
+			const toRemove = currGroups.filter(group => !input.groupIds.find(id => id === group.id));
+			await ctx.prisma.vacationEvent.update({
+				data: {
+					groups: {
+						disconnect: toRemove.map(({id}) => ({id}))
+					}
+				},
+				where: {
+					id: input.id
+				}
+			})
 			const newEvent = await ctx.prisma.vacationEvent.update({
 				data: {
 					name: input.name,
@@ -64,6 +82,38 @@ export const vacationEventRouter = createTRPCRouter({
 
 			return prismaToVacationEvent(newEvent);
 		}),
+	joinVacationEvent: protectedProcedure
+        .input(z.string())
+        .mutation(async ({ctx, input}) => {
+            await ctx.prisma.vacationEvent.update({
+                where: {
+                    id: input
+                },
+                data: {
+                    users: {
+                        connect: {
+                            id: ctx.session.auth.userVacation.id
+                        }
+                    }
+                }
+            });
+        }),
+	leaveVacationEvent: protectedProcedure
+        .input(z.string())
+        .mutation(async ({ctx, input}) => {
+            await ctx.prisma.vacationEvent.update({
+                where: {
+                    id: input
+                },
+                data: {
+                    users: {
+                        disconnect: {
+                            userId: ctx.session.auth.user.id
+                        }
+                    }
+                }
+            });
+        }),
 	deleteVacationEvent: protectedProcedure
 		.input(z.string())
 		.mutation(async ({ctx, input}) => {

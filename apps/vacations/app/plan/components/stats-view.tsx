@@ -32,7 +32,7 @@ interface CalculateStatsProps {
     groups: VacationGroup[],
     currUser: UserVacation | undefined;
 }
-const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): CalculateStatsResults => {
+const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateStatsResults => {
     const getAmountOfPeople = <T extends {amountType: AmountType}>(userLike: T[], callback?: (item: T) => {child: number, adult: number}): {child: number, adult: number} => {
         return userLike.reduce((prev, curr) => {
             if (curr.amountType === 'adult') {
@@ -52,7 +52,6 @@ const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): Cal
     }
     const getAmountsForGroup = (group?: VacationGroup): Stat[] => {
         const _events = currUser?.events ?? events;
-        currUser && _events.push(...currUser.createdByEvents);
         const groupId = group?.id;
         if (groupId) {
             _events.push(...events.filter(event => event.groupIds.includes(groupId)));
@@ -89,14 +88,14 @@ const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): Cal
         ]
     }
 
-    const amountsGroups = groups.reduce<StatGroup[]>((prev, curr) => {
-        const statGroup = {
-            label: curr.name,
-            items: getAmountsForGroup(curr)
-        }
-        prev.push(statGroup);
-        return prev;
-    }, [])
+    // const amountsGroups = groups.reduce<StatGroup[]>((prev, curr) => {
+    //     const statGroup = {
+    //         label: curr.name,
+    //         items: getAmountsForGroup(curr)
+    //     }
+    //     prev.push(statGroup);
+    //     return prev;
+    // }, [])
 
     const amountsTotal = {
         label: 'Total',
@@ -104,7 +103,7 @@ const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): Cal
     }
 
     return {
-        groups: amountsGroups,
+        groups: [],
         total: amountsTotal
     }
 }
