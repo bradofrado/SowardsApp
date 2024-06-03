@@ -27,6 +27,11 @@ export const vacationEventRouter = createTRPCRouter({
 							id: ctx.session.auth.userVacation.id
 						}
 					},
+					// users: {
+					// 	connect: {
+					// 		id: ctx.session.auth.userVacation.id
+					// 	}
+					// },
 					groups: {
 						connect: input.groupIds.map(id => ({id}))
 					}

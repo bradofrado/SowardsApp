@@ -1,16 +1,21 @@
-import { redirect } from "next/navigation";
-import { requireRoute } from "../../utils/protected-routes-hoc"
-import { createUser } from "./components/actions"
+import { getAuthSession } from "../../utils/auth"
+import { createUser, SetupUser, updateUser } from "./components/actions"
 import { SetupForm } from "./components/setup-form"
 
-const redirectIfAuthed = requireRoute({redirect: '/', check: (session) => Boolean(session?.auth.userVacation)});
 const SetupPage = async (): Promise<JSX.Element> => {
-    const result = await redirectIfAuthed()();
-    if (result.redirect) {
-        redirect(result.redirect);
+    const session = await getAuthSession();
+    const onSubmit = session?.auth.userVacation ? updateUser : createUser;
+    const user: SetupUser = session?.auth.userVacation ? {
+        groupIds: session.auth.userVacation.groupIds,
+        amountType: session.auth.userVacation.amountType as 'adult' | 'child',
+        dependents: session.auth.userVacation.dependents
+    } : {
+        amountType: 'adult',
+        groupIds: [],
+        dependents: []
     }
     return (
-        <SetupForm onSubmit={createUser}/>
+        <SetupForm onSubmit={onSubmit} user={user}/>
     )
 }
 

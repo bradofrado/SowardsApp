@@ -11,7 +11,8 @@ export const groupPayload = {
     include: {
         users: {
             include: {
-                user: true
+                user: true,
+                dependents: true
             }
         }
     }
@@ -21,13 +22,17 @@ export const prismaToVacationGroup = (group: Prisma.VacationGroupGetPayload<type
         id: group.id,
         name: group.name,
         isPublic: group.is_public,
-        users: group.users.map(({amountType, user}) => ({
+        users: group.users.map(({amountType, user, dependents}) => ({
             id: user.id,
             firstname: user.firstname,
             lastname: user.lastname,
-            email: user.email,
-            roles: user.roles,
-            amountType: amountTypesSchema.parse(amountType)
+            amountType: amountTypesSchema.parse(amountType),
+            dependents: dependents.map(dependent => ({
+                id: dependent.id,
+                firstname: dependent.firstname,
+                lastname: dependent.lastname,
+                amountType: amountTypesSchema.parse(dependent.amountType)
+            }))
         }))
     }
 }

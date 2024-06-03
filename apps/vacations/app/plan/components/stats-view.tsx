@@ -1,7 +1,7 @@
-import { UserVacation } from "db/lib/generated/client";
-import { Session } from "model/src/auth";
-import { VacationEvent, VacationGroup } from "model/src/vacation"
-import { Stat, Stats } from "ui/src/components/core/stats"
+import type { AmountType, UserVacation , VacationEvent, VacationGroup } from "model/src/vacation";
+import type { Session } from "model/src/auth";
+import type { Stat} from "ui/src/components/core/stats";
+import { Stats } from "ui/src/components/core/stats"
 
 interface StatsViewProps {
     events: VacationEvent[],
@@ -33,11 +33,31 @@ interface CalculateStatsProps {
     currUser: UserVacation | undefined;
 }
 const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): CalculateStatsResults => {
-    const getAmountsForGroup = (group?: VacationGroup): Stat[] => {
-        const groupId = group?.id;
-        const amounts = events.reduce((prev, curr) => {
-            if (curr.groupIds.length && groupId && !curr.groupIds.includes(groupId)) return prev;
+    const getAmountOfPeople = <T extends {amountType: AmountType}>(userLike: T[], callback?: (item: T) => {child: number, adult: number}): {child: number, adult: number} => {
+        return userLike.reduce((prev, curr) => {
+            if (curr.amountType === 'adult') {
+                prev.adult += 1;
+            } else if (curr.amountType === 'child') {
+                prev.child += 1;
+            }
 
+            if (callback) {
+                const res = callback(curr);
+                prev.adult += res.adult;
+                prev.child += res.child;
+            }
+
+            return prev;
+        }, {adult: 0, child: 0})
+    }
+    const getAmountsForGroup = (group?: VacationGroup): Stat[] => {
+        const _events = currUser?.events ?? events;
+        currUser && _events.push(...currUser.createdByEvents);
+        const groupId = group?.id;
+        if (groupId) {
+            _events.push(...events.filter(event => event.groupIds.includes(groupId)));
+        }
+        const amounts = _events.reduce((prev, curr) => {
             curr.amounts.forEach(({amount, type}) => {
                 prev[type] += amount;
             });
@@ -45,17 +65,21 @@ const useCalculateStats = ({events, groups, currUser}: CalculateStatsProps): Cal
             return prev;
         }, {all: 0, adult: 0, child: 0, me: 0});
 
-        const numPeopleInGroup = group?.users.reduce((prev, curr) => {
-            if (curr.amountType === 'adult') {
-                prev.adult += 1;
-            } else if (curr.amountType === 'child') {
-                prev.child += 1;
+        const numPeopleInGroup = //group?.users ? getAmountOfPeople(group.users, (item) => getAmountOfPeople(item.dependents)) : 
+        (function UserAmounts() {
+            if (!currUser?.dependents) return {adult: 0, child: 0};
+
+            const amount = getAmountOfPeople(currUser.dependents);
+            if (currUser.amountType === 'adult') {
+                amount.adult += 1;
+            } else if (currUser.amountType === 'child') {
+                amount.child += 1;
             }
 
-            return prev;
-        }, {adult: 0, child: 0});
-        const numAdults = numPeopleInGroup?.adult ?? (currUser?.amountType === 'adult' ? 1 : 0);
-        const numChilds = numPeopleInGroup?.child ?? (currUser?.amountType === 'child' ? 1 : 0);
+            return amount;
+        })()
+        const numAdults = numPeopleInGroup.adult
+        const numChilds = numPeopleInGroup.child
 
         return [
             {name: 'Total', stat: amounts.adult * numAdults + amounts.child * numChilds, type: 'number'},
