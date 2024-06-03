@@ -13,7 +13,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@clerk/nextjs";
 import { getServerAuthSession } from "./auth";
-import { Session } from "model/src/auth";
+import { AuthedSession, Session } from "model/src/auth";
 /**
  * 1. CONTEXT
  *
@@ -92,12 +92,12 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 
 // check if the user is signed in, otherwise throw a UNAUTHORIZED CODE
 const isAuthed = t.middleware(({ next, ctx }) => {
-  if (!ctx.session) {
+  if (!ctx.session?.auth.userVacation) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })
   }
   return next({
     ctx: {
-      session: ctx.session
+      session: ctx.session as AuthedSession
     },
   })
 })

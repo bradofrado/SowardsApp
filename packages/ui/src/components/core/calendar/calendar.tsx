@@ -75,7 +75,8 @@ const getDaysForMonth: GetDays = (_date) => {
 const getDaysForWeek: GetDays = (_date) => {
 	return [...Array<number>(7)].map((_, i) => {
 		const dateIndex = _date.getDate();
-		const date = new Date(_date.getFullYear(), _date.getMonth(), dateIndex - 6 + i);
+		const day = _date.getDay();
+		const date = new Date(_date.getFullYear(), _date.getMonth(), dateIndex + i - day);
 		return {
 			date,
 			isToday: datesEqual(new Date(), date)

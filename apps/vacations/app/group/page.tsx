@@ -1,14 +1,19 @@
-import { auth } from '@clerk/nextjs/server';
-import { getServerAuthSession } from 'api/src/auth';
-import {getGroups} from 'api/src/routers/vacation/group'
 import { prisma } from 'db/lib/prisma';
 import { GroupList } from './components/group-list';
 import { CreateGroup } from './components/create-group';
+import { getGroups } from 'api/src/repositories/group';
+import { requireUserVacation } from '../../utils/protected-routes-hoc';
+import { redirect } from 'next/navigation';
 
 export default async function GroupPage(): Promise<JSX.Element> {
+    const result = await requireUserVacation()();
+    if (result.redirect) {
+        redirect(result.redirect);
+    }
+
     const groups = await getGroups({db: prisma});
 
-    const session = await getServerAuthSession(auth().userId);
+    const session = result.session;
 
     const myGroups = session ? groups.filter(group => group.users.findIndex(user => user.id === session.auth.user.id) > -1) : undefined;
     const publicGroups = groups.filter(group => group.isPublic && (!myGroups || !myGroups.includes(group)));

@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs";
 import { prisma } from "db/lib/prisma";
 import type {AuthContext, Session, User} from 'model/src/auth';
+import { getUserVacation } from "./repositories/user-vacation";
 
 export const getAccount = async (userId: string): Promise<User | undefined> => {
 	const account = await prisma.user.findFirst({
@@ -59,9 +60,11 @@ export const getServerAuthSession = async (userId: string | null, mockUserId?: s
 		if (!account) {
 			account = await createAccount({firstname: user.firstName || '', lastname: user.lastName || '', email}, user.id);
 		}
+		const vacationAccount = await getUserVacation(account.id);
 		ourAuth = {
 			user: account,
 			userId: userIdToUse,
+			userVacation: vacationAccount
 		}
 	}
 

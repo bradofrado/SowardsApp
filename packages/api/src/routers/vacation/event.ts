@@ -1,7 +1,7 @@
-import type { Db, Prisma } from "db/lib/prisma";
-import {vacationEventSchema, vactionAmountSchema, type VacationEvent} from 'model/src/vacation'
+import {vacationEventSchema} from 'model/src/vacation'
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../../trpc";
+import { getVacationEvents, prismaToVacationEvent } from "../../repositories/event";
 
 export const vacationEventRouter = createTRPCRouter({
 	getVacationEvents: publicProcedure
@@ -22,7 +22,14 @@ export const vacationEventRouter = createTRPCRouter({
 					durationMinutes: input.durationMinutes,
 					is_public: input.isPublic,
 					location: input.location,
-					createdById: ctx.session.auth.user.id
+					createdBy: {
+						connect: {
+							id: ctx.session.auth.userVacation.id
+						}
+					},
+					groups: {
+						connect: input.groupIds.map(id => ({id}))
+					}
 				}
 			});
 
@@ -60,23 +67,5 @@ export const vacationEventRouter = createTRPCRouter({
 		})
 })
 
-export async function getVacationEvents({db}: {db: Db}): Promise<VacationEvent[]> {
-	const vacationEvents = await db.vacationEvent.findMany();
 
-	return vacationEvents.map(event => prismaToVacationEvent(event));
-}
 
-const prismaToVacationEvent = (event: Prisma.VacationEventGetPayload<true>): VacationEvent => {
-	return {
-		id: event.id,
-		name: event.name,
-		date: event.date,
-		durationMinutes: event.durationMinutes,
-		userIds: event.userIds,
-		isPublic: event.is_public,
-		notes: event.notes,
-		location: event.location,
-		createdById: event.createdById,
-		amounts: z.array(vactionAmountSchema).parse(event.amounts)
-	}
-}

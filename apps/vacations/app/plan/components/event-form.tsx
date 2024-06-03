@@ -9,6 +9,7 @@ import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import type { VacationEvent } from "model/src/vacation";
+import { VacationGroupDropdown } from "../../../utils/vacation-group-dropdown";
 
 type EventAmountType = 'all' | 'adult' | 'child'
 interface EventAmount {
@@ -43,6 +44,7 @@ export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({sh
 export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave, onRemove, edit}) => {
     const [event, setEvent] = useState<Event>(eventProp);
     const changeProperty = useChangeProperty<Event>(setEvent);
+
     return <div>
         <Header>{edit ? 'Edit Event' : 'Add Event'}</Header>
         <Label label="Name">
@@ -62,6 +64,9 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
         </Label>
         <Label label="Notes">
             <Input onChange={changeProperty.formFunc('notes', event)} type='textarea' value={event.notes}/>
+        </Label>
+        <Label label="Group">
+            <VacationGroupDropdown onChange={changeProperty.formFunc('groupIds', event)} value={event.groupIds}/>
         </Label>
         <Button onClick={() => {onSave(event)}}>
             Save

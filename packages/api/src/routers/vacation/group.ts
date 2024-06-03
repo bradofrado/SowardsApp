@@ -1,10 +1,16 @@
-import type { VacationGroup} from "model/src/vacation";
 import { vacationGroupSchema } from "model/src/vacation";
-import type { Db, Prisma } from "db/lib/prisma";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../../trpc";
+import { getGroups, groupPayload, prismaToVacationGroup } from "../../repositories/group";
 
 export const vacationGroupRouter = createTRPCRouter({
+    getGroups: publicProcedure
+        .output(z.array(vacationGroupSchema))
+        .query(async ({ctx}) => {
+            const groups = await getGroups({db: ctx.prisma});
+
+            return groups;
+        }),
     createGroup: protectedProcedure
         .input(vacationGroupSchema)
         .output(vacationGroupSchema)
@@ -14,17 +20,8 @@ export const vacationGroupRouter = createTRPCRouter({
                     name: input.name,
                     is_public: input.isPublic,
                     users: !input.isPublic ? {
-                        connectOrCreate: {
-                            create: {
-                                user: {
-                                    connect: {
-                                        id: ctx.session.auth.user.id
-                                    }
-                                }
-                            },
-                            where: {
-                                userId: ctx.session.auth.user.id
-                            }
+                        connect: {
+                            id: ctx.session.auth.userVacation.id
                         }
                     } : undefined
                 },
@@ -59,17 +56,8 @@ export const vacationGroupRouter = createTRPCRouter({
                 },
                 data: {
                     users: {
-                        connectOrCreate: {
-                            create: {
-                                user: {
-                                    connect: {
-                                        id: ctx.session.auth.user.id
-                                    }
-                                }
-                            },
-                            where: {
-                                userId: ctx.session.auth.user.id
-                            }
+                        connect: {
+                            id: ctx.session.auth.userVacation.id
                         }
                     }
                 }
@@ -101,33 +89,3 @@ export const vacationGroupRouter = createTRPCRouter({
             });
         })
 });
-
-export const getGroups = async ({db}: {db: Db}): Promise<VacationGroup[]> => {
-    const groups = await db.vacationGroup.findMany(groupPayload);
-
-    return groups.map(group => prismaToVacationGroup(group));
-}
-
-const groupPayload = {
-    include: {
-        users: {
-            include: {
-                user: true
-            }
-        }
-    }
-} satisfies Prisma.VacationGroupDefaultArgs
-const prismaToVacationGroup = (group: Prisma.VacationGroupGetPayload<typeof groupPayload>): VacationGroup => {
-    return {
-        id: group.id,
-        name: group.name,
-        isPublic: group.is_public,
-        users: group.users.map(({user}) => ({
-            id: user.id,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            email: user.email,
-            roles: user.roles
-        }))
-    }
-}

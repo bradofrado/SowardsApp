@@ -3,8 +3,9 @@ import { userSchema } from "./auth";
 
 const amountTypes = ['all', 'adult', 'child'] as const;
 
+export const amountTypesSchema = z.union([z.literal('all'), z.literal('adult'), z.literal('child')])
 export const vactionAmountSchema = z.object({
-    type: z.union([z.literal('all'), z.literal('adult'), z.literal('child')]),
+    type: amountTypesSchema,
     amount: z.number()
 })
 export const vacationEventSchema = z.object({
@@ -17,6 +18,7 @@ export const vacationEventSchema = z.object({
     amounts: z.array(vactionAmountSchema),
     isPublic: z.boolean(),
     userIds: z.array(z.string()),
+    groupIds: z.array(z.string()),
     createdById: z.string()
 })
 export type VacationEvent = z.infer<typeof vacationEventSchema>;
@@ -28,3 +30,14 @@ export const vacationGroupSchema = z.object({
     isPublic: z.boolean()
 });
 export type VacationGroup = z.infer<typeof vacationGroupSchema>;
+
+export const userVacationSchema = z.object({
+    id: z.string(),
+    userId: z.string(),
+    groupIds: z.array(z.string()),
+    groups: z.array(vacationGroupSchema),
+    eventIds: z.array(z.string()),
+    events: z.array(vacationEventSchema),
+    amountType: amountTypesSchema
+});
+export type UserVacation = z.infer<typeof userVacationSchema>

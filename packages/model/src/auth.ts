@@ -1,13 +1,21 @@
 import { z } from "zod";
 import { stringUnionSchema } from "./utils";
+import { UserVacation } from "./vacation";
 
 export type AuthContext = {
 	userId: string;
-	user: User
+	user: User,
+  userVacation: UserVacation | undefined
 };
 
 export interface Session {
   auth: AuthContext,
+}
+
+export interface AuthedSession {
+  auth: Omit<AuthContext, 'userVacation'> & {
+    userVacation: UserVacation
+  }
 }
 
 export const userSchema = z.object({
