@@ -10,6 +10,7 @@ import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import type { VacationEvent } from "model/src/vacation";
 import { VacationGroupDropdown } from "../../../utils/vacation-group-dropdown";
+import { Dropdown, DropdownItem } from "ui/src/components/core/dropdown";
 
 type EventAmountType = 'all' | 'adult' | 'child'
 interface EventAmount {
@@ -144,10 +145,22 @@ interface AmountFieldProps {
 }
 const AmountField: React.FunctionComponent<AmountFieldProps> = ({value, onChange, onRemove}) => {
     const changeProperty = useChangeProperty<EventAmount>(onChange);
+    const items: DropdownItem<EventAmountType>[] = [
+        {
+            id: 'adult',
+            name: 'Adult'
+        },
+        {
+            id: 'child',
+            name: 'Child'
+        }
+    ]
     return (
         <div>
-            <Input onChange={(val) => changeProperty(value, 'amount', Number(val))} value={value.amount}/>
-            <Input onChange={(type) => changeProperty(value, 'type', type as EventAmountType)} value={value.type}/>
+            <div className="flex gap-2">
+                <Input onChange={(val) => changeProperty(value, 'amount', Number(val))} value={value.amount}/>
+                <Dropdown initialValue={value.type} items={items} onChange={(item) => changeProperty(value, 'type', item.id)}>Select Type</Dropdown>
+            </div>
             <Button onClick={onRemove}>Remove</Button>
         </div>
     )

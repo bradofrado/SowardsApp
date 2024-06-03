@@ -1,5 +1,5 @@
 import type { Db, Prisma } from "db/lib/prisma";
-import type { VacationGroup } from "model/src/vacation";
+import { amountTypesSchema, type VacationGroup } from "model/src/vacation";
 
 export const getGroups = async ({db}: {db: Db}): Promise<VacationGroup[]> => {
     const groups = await db.vacationGroup.findMany(groupPayload);
@@ -21,12 +21,13 @@ export const prismaToVacationGroup = (group: Prisma.VacationGroupGetPayload<type
         id: group.id,
         name: group.name,
         isPublic: group.is_public,
-        users: group.users.map(({user}) => ({
+        users: group.users.map(({amountType, user}) => ({
             id: user.id,
             firstname: user.firstname,
             lastname: user.lastname,
             email: user.email,
-            roles: user.roles
+            roles: user.roles,
+            amountType: amountTypesSchema.parse(amountType)
         }))
     }
 }

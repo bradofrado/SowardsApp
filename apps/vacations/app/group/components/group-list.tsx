@@ -100,7 +100,7 @@ const GroupCard: React.FunctionComponent<GroupCardProps> = ({group, onUpdate, on
     }
     return (
         <Card items={items} label={group.name} onChange={onChange}>
-            {group.users.map(user => <Pill key={user.id}>{`${user.firstname} ${user.lastname}`}</Pill>)}
+            {group.users.filter(user => 'id' in user).map(user => <Pill key={user.id}>{`${user.firstname} ${user.lastname}`}</Pill>)}
         </Card>
     )
 }

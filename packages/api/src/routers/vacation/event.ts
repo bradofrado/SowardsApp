@@ -48,6 +48,9 @@ export const vacationEventRouter = createTRPCRouter({
 					durationMinutes: input.durationMinutes,
 					is_public: input.isPublic,
 					location: input.location,
+					groups: {
+						connect: input.groupIds.map(id => ({id}))
+					}
 				},
 				where: {
 					id: input.id

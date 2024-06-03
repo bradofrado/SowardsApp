@@ -15,7 +15,7 @@ export default async function GroupPage(): Promise<JSX.Element> {
 
     const session = result.session;
 
-    const myGroups = session ? groups.filter(group => group.users.findIndex(user => user.id === session.auth.user.id) > -1) : undefined;
+    const myGroups = session ? groups.filter(group => group.users.filter(user => 'id' in user).findIndex(user => user.id === session.auth.user.id) > -1) : undefined;
     const publicGroups = groups.filter(group => group.isPublic && (!myGroups || !myGroups.includes(group)));
     return (
         <div>
