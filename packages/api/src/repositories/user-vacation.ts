@@ -12,7 +12,8 @@ const payload = {
         },
         events: true,
         dependents: true,
-        created: true
+        created: true,
+        user: true
     }
 } satisfies Prisma.UserVacationDefaultArgs
 export const getUserVacation = async (userId: string): Promise<UserVacation | undefined> => {
@@ -42,7 +43,8 @@ const prismaToUserVacation = (user: Prisma.UserVacationGetPayload<typeof payload
             lastname: dependent.lastname,
             amountType: amountTypesSchema.parse(dependent.amountType)
         })),
-        createdByEvents: user.created.map(event => prismaToVacationEvent(event))
+        createdByEvents: user.created.map(event => prismaToVacationEvent(event)),
+        role: user.user.roles[0] || 'user'
     }
 } 
 

@@ -1,24 +1,41 @@
 import { clerkClient } from "@clerk/nextjs";
-import { prisma } from "db/lib/prisma";
+import { Prisma, prisma } from "db/lib/prisma";
 import type {AuthContext, Session, User} from 'model/src/auth';
 import { getUserVacation } from "./repositories/user-vacation";
 
+const payload = {
+	include: {
+		userVacation: true
+	}
+} satisfies Prisma.UserDefaultArgs 
+
+const prismaToUser = (user: Prisma.UserGetPayload<typeof payload>): User => {
+	return {
+		id: user.id,
+		firstname: user.firstname,
+		lastname: user.lastname,
+		roles: user.roles,
+		email: user.email,
+		userVacationId: user.userVacation?.id
+	}
+}
 export const getAccount = async (userId: string): Promise<User | undefined> => {
 	const account = await prisma.user.findFirst({
 		where: {
 			userId
 		},
+		...payload
 	});
 
 	if (account === null) return undefined;
 
-	return {
-		id: account.id,
-		firstname: account.firstname,
-		lastname: account.lastname,
-		roles: account.roles,
-		email: account.email,
-	}
+	return prismaToUser(account);
+}
+
+export const getUsers = async (): Promise<User[]> => {
+	const users = await prisma.user.findMany(payload);
+
+	return users.map(user => prismaToUser(user))
 }
 
 export const createAccount = async ({lastname, firstname, email}: Omit<User, 'roles' | 'id'>, userId: string): Promise<User> => {
@@ -31,16 +48,11 @@ export const createAccount = async ({lastname, firstname, email}: Omit<User, 'ro
 			lastname,
 			email,
 			roles: ['user']
-		}
+		},
+		...payload
 	});
 
-	return {
-		id: newUser.id,
-		firstname: newUser.firstname,
-		lastname: newUser.lastname,
-		email: newUser.email,
-		roles: newUser.roles
-	}
+	return prismaToUser(newUser)
 }
 
 export const getServerAuthSession = async (userId: string | null, mockUserId?: string): Promise<Session | undefined> => {
@@ -58,7 +70,7 @@ export const getServerAuthSession = async (userId: string | null, mockUserId?: s
 		const email = user.emailAddresses[0].emailAddress;
 		let account = await getAccount(user.id);
 		if (!account) {
-			account = await createAccount({firstname: user.firstName || '', lastname: user.lastName || '', email}, user.id);
+			account = await createAccount({firstname: user.firstName || '', lastname: user.lastName || '', email, userVacationId: ''}, user.id);
 		}
 		const vacationAccount = await getUserVacation(account.id);
 		ourAuth = {

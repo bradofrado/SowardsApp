@@ -1,15 +1,16 @@
+'use client'
 import type { AmountType, UserVacation , VacationEvent, VacationGroup } from "model/src/vacation";
-import type { Session } from "model/src/auth";
 import type { Stat} from "ui/src/components/core/stats";
 import { Stats } from "ui/src/components/core/stats"
+import { useUser } from "./user-provider";
 
 interface StatsViewProps {
     events: VacationEvent[],
     groups: VacationGroup[],
-    session: Session | undefined
 }
-export const StatsView: React.FunctionComponent<StatsViewProps> = ({events, groups, session}) => {
-    const stats = useCalculateStats({events, groups, currUser: session?.auth.userVacation});
+export const StatsView: React.FunctionComponent<StatsViewProps> = ({events, groups}) => {
+    const {user: currUser} = useUser();
+    const stats = useCalculateStats({events, groups, currUser});
     return (
         <div className="flex flex-col gap-4">
             <Stats {...stats.total}/>

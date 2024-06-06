@@ -24,6 +24,7 @@ export const userSchema = z.object({
   lastname: z.string(),
   email: z.string(),
   roles: z.array(z.string()),
+  userVacationId: z.optional(z.string())
 })
 export type User = z.infer<typeof userSchema>;
 

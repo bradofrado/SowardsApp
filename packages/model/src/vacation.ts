@@ -51,5 +51,6 @@ export const userVacationSchema = z.object({
     amountType: amountTypesSchema,
     dependents: z.array(dependentSchema),
     createdByEvents: z.array(vacationEventSchema),
+    role: z.string()
 });
 export type UserVacation = z.infer<typeof userVacationSchema>

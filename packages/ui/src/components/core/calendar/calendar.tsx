@@ -849,7 +849,7 @@ type DateStepperDropdownItem = {
 }[DateStepperType]
 
 interface CalendarViewProps {
-	onAddEvent: () => void;
+	onAddEvent?: () => void;
 	events: CalendarEvent[];
 	onEventClick: (event: CalendarEvent) => void;
 	initialDate?: Date
@@ -919,10 +919,12 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddE
           </div>
           <div className="hidden md:ml-4 md:flex md:items-center">
 			<Dropdown initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
-            <div className="ml-6 h-6 w-px bg-gray-300" />
-			<Button className="ml-6" onClick={onAddEvent}>
-				Add Event
-			</Button>
+            {onAddEvent ?<> 
+				<div className="ml-6 h-6 w-px bg-gray-300" />
+				<Button className="ml-6" onClick={onAddEvent}>
+					Add Event
+				</Button>
+			</> : null}
 		  </div>
 		  {/* <Dropdown className="ml-6 md:hidden" initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/> */}
         </div>
