@@ -2,11 +2,13 @@
 import { Header } from "ui/src/components/core/header";
 import {Label} from 'ui/src/components/core/label';
 import { BaseModal } from "ui/src/components/core/modal";
-import {Input, InputBlur} from 'ui/src/components/core/input';
-import { useMemo, useState } from "react";
+import {Input} from 'ui/src/components/core/input';
+import { useState } from "react";
 import {useChangeProperty} from 'ui/src/hooks/change-property';
 import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
+import type { TimeRangeValue} from 'ui/src/components/core/calendar/time-picker';
+import {TimeRangeInput} from 'ui/src/components/core/calendar/time-picker';
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import type { VacationEvent } from "model/src/vacation";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
@@ -80,37 +82,6 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
             {!inGroup ? <>{!joined ? <Button onClick={() => {onJoin(event)}}>Join</Button> : <Button onClick={() => {onLeave(event)}}>Leave</Button>}</>: null}
         </> : null}
     </div>
-}
-
-interface TimeRangeValue {
-    date: Date;
-    durationMinutes: number;
-}
-interface TimeRangeInputProps {
-    value: TimeRangeValue
-    onChange: (vale: TimeRangeValue) => void;
-}
-const TimeRangeInput: React.FunctionComponent<TimeRangeInputProps> = ({value, onChange}) => {
-    const changeProperty = useChangeProperty(onChange);
-    const time = useMemo(() => {
-        return value.date.getHours() + (value.date.getMinutes() / 60);
-    }, [value.date]);
-
-    const onTimeChange = (timeValue: string): void => {
-        const date = new Date(value.date);
-        const hours = Math.floor(Number(timeValue));
-        date.setHours(hours);
-        date.setMinutes((Number(timeValue) - hours) * 60)
-        changeProperty(value, 'date', date);
-    }
-    
-    return (
-        <div className="flex gap-2">
-            <InputBlur onChange={onTimeChange} value={time}/>
-            <span> - </span>
-            <Input onChange={changeProperty.formFuncNumber('durationMinutes', value)} value={value.durationMinutes}/>
-        </div>
-    )
 }
 
 const AmountFields: React.FunctionComponent<{amounts: EventAmount[], onChange: (value: EventAmount[]) => void}> = ({amounts, onChange}) => {

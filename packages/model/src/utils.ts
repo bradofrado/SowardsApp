@@ -178,13 +178,15 @@ export function isDateInBetween(
   test: Date | undefined,
   start: Date | undefined,
   end: Date | undefined,
+  checkOnlyDate?: boolean
 ): boolean {
   if (test === undefined) {
     return true;
   }
+  const _end = checkOnlyDate && end ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59) : end;
   return (
     (start !== undefined ? start <= test : true) &&
-    (end !== undefined ? test <= end : true)
+    (_end !== undefined ? test <= _end : true)
   );
 }
 

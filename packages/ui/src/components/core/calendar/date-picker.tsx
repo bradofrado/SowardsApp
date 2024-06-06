@@ -67,7 +67,15 @@ export const DatePicker = (props: MyDatePickerProps): JSX.Element => {
   const options: DatePickerStateOptions<CalendarDate> = {
     value: props.date ? dateToCalendarDate(props.date) : null,
     onChange: (value: CalendarDate | null) => {
-      props.onChange(value?.toDate(getLocalTimeZone()) ?? null);
+      const date = value?.toDate(getLocalTimeZone()) ?? null;
+      if (props.date && date) {
+        date.setHours(props.date.getHours());
+        date.setMinutes(props.date.getMinutes());
+        date.setSeconds(props.date.getSeconds());
+        date.setMilliseconds(props.date.getMilliseconds());
+      }
+      
+      props.onChange(date);
     },
   };
   const state = useDatePickerState(options);

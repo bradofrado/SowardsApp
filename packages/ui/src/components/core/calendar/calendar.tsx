@@ -472,7 +472,7 @@ export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidden: boolean, onClick: () => void, className?: string}> = ({event, hidden, onClick, className}) => {
 	const ref = useRef<HTMLLIElement>(null);
 	const color = getColorClasses(event.color);
-	const gridRow = event.date.getHours() * 12 + (event.date.getMinutes() / 60) * 6 + 2;
+	const gridRow = event.date.getHours() * 12 + (event.date.getMinutes() / 60) * 12 + 2;
 	const gridSpan = (event.durationMinutes / 60) * 12;
 	const colStart = event.date.getDay() + 1;
 	useEffect(() => {
@@ -729,7 +729,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
 							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
 						>	
-							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
+							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date, true) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -979,10 +979,11 @@ interface CalendarViewProps {
 	onAddEvent: () => void;
 	events: CalendarEvent[];
 	onEventClick: (event: CalendarEvent) => void;
+	intitialDate?: Date
 }
-export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events}) => {
+export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events, intitialDate}) => {
 	const [view, setView] = useState<DateStepperType>('week');
-	const {increment, decrement, days, date, setDate} = useDateStepper(view);
+	const {increment, decrement, days, date, setDate} = useDateStepper(view, intitialDate);
 
 	const dateDisplay = `${view !== 'year' ? `${date.toLocaleDateString('default', { month: 'long' })} ` : ''}${date.getFullYear()}`;
 
