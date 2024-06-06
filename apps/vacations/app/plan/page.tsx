@@ -17,8 +17,14 @@ const PlanPage = async (): Promise<JSX.Element> => {
 	const session = result.session
 	return (
 		<div className="mx-auto max-w-lg px-6 py-8 lg:max-w-4xl xl:max-w-6xl h-0 min-h-[768px]">
-			<CalendarView events={events} user={session?.auth.userVacation}/>
-			<StatsView events={events} groups={groups} session={session}/>
+			<div className="md:grid md:grid-cols-3 md:divide-x md:divide-gray-200">
+				<div className="md:pr-14 md:col-span-1">
+					<StatsView events={events} groups={groups} session={session}/>
+				</div>
+				<div className="mt-12 md:mt-0 md:pl-14 md:col-span-2">
+					<CalendarView events={events} user={session?.auth.userVacation}/>
+				</div>
+			</div>
 		</div>
 	)
 }

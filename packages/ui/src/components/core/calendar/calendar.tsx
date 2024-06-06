@@ -331,7 +331,7 @@ const _events: CalendarEvent[] = [
 	{ id: '7', name: 'Cinema with friends', date: new Date('2023-10-04T21:00'), durationMinutes: 60, href: '#', color: 'blue' }
 ]
 
-type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void}>
+type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void, initialDate: Date}>
 
 export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 	const days: (Day & {events: CalendarEvent[]})[] = pureDays.map(day => ({...day, events: events.filter(event => datesEqual(event.date, day.date))}))
@@ -469,10 +469,11 @@ export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 	</>)
 }
 
-export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidden: boolean, onClick: () => void, className?: string}> = ({event, hidden, onClick, className}) => {
+export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidden: boolean, onClick: () => void, className?: string, hourOffset?: number}> = ({event, hidden, onClick, className, hourOffset=0}) => {
 	const ref = useRef<HTMLLIElement>(null);
 	const color = getColorClasses(event.color);
-	const gridRow = event.date.getHours() * 12 + (event.date.getMinutes() / 60) * 12 + 2;
+	const hours = event.date.getHours() - hourOffset;
+	const gridRow = hours * 12 + (event.date.getMinutes() / 60) * 12 + 2;
 	const gridSpan = (event.durationMinutes / 60) * 12;
 	const colStart = event.date.getDay() + 1;
 	useEffect(() => {
@@ -494,8 +495,12 @@ export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidde
 	</li>
 }
 
-export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventClick}) => {
-	const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+const totalHours = ['12AM', '1AM', '2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM', '1PM', '2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM',] as const;
+type Hour = typeof totalHours[number];
+const hoursStart: Hour = '6AM';
+const interval: 'hour' | 'half-hour' = 'hour';
+export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventClick, initialDate}) => {
+	const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate);
 	const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
@@ -511,11 +516,15 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 					currentMinute) /
 				1440
 		}
-  }, [])
+  }, []);
 
-	useEffect(() => {
-		setSelectedDate(pureDays[0].date);
-	}, [pureDays])
+  const hoursStartIndex = totalHours.indexOf(hoursStart);
+  const hours = totalHours.slice(hoursStartIndex)
+  const intervalPerHour = interval === 'hour' ? 2 : 1;
+
+	// useEffect(() => {
+	// 	setSelectedDate(pureDays[0].date);
+	// }, [pureDays])
 	
 	return (
 		<div className="isolate flex flex-auto flex-col overflow-auto bg-white" ref={container}>
@@ -563,153 +572,17 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 						{/* Horizontal lines */}
 						<div
 							className="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100"
-							style={{ gridTemplateRows: 'repeat(48, minmax(3.5rem, 1fr))' }}
+							style={{ gridTemplateRows: `repeat(${hours.length * intervalPerHour}, minmax(3.5rem, 1fr))` }}
 						>
 							<div className="row-end-1 h-7" ref={containerOffset} />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									12AM
+							{hours.map(hour => <>
+								<div>
+									<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+										{hour}
+									</div>
 								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									1AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									2AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									3AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									4AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									5AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									6AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									7AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									8AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									9AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									10AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									11AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									12PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									1PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									2PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									3PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									4PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									5PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									6PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									7PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									8PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									9PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									10PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									11PM
-								</div>
-							</div>
-							<div />
+								{interval === 'hour' ? <div/> : null}
+							</>)}
 						</div>
 
 						{/* Vertical lines */}
@@ -727,9 +600,9 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 						{/* Events */}
 						<ol
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
-							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
+							style={{ gridTemplateRows: `1.75rem repeat(${hours.length * 12}, minmax(0, 1fr)) auto` }}
 						>	
-							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date, true) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
+							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date, true) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}} hourOffset={hoursStartIndex}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -979,11 +852,11 @@ interface CalendarViewProps {
 	onAddEvent: () => void;
 	events: CalendarEvent[];
 	onEventClick: (event: CalendarEvent) => void;
-	intitialDate?: Date
+	initialDate?: Date
 }
-export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events, intitialDate}) => {
+export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events, initialDate}) => {
 	const [view, setView] = useState<DateStepperType>('week');
-	const {increment, decrement, days, date, setDate} = useDateStepper(view, intitialDate);
+	const {increment, decrement, days, date, setDate} = useDateStepper(view, initialDate);
 
 	const dateDisplay = `${view !== 'year' ? `${date.toLocaleDateString('default', { month: 'long' })} ` : ''}${date.getFullYear()}`;
 
@@ -1045,16 +918,16 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddE
             </button>
           </div>
           <div className="hidden md:ml-4 md:flex md:items-center">
-						<Dropdown initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
+			<Dropdown initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
             <div className="ml-6 h-6 w-px bg-gray-300" />
-            <Button className="ml-6" onClick={onAddEvent}>
+			<Button className="ml-6" onClick={onAddEvent}>
 				Add Event
 			</Button>
-          </div>
-					<Dropdown className="ml-6 md:hidden" initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/>
+		  </div>
+		  {/* <Dropdown className="ml-6 md:hidden" initialValue={view} items={viewItems} onChange={(item) => {setView(item.id)}}/> */}
         </div>
       </header>
-			<CurrView days={days} events={events} onEventClick={onEventClick}/>
+			<CurrView days={days} events={events} onEventClick={onEventClick} initialDate={date}/>
     </div>
 	)
 }

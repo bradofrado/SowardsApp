@@ -22,7 +22,7 @@ function RootLayout({
       <TrpcProvider>
         <html className="h-full bg-white" lang="en">
           <body className={`${inter.className} h-full`}>
-            <Nav/>
+            {/* <Nav/> */}
             {children}
           </body>
         </html>

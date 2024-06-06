@@ -98,7 +98,7 @@ const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateSt
     // }, [])
 
     const amountsTotal = {
-        label: 'Total',
+        label: 'Bugdet',
         items: getAmountsForGroup()
     }
 
