@@ -1,22 +1,21 @@
+import { getUsers } from "api/src/auth";
 import { getAuthSession } from "../../utils/auth"
-import type { SetupUser} from "./components/actions";
+import { UserProvider } from "../plan/components/user-provider";
+import { UserToggle } from "../plan/components/user-toggle";
 import { createUser, updateUser } from "./components/actions"
 import { SetupForm } from "./components/setup-form"
+import { getUser } from "../plan/actions";
 
 const SetupPage = async (): Promise<JSX.Element> => {
     const session = await getAuthSession();
     const onSubmit = session?.auth.userVacation ? updateUser : createUser;
-    const user: SetupUser = session?.auth.userVacation ? {
-        groupIds: session.auth.userVacation.groupIds,
-        amountType: session.auth.userVacation.amountType as 'adult' | 'child',
-        dependents: session.auth.userVacation.dependents
-    } : {
-        amountType: 'adult',
-        groupIds: [],
-        dependents: []
-    }
+    const user = session?.auth.userVacation || {id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''};
+    const users = await getUsers();
     return (
-        <SetupForm onSubmit={onSubmit} user={user}/>
+        <UserProvider user={user} getUser={getUser}>
+            <UserToggle users={users} getUser={getUser}/>
+            <SetupForm onSubmit={onSubmit} user={user}/>
+        </UserProvider>
     )
 }
 

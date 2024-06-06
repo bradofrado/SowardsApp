@@ -1,7 +1,7 @@
 'use server';
 
 import { createUserVacation, updateUserVacation } from "api/src/repositories/user-vacation";
-import type { VacationDependent } from "model/src/vacation";
+import type { UserVacation, VacationDependent } from "model/src/vacation";
 import { getAuthSession } from "../../../utils/auth";
 
 export interface SetupUser {
@@ -9,12 +9,14 @@ export interface SetupUser {
     dependents: VacationDependent[],
     amountType: 'adult' | 'child'
 }
-export const createUser = async (user: SetupUser): Promise<void> => {
+export const createUser = async (user: UserVacation, _userId?: string): Promise<void> => {
     const session = await getAuthSession();
     if (!session?.auth.userId) return;
 
+    const userId = !_userId || session.auth.user.roles[0] !== 'admin' ? session.auth.user.id : _userId;
+
     await createUserVacation({
-        userId: session.auth.user.id,
+        userId,
         amountType: user.amountType,
         groupIds: user.groupIds,
         groups: [],
@@ -22,23 +24,32 @@ export const createUser = async (user: SetupUser): Promise<void> => {
         eventIds: [],
         id: '',
         dependents: user.dependents,
-        createdByEvents: []
+        createdByEvents: [],
+        role: 'user'
     })
 }
 
-export const updateUser = async (user: SetupUser): Promise<void> => {
+export const updateUser = async (user: UserVacation, _userId?: string): Promise<void> => {
     const session = await getAuthSession();
     if (!session?.auth.userId || !session.auth.userVacation) return;
 
+    if (!user.id) {
+        await createUser(user, _userId);
+        return;
+    }
+
+    const userId = !_userId || session.auth.user.roles[0] !== 'admin' ? session.auth.user.id : _userId;
+
     await updateUserVacation({
-        userId: session.auth.user.id,
+        userId,
         amountType: user.amountType,
         groupIds: user.groupIds,
         groups: [],
         events: [],
         eventIds: [],
-        id: session.auth.userVacation.id,
+        id: user.id,
         dependents: user.dependents,
-        createdByEvents: []
+        createdByEvents: [],
+        role: 'user'
     })
 } 

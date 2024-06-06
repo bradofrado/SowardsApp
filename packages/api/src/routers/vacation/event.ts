@@ -83,32 +83,34 @@ export const vacationEventRouter = createTRPCRouter({
 			return prismaToVacationEvent(newEvent);
 		}),
 	joinVacationEvent: protectedProcedure
-        .input(z.string())
+        .input(z.object({id: z.string(), userId: z.optional(z.string())}))
         .mutation(async ({ctx, input}) => {
+			const userId = !input.userId || ctx.session.auth.userVacation.role !== 'admin' ? ctx.session.auth.userVacation.id : input.userId
             await ctx.prisma.vacationEvent.update({
                 where: {
-                    id: input
+                    id: input.id
                 },
                 data: {
                     users: {
                         connect: {
-                            id: ctx.session.auth.userVacation.id
+                            id: userId
                         }
                     }
                 }
             });
         }),
 	leaveVacationEvent: protectedProcedure
-        .input(z.string())
+        .input(z.object({id: z.string(), userId: z.optional(z.string())}))
         .mutation(async ({ctx, input}) => {
+			const userId = !input.userId || ctx.session.auth.userVacation.role !== 'admin' ? ctx.session.auth.userVacation.id : input.userId
             await ctx.prisma.vacationEvent.update({
                 where: {
-                    id: input
+                    id: input.id
                 },
                 data: {
                     users: {
                         disconnect: {
-                            userId: ctx.session.auth.user.id
+                            id: userId
                         }
                     }
                 }

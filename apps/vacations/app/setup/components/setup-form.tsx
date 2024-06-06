@@ -1,24 +1,33 @@
 'use client'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "ui/src/components/core/button"
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { Dropdown } from "ui/src/components/core/dropdown"
 import { Header } from "ui/src/components/core/header"
 import { Label } from "ui/src/components/core/label"
 import { useChangeProperty } from "ui/src/hooks/change-property"
-import type { AmountType, VacationDependent } from "model/src/vacation"
+import { UserVacation, type AmountType, type VacationDependent } from "model/src/vacation"
 import { Input } from "ui/src/components/core/input"
-import type { SetupUser } from "./actions";
+import { useUser } from "../../plan/components/user-provider";
 
 
-export const SetupForm: React.FunctionComponent<{onSubmit: (user: SetupUser) => Promise<void>, user: SetupUser}> = ({onSubmit, user}) => {
-    const [userVacation, setUserVacation] = useState<SetupUser>(user);
-    const changeProperty = useChangeProperty<SetupUser>(setUserVacation);
+export const SetupForm: React.FunctionComponent<{onSubmit: (user: UserVacation, userId?: string) => Promise<void>, user: UserVacation}> = ({onSubmit, user: origUser}) => {
+    const {user, userId} = useUser();
+    const [userVacation, setUserVacation] = useState<UserVacation>(userId ? user || {id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''} : origUser);
+    const changeProperty = useChangeProperty<UserVacation>(setUserVacation);
+
+    useEffect(() => {
+        if (user && user.id !== userVacation.id) {
+            setUserVacation(user);
+        } else if (userId && !user && userVacation.id !== '') {
+            setUserVacation({id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''})
+        }
+    }, [user, userVacation, userId])
 
     return (<div className="flex flex-col gap-4">
         <Header>Setup Account for </Header>
         <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-			<Label className="sm:col-span-full" label="Person Type">
+            <Label className="sm:col-span-full" label="Person Type">
                 <AmountTypeDropdown onChange={changeProperty.formFunc('amountType', userVacation)} value={userVacation.amountType}/>
             </Label>
 			{/* <Label className="sm:col-span-full" label="Groups">
@@ -27,7 +36,7 @@ export const SetupForm: React.FunctionComponent<{onSubmit: (user: SetupUser) => 
             <Label className="sm:col-span-full" label="Dependents">
                 <DependentsForm dependents={userVacation.dependents} onChange={changeProperty.formFunc('dependents', userVacation)}/>
             </Label>
-			<Button onClick={() => onSubmit(userVacation)}>Create Account</Button>
+			<Button onClick={() => onSubmit(userVacation, userId)}>Create Account</Button>
 		</div>
     </div>)
 }

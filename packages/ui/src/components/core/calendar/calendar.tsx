@@ -331,7 +331,7 @@ const _events: CalendarEvent[] = [
 	{ id: '7', name: 'Cinema with friends', date: new Date('2023-10-04T21:00'), durationMinutes: 60, href: '#', color: 'blue' }
 ]
 
-type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick: (event: CalendarEvent) => void, initialDate: Date}>
+type CalendarView = React.FunctionComponent<{days: Day[], events: CalendarEvent[], onEventClick?: (event: CalendarEvent) => void, initialDate: Date}>
 
 export const CalendarMonthView: CalendarView = ({days: pureDays, events}) => {
 	const days: (Day & {events: CalendarEvent[]})[] = pureDays.map(day => ({...day, events: events.filter(event => datesEqual(event.date, day.date))}))
@@ -602,7 +602,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
 							style={{ gridTemplateRows: `1.75rem repeat(${hours.length * 12}, minmax(0, 1fr)) auto` }}
 						>	
-							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date, true) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}} hourOffset={hoursStartIndex}/> : null)}
+							{events.map(event => isDateInBetween(event.date, days[0].date, days[days.length - 1].date, true) ? <CalendarEvent event={event} hidden={!selectedDate || !datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick && onEventClick(event)}} hourOffset={hoursStartIndex}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -817,7 +817,7 @@ export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventCl
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1"
 							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
 						>
-							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick(event)}}/> : null)}
+							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick && onEventClick(event)}}/> : null)}
 						</ol>
 					</div>
 				</div>
@@ -851,7 +851,7 @@ type DateStepperDropdownItem = {
 interface CalendarViewProps {
 	onAddEvent?: () => void;
 	events: CalendarEvent[];
-	onEventClick: (event: CalendarEvent) => void;
+	onEventClick?: (event: CalendarEvent) => void;
 	initialDate?: Date
 }
 export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({onAddEvent, onEventClick, events, initialDate}) => {
