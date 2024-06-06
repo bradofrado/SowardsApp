@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-function HomePage() {
+function HomePage(): never {
   redirect('/plan');
 }
 

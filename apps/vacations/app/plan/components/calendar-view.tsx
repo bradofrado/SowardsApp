@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
-import {CalendarEvent, CalendarView as CalendarViewRaw} from 'ui/src/components/core/calendar/calendar';
+import type {CalendarEvent} from 'ui/src/components/core/calendar/calendar';
+import { CalendarView as CalendarViewRaw} from 'ui/src/components/core/calendar/calendar';
 import type { VacationEvent } from 'model/src/vacation';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../utils/api';

@@ -1,6 +1,6 @@
 'use client';
 import type { UserVacation } from "model/src/vacation";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface UserContextOptions {

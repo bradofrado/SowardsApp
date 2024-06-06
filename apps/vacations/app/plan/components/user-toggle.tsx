@@ -1,10 +1,10 @@
 'use client'
-import { User } from "model/src/auth";
-import { UserVacation } from "model/src/vacation";
-import { Dropdown, DropdownItem } from "ui/src/components/core/dropdown";
+import type { User } from "model/src/auth";
+import type { UserVacation } from "model/src/vacation";
+import type { DropdownItem } from "ui/src/components/core/dropdown";
+import { Dropdown } from "ui/src/components/core/dropdown";
+import { useRouter } from "next/navigation";
 import { useUser } from "./user-provider";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 
 interface UserToggleProps {
     users: User[],
@@ -22,6 +22,6 @@ export const UserToggle: React.FunctionComponent<UserToggleProps> = ({users, get
         router.push(`?userId=${item.id}`)
     }
     return (
-        <Dropdown items={items} onChange={onChange} initialValue={userId}/>
+        <Dropdown initialValue={userId} items={items} onChange={onChange}/>
     )
 }

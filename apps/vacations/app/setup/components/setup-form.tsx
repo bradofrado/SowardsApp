@@ -6,7 +6,7 @@ import { Dropdown } from "ui/src/components/core/dropdown"
 import { Header } from "ui/src/components/core/header"
 import { Label } from "ui/src/components/core/label"
 import { useChangeProperty } from "ui/src/hooks/change-property"
-import { UserVacation, type AmountType, type VacationDependent } from "model/src/vacation"
+import type { UserVacation, AmountType, VacationDependent } from "model/src/vacation";
 import { Input } from "ui/src/components/core/input"
 import { useUser } from "../../plan/components/user-provider";
 
