@@ -487,7 +487,7 @@ export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidde
 			onClick={onClick}
 			className={`group absolute inset-1 flex flex-col overflow-y-auto rounded-lg ${color.background} p-2 text-xs leading-5 ${color.backgroundHover}`}
 		>
-			<p className={`order-1 font-semibold ${color.text}`}>{event.name}</p>
+			<p className={`font-semibold ${color.text}`}>{event.name}</p>
 			<p className={`${color.textLight} ${color.groupHoverText}`}>
 				<time dateTime={event.date.toLocaleDateString()}>{displayTime(event.date)} <span>{displayWeekDay(event.date)}</span></time>
 			</p>
@@ -495,10 +495,30 @@ export const CalendarEvent: React.FunctionComponent<{event: CalendarEvent, hidde
 	</li>
 }
 
+const useCalendarHours = (interval: 'hour' | 'half-hour'): {hours: Hour[], hoursStartIndex: number, intervalPerHour: number} => {
+	const hoursStartIndex = totalHours.indexOf(hoursStart);
+	const hours = totalHours.slice(hoursStartIndex)
+	const intervalPerHour = interval === 'hour' ? 2 : 1;
+
+	return {hours, hoursStartIndex, intervalPerHour}
+}
+const CalendarHours: React.FunctionComponent<{hours: Hour[], interval: 'hour' | 'half-hour'}> = ({hours, interval}) => {
+	return (<>
+		{hours.map(hour => <>
+			<div>
+				<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+					{hour}
+				</div>
+			</div>
+			{interval === 'hour' ? <div/> : null}
+		</>)}
+	</>)
+}
+
 const totalHours = ['12AM', '1AM', '2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM', '1PM', '2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM',] as const;
 type Hour = typeof totalHours[number];
 const hoursStart: Hour = '6AM';
-const interval: 'hour' | 'half-hour' = 'hour';
+const interval: 'hour' | 'half-hour' = 'half-hour';
 export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventClick, initialDate}) => {
 	const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate);
 	const container = useRef<HTMLDivElement>(null)
@@ -518,9 +538,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 		}
   }, []);
 
-  const hoursStartIndex = totalHours.indexOf(hoursStart);
-  const hours = totalHours.slice(hoursStartIndex)
-  const intervalPerHour = interval === 'hour' ? 2 : 1;
+  const {hoursStartIndex, hours, intervalPerHour} = useCalendarHours(interval);
 
 	// useEffect(() => {
 	// 	setSelectedDate(pureDays[0].date);
@@ -575,14 +593,7 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 							style={{ gridTemplateRows: `repeat(${hours.length * intervalPerHour}, minmax(3.5rem, 1fr))` }}
 						>
 							<div className="row-end-1 h-7" ref={containerOffset} />
-							{hours.map(hour => <>
-								<div>
-									<div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-										{hour}
-									</div>
-								</div>
-								{interval === 'hour' ? <div/> : null}
-							</>)}
+							<CalendarHours hours={hours} interval={interval}/>
 						</div>
 
 						{/* Vertical lines */}
@@ -611,8 +622,8 @@ export const CalendarWeekView: CalendarView = ({days: pureDays, events, onEventC
 	)
 }
 
-export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventClick}) => {
-	const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventClick, initialDate}) => {
+	const [selectedDate, setSelectedDate] = useState<Date>(initialDate);
 	const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
@@ -630,9 +641,11 @@ export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventCl
 		}
   }, []);
 
-	useEffect(() => {
-		setSelectedDate(pureDays[0].date);
-	}, [pureDays])
+	// useEffect(() => {
+	// 	setSelectedDate(pureDays[0].date);
+	// }, [pureDays])
+
+	const {hours, intervalPerHour, hoursStartIndex} = useCalendarHours(interval);
 
 	return (
 		<div className="isolate flex flex-auto overflow-hidden bg-white">
@@ -663,166 +676,23 @@ export const CalendarDayView: CalendarView = ({days: pureDays, events, onEventCl
 						{/* Horizontal lines */}
 						<div
 							className="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100"
-							style={{ gridTemplateRows: 'repeat(48, minmax(3.5rem, 1fr))' }}
+							style={{ gridTemplateRows: `repeat(${hours.length * intervalPerHour}, minmax(3.5rem, 1fr))` }}
 						>
 							<div className="row-end-1 h-7" ref={containerOffset} />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									12AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									1AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									2AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									3AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									4AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									5AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									6AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									7AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									8AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									9AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									10AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									11AM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									12PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									1PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									2PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									3PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									4PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									5PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									6PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									7PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									8PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									9PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									10PM
-								</div>
-							</div>
-							<div />
-							<div>
-								<div className="sticky left-0 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-									11PM
-								</div>
-							</div>
-							<div />
+							<CalendarHours hours={hours} interval={interval}/>
 						</div>
 
 						{/* Events */}
 						<ol
 							className="col-start-1 col-end-2 row-start-1 grid grid-cols-1"
-							style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
+							style={{ gridTemplateRows: `1.75rem repeat(${hours.length * 12}, minmax(0, 1fr)) auto` }}
 						>
-							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick && onEventClick(event)}}/> : null)}
+							{events.map(event => datesEqual(selectedDate, event.date) ? <CalendarEvent className="!col-start-1" event={event} hidden={!datesEqual(event.date, selectedDate)} key={event.id} onClick={() => {onEventClick && onEventClick(event)}} hourOffset={hoursStartIndex}/> : null)}
 						</ol>
 					</div>
 				</div>
 			</div>
-			<Calendar className="hidden w-1/2 max-w-md flex-none border-l border-gray-100 px-8 py-10 md:block" onChange={([value]) => {setSelectedDate(value)}} value={[selectedDate]}/>
+			<Calendar className="hidden w-1/2 max-w-md flex-none border-l border-gray-100 px-8 py-10 md:block" onChange={([value]) => {setSelectedDate(value)}} value={[selectedDate]} initialDate={selectedDate}/>
 		</div>
 	)
 }
