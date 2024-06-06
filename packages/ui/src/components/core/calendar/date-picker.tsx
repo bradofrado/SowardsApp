@@ -90,7 +90,7 @@ export const DatePicker = (props: MyDatePickerProps): JSX.Element => {
       </span> */}
       <div {...groupProps} className="flex group" ref={ref}>
         <div className="bg-white border border-gray-300 group-hover:border-gray-400 transition-colors rounded-l-md group-focus-within:border-primary group-focus-within:group-hover:border-primary p-1 relative flex items-center">
-          <DateField {...fieldProps} />
+          <DateField {...fieldProps} errorMessage={undefined}/>
           {state.validationState === "invalid" && (
             <ExclamationIcon className="w-6 h-6 text-red-500 absolute right-1" />
           )}
@@ -155,11 +155,11 @@ export const DateRangePicker = (props: DateRangePickerProps): JSX.Element => {
       </span> */}
       <div {...groupProps} className="flex group" ref={ref}>
         <div className="flex bg-white border border-gray-300 group-hover:border-gray-400 transition-colors rounded-l-md pr-10 group-focus-within:border-primary group-focus-within:group-hover:border-primary p-1 relative">
-          <DateField {...startFieldProps} />
+          <DateField {...startFieldProps} errorMessage={undefined}/>
           <span aria-hidden="true" className="px-2">
             –
           </span>
-          <DateField {...endFieldProps} />
+          <DateField {...endFieldProps} errorMessage={undefined}/>
           {state.validationState === "invalid" && (
             <ExclamationIcon className="w-6 h-6 text-red-500 absolute right-1" />
           )}

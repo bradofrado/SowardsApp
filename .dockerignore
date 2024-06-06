@@ -1,0 +1,81 @@
+# flyctl launch added from .gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+**/node_modules
+**/.pnp
+**/.pnp.js
+
+# testing
+**/coverage
+
+# next.js
+**/.next
+**/out
+**/build
+
+# misc
+**/.DS_Store
+**/*.pem
+
+# debug
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# local env files
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# turbo
+**/.turbo
+
+# vercel
+**/.vercel
+
+**/generated
+**/db_data
+**/tsconfig.tsbuildinfo
+
+# flyctl launch added from apps/vacations/.gitignore
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+apps/vacations/node_modules
+apps/vacations/.pnp
+apps/vacations/**/.pnp.js
+
+# testing
+apps/vacations/coverage
+
+# next.js
+apps/vacations/.next
+apps/vacations/out
+
+# production
+apps/vacations/build
+
+# misc
+apps/vacations/**/.DS_Store
+apps/vacations/**/*.pem
+
+# debug
+apps/vacations/**/npm-debug.log*
+apps/vacations/**/yarn-debug.log*
+apps/vacations/**/yarn-error.log*
+
+# local env files
+apps/vacations/**/.env.local
+apps/vacations/**/.env.development.local
+apps/vacations/**/.env.test.local
+apps/vacations/**/.env.production.local
+
+# vercel
+apps/vacations/**/.vercel
+
+# flyctl launch added from node_modules/.pnpm/tailwindcss@3.3.3/node_modules/tailwindcss/stubs/.gitignore
+!node_modules/.pnpm/tailwindcss@3.3.3/node_modules/tailwindcss/stubs/**/*
+fly.toml

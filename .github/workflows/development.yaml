@@ -1,0 +1,71 @@
+name: Development
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+  workflow_call:
+
+env:
+  NODE_ENV: development
+
+jobs:
+  test:
+    name: Test application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "☁️ checkout repository"
+        uses: actions/checkout@v2
+
+      - name: "🔧 setup node"
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: "🔧 install npm@latest"
+        run: npm i -g npm@latest
+
+      - name: "📦 install dependencies"
+        uses: pnpm/action-setup@v3
+
+      - name: "install depdencencies"
+        run: pnpm install
+
+      - name: "🔍 run tests"
+        run: pnpm run test
+
+  lint:
+    name: Code standards
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "☁️ checkout repository"
+        uses: actions/checkout@v2
+
+      - name: "🔧 setup node"
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: "🔧 install npm@latest"
+        run: npm i -g npm@latest
+
+      - name: "📦 install pnpm"
+        uses: pnpm/action-setup@v3
+
+      - name: "install depdencencies"
+        run: pnpm install
+
+      - name: "🔍 lint code"
+        run: pnpm run lint
+
+      - name: "type checking"
+        run: pnpm run typecheck
