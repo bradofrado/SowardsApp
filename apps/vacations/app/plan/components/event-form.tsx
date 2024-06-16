@@ -15,6 +15,7 @@ import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { Dropdown } from "ui/src/components/core/dropdown";
 import { useUser } from "./user-provider";
 import { isUserAmount } from "./stats-view";
+import { displayDate, displayTime, formatDollarAmount } from "model/src/utils";
 
 type EventAmount = Event['amounts'][number]
 type EventAmountType = AmountType
@@ -28,30 +29,79 @@ interface EventFormProps {
     onRemove: (event: Event) => void;
     onJoin: (event: Event) => void;
     onLeave: (event: Event) => void;
-    edit: boolean
+    existingEvent: boolean
     joined: boolean
     inGroup: boolean
 }
 interface EventFormModalProps extends EventFormProps {
     show: boolean;
     onClose: () => void;
+    canEdit: boolean;
 }
-export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, onJoin, onLeave, onRemove, ...rest}) => {
+export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({show, onClose, onSave, onJoin, onLeave, onRemove, canEdit, ...rest}) => {
+    const [edit, onEdit] = useState(false);
     const closeIt = <Props, Ret>(func: (props: Props) => Ret) => (prop: Props): Ret => {
         const ret = func(prop);
         onClose();
         return ret;
     }
     return <BaseModal onClose={onClose} show={show}>
-        <EventForm onJoin={closeIt(onJoin)} onLeave={closeIt(onLeave)} onRemove={closeIt(onRemove)} onSave={closeIt(onSave)} {...rest}/>
+        {edit ? <EventForm onJoin={closeIt(onJoin)} onLeave={closeIt(onLeave)} onRemove={closeIt(onRemove)} onSave={closeIt(onSave)} onView={() => {onEdit(!edit)}} {...rest}/> 
+            : <EventDetails canEdit={canEdit} onJoin={closeIt(onJoin)} onLeave={closeIt(onLeave)} onEdit={() => {onEdit(!edit)}} {...rest}/>}
     </BaseModal>
 }
-export const EventForm: React.FunctionComponent<EventFormProps> = ({event: eventProp, onSave, onRemove, onJoin, onLeave, edit, joined, inGroup}) => {
+
+interface EventDetailsProps {
+    onJoin: (event: VacationEvent) => void;
+    onLeave: (event: VacationEvent) => void;
+    onEdit: () => void;
+    event: VacationEvent;
+    joined: boolean
+    inGroup: boolean
+    canEdit: boolean
+}
+export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({event, joined, canEdit, onLeave, onJoin, onEdit, inGroup}) => {
+    return <div className="flex flex-col gap-4">
+        <Header>{event.name}</Header>
+        <Label label="Date">
+            {displayDate(event.date)}
+        </Label>
+        <Label label="Time">
+            {displayTime(event.date)}
+        </Label>
+        <Label label="Location">
+            {event.location || 'N/A'}
+        </Label>
+        <Label label="Links">
+            <div className="flex flex-col gap-2">
+                {event.links.length ? event.links.map(link => <a key={link} href={link}>{link}</a>) : 'N/A'}
+            </div>
+        </Label>
+        <Label label="Amount">
+            <div className="flex flex-col gap-2">
+                {event.amounts.map(amount => <div key={`${amount.amount}-${amount.type}`} className="flex gap-2">
+                    <div>{formatDollarAmount(amount.amount)}</div>
+                    <span>-</span>
+                    <div>{amount.type}</div>
+                </div>)}
+            </div>
+        </Label>
+        <Label label="Notes">
+            <div>{event.notes || 'N/A'}</div>
+        </Label>
+        {!inGroup ? <div className="flex gap-2">
+            {!joined ? <Button onClick={() => {onJoin(event)}}>Join</Button> : <Button onClick={() => {onLeave(event)}}>Leave</Button>}
+            {canEdit ? <Button onClick={onEdit}>Edit</Button> : null}
+        </div>: null}
+    </div>
+}
+
+export const EventForm: React.FunctionComponent<EventFormProps & {onView: () => void}> = ({event: eventProp, onSave, onRemove, onJoin, onLeave, onView, existingEvent, joined, inGroup}) => {
     const [event, setEvent] = useState<Event>(eventProp);
     const changeProperty = useChangeProperty<Event>(setEvent);
 
     return <div>
-        <Header>{edit ? 'Edit Event' : 'Add Event'}</Header>
+        <Header>{existingEvent ? 'Edit Event' : 'Add Event'}</Header>
         <Label label="Name">
             <Input onChange={changeProperty.formFunc('name', event)} value={event.name}/>
         </Label>
@@ -79,10 +129,11 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
         <Button onClick={() => {onSave(event)}}>
             Save
         </Button>
-        {edit ? <>
+        {existingEvent ? <>
             <Button onClick={() => {onRemove(event)}}>Delete</Button>
             {!inGroup ? <>{!joined ? <Button onClick={() => {onJoin(event)}}>Join</Button> : <Button onClick={() => {onLeave(event)}}>Leave</Button>}</>: null}
         </> : null}
+        <Button onClick={onView}>View Details</Button>
     </div>
 }
 
