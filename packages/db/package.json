@@ -5,11 +5,12 @@
   "main": "index.ts",
   "scripts": {
     "format": "prettier --write \"**/*.{prisma,ts,md,json}\" && eslint --fix",
-		"withenv": "dotenv -e ../../.env --",
-		"db:generate": "pnpm withenv prisma generate",
-		"db:push": "pnpm withenv prisma db push --skip-generate",
+    "withenv": "dotenv -e ../../.env --",
+    "db:generate": "pnpm withenv prisma generate",
+    "db:push": "pnpm withenv prisma db push --skip-generate",
     "db:makemigration": "pnpm withenv prisma migrate dev --name",
-    "db:studio": "pnpm withenv prisma studio"
+    "db:studio": "pnpm withenv prisma studio",
+    "db:migrate": "pnpm withenv ts-node migrations/run-migration.ts"
   },
   "eslint": {
     "root": true,
@@ -20,7 +21,8 @@
   "prettier": "prettier-config",
   "dependencies": {
     "@prisma/client": "^5.4.2",
-    "dotenv-cli": "^7.3.0"
+    "dotenv-cli": "^7.3.0",
+    "mongodb": "^6.7.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.6",
@@ -29,6 +31,7 @@
     "prettier": "^3.0.3",
     "prettier-config": "workspace:^",
     "prisma": "^5.4.2",
+    "ts-node": "^10.9.2",
     "tsconfig": "workspace:^",
     "typescript": "^5.2.2"
   }

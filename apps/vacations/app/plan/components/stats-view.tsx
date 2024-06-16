@@ -1,5 +1,5 @@
 'use client'
-import type { AmountType, UserVacation , VacationEvent, VacationGroup } from "model/src/vacation";
+import type { AmountType, UserVacation , VacationAmount, VacationEvent, VacationGroup } from "model/src/vacation";
 import type { Stat} from "ui/src/components/core/stats";
 import { Stats } from "ui/src/components/core/stats"
 import { useUser } from "./user-provider";
@@ -57,13 +57,17 @@ const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateSt
         if (groupId) {
             _events.push(...events.filter(event => event.groupIds.includes(groupId)));
         }
-        const amounts = _events.reduce((prev, curr) => {
-            curr.amounts.forEach(({amount, type}) => {
-                prev[type] += amount;
+        const amounts = _events.reduce<Record<AmountType, number>>((prev, curr) => {
+            curr.amounts.forEach((amount) => {
+                if (!isUserAmount(amount, currUser?.id)) {
+                    return;
+                }
+
+                prev[amount.type] += amount.amount;
             });
     
             return prev;
-        }, {all: 0, adult: 0, child: 0, me: 0});
+        }, {custom: 0, adult: 0, child: 0});
 
         const numPeopleInGroup = //group?.users ? getAmountOfPeople(group.users, (item) => getAmountOfPeople(item.dependents)) : 
         (function UserAmounts() {
@@ -81,11 +85,15 @@ const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateSt
         const numAdults = numPeopleInGroup.adult
         const numChilds = numPeopleInGroup.child
 
+        const totalChild = amounts.child * numChilds
+        const totalAdult = amounts.adult * numAdults
+        const total = totalAdult + totalChild + amounts.custom
+
         return [
-            {name: 'Total', stat: amounts.adult * numAdults + amounts.child * numChilds, type: 'number'},
+            {name: 'Total', stat: total, type: 'number'},
             //{name: 'All', stat: amounts.all, type: 'number'},
-            {name: 'Adult', stat: amounts.adult * numAdults, type: 'number'},
-            {name: 'Child', stat: amounts.child * numChilds, type: 'number'},
+            {name: 'Adult', stat: amounts.adult, type: 'number'},
+            {name: 'Child', stat: amounts.child, type: 'number'},
         ]
     }
 
@@ -108,3 +116,5 @@ const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateSt
         total: amountsTotal
     }
 }
+
+export const isUserAmount = (amount: VacationAmount, userId: string | undefined): boolean => amount.type !== 'custom' || amount.createdById === userId

@@ -1,15 +1,15 @@
 import { z } from "zod"
-import { userSchema } from "./auth";
 
-const amountTypes = ['all', 'adult', 'child'] as const;
-
-export const amountTypesSchema = z.union([z.literal('all'), z.literal('adult'), z.literal('child')]);
+export const amountTypesSchema = z.union([z.literal('custom'), z.literal('adult'), z.literal('child')]);
 export type AmountType = z.infer<typeof amountTypesSchema>;
 
 export const vactionAmountSchema = z.object({
     type: amountTypesSchema,
-    amount: z.number()
+    amount: z.number(),
+    createdById: z.string() //UserVacationId
 })
+export type VacationAmount = z.infer<typeof vactionAmountSchema>;
+
 export const dependentSchema = z.object({
     id: z.string(),
     firstname: z.string(),

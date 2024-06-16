@@ -3,7 +3,7 @@
   "globalDependencies": ["**/.env.*local"],
   "pipeline": {
     "build": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": ["^build", "^db:generate", "^db:migrate"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": {},
@@ -23,6 +23,7 @@
       "cache": false,
       "persistent": true
     },
+    "db:migrate": {},
     "typecheck": {}
   },
 	"globalEnv": ["PORT", "DATABASE_URL", "VERCEL_URL", "NODE_ENV"]

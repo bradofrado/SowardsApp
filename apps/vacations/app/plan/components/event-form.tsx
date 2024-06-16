@@ -3,22 +3,21 @@ import { Header } from "ui/src/components/core/header";
 import {Label} from 'ui/src/components/core/label';
 import { BaseModal } from "ui/src/components/core/modal";
 import {Input} from 'ui/src/components/core/input';
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {useChangeProperty} from 'ui/src/hooks/change-property';
 import {Button} from 'ui/src/components/core/button';
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import type { TimeRangeValue} from 'ui/src/components/core/calendar/time-picker';
 import {TimeRangeInput} from 'ui/src/components/core/calendar/time-picker';
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
-import type { VacationEvent } from "model/src/vacation";
+import type { AmountType, VacationEvent } from "model/src/vacation";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { Dropdown } from "ui/src/components/core/dropdown";
+import { useUser } from "./user-provider";
+import { isUserAmount } from "./stats-view";
 
-type EventAmountType = 'all' | 'adult' | 'child'
-interface EventAmount {
-    amount: number;
-    type: EventAmountType;
-}
+type EventAmount = Event['amounts'][number]
+type EventAmountType = AmountType
 export interface Event extends CalendarEvent, VacationEvent {
 
 }
@@ -85,6 +84,9 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
 }
 
 const AmountFields: React.FunctionComponent<{amounts: EventAmount[], onChange: (value: EventAmount[]) => void}> = ({amounts, onChange}) => {
+    const {user} = useUser();
+    const filteredAmounts = useMemo(() => amounts.filter(amount => isUserAmount(amount, user?.id)), [amounts, user]);
+    
     const onAmountChange = (value: EventAmount, index: number): void => {
         if (index < 0 || index >= amounts.length) return;
 
@@ -103,13 +105,15 @@ const AmountFields: React.FunctionComponent<{amounts: EventAmount[], onChange: (
 
     const onAmountAdd= (): void => {
         const copy = amounts.slice();
-        copy.push({amount: 5, type: 'all'});
+        copy.push({amount: 5, type: 'custom', createdById: user?.id || ''});
         onChange(copy);
     }   
+
+
     
     return (
         <div>
-            {amounts.map((amount, i) => <AmountField key={amount.type} onChange={(value) => {onAmountChange(value, i)}} onRemove={() => {onAmountRemove(i)}} value={amount}/>)}
+            {filteredAmounts.map((amount, i) => <AmountField key={amount.type} onChange={(value) => {onAmountChange(value, i)}} onRemove={() => {onAmountRemove(i)}} value={amount}/>)}
             <Button onClick={onAmountAdd}>Add</Button>
         </div>
     )
@@ -130,6 +134,10 @@ const AmountField: React.FunctionComponent<AmountFieldProps> = ({value, onChange
         {
             id: 'child',
             name: 'Child'
+        },
+        {
+            id: 'custom',
+            name: "Custom"
         }
     ]
     return (
