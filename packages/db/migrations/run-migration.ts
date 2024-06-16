@@ -21,8 +21,6 @@ async function runMigrationScript(version: string, db: Db) {
 
     if (typeof runMigration === 'function') {
         console.log(await runMigration(db));
-    } else {
-        throw new Error(`No default MigrationScript function found in ${migrationScriptPath}`);
     }
 }
 
