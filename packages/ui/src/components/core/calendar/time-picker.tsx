@@ -4,7 +4,7 @@ import { useTimeFieldState } from "@react-stately/datepicker";
 import type { DateFieldState, TimeFieldStateOptions, DateSegment  } from "@react-stately/datepicker";
 import { useTimeField , useDateSegment } from "@react-aria/datepicker";
 import { useChangeProperty } from "../../../hooks/change-property";
-import { Time, CalendarDateTime } from "@internationalized/date";
+import { Time } from "@internationalized/date";
 import { InputBlur } from "../input";
 
 function dateToTime(date: Date): Time {

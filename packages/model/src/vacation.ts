@@ -22,6 +22,7 @@ export const vacationEventSchema = z.object({
     id: z.string(),
     name: z.string(),
     location: z.string(),
+    links: z.array(z.string()),
     notes: z.string(),
     date: z.date(),
     durationMinutes: z.number(),

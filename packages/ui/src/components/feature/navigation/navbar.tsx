@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/role-supports-aria-props -- ok*/
+/* eslint-disable react/jsx-no-useless-fragment -- ok*/
 import React from "react";
 
 import { useExpand } from "../../../hooks/expand";

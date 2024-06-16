@@ -2,7 +2,7 @@
 import { Header } from "ui/src/components/core/header";
 import {Label} from 'ui/src/components/core/label';
 import { BaseModal } from "ui/src/components/core/modal";
-import {Input} from 'ui/src/components/core/input';
+import {Input, InputBlur} from 'ui/src/components/core/input';
 import { useMemo, useState } from "react";
 import {useChangeProperty} from 'ui/src/hooks/change-property';
 import {Button} from 'ui/src/components/core/button';
@@ -64,6 +64,9 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
         <Label label="Location">
             <Input onChange={changeProperty.formFunc('location', event)} value={event.location}/>
         </Label>
+        <Label label="Links">
+            <LinkFields onChange={changeProperty.formFunc('links', event)} value={event.links}/>
+        </Label>
         <Label label="Amount">
             <AmountFields amounts={event.amounts} onChange={changeProperty.formFunc('amounts', event)}/>
         </Label>
@@ -81,6 +84,41 @@ export const EventForm: React.FunctionComponent<EventFormProps> = ({event: event
             {!inGroup ? <>{!joined ? <Button onClick={() => {onJoin(event)}}>Join</Button> : <Button onClick={() => {onLeave(event)}}>Leave</Button>}</>: null}
         </> : null}
     </div>
+}
+
+const LinkFields: React.FunctionComponent<{value: string[], onChange: (value: string[]) => void}> = ({value: values, onChange}) => {
+    const onAmountChange = (value: string, index: number): void => {
+        if (index < 0 || index >= values.length) return;
+
+        const copy = values.slice();
+        copy[index] = value;
+        onChange(copy);
+    }   
+
+    const onAmountRemove = (index: number): void => {
+        if (index < 0 || index >= values.length) return;
+
+        const copy = values.slice();
+        copy.splice(index, 1)
+        onChange(copy);
+    }   
+
+    const onAmountAdd= (): void => {
+        const copy = values.slice();
+        copy.push('https://google.com');
+        onChange(copy);
+    }   
+
+
+    return (
+        <div>
+            {values.map((link, i) => <div className="flex gap-2" key={link}>
+                <InputBlur onChange={(value) => {onAmountChange(value, i)}} value={link}/>
+                <Button onClick={() => {onAmountRemove(i)}}>Remove</Button>
+            </div>)}
+            <Button onClick={onAmountAdd}>Add</Button>
+        </div>
+    )
 }
 
 const AmountFields: React.FunctionComponent<{amounts: EventAmount[], onChange: (value: EventAmount[]) => void}> = ({amounts, onChange}) => {

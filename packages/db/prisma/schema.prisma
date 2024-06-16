@@ -9,70 +9,71 @@ datasource db {
 }
 
 model User {
-  id String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique
-  username String
-  password String
-  firstname String
-  lastname String
-  email String
-  roles String[]
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String        @unique
+  username     String
+  password     String
+  firstname    String
+  lastname     String
+  email        String
+  roles        String[]
   userVacation UserVacation?
 }
 
 model UserVacation {
-  id String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId @unique
-  user User @relation(fields: [userId], references: [id])
-  groupIds String[] @db.ObjectId
-  groups VacationGroup[] @relation(fields: [groupIds], references: [id])
-  eventIds String[] @db.ObjectId
-  events VacationEvent[] @relation(fields: [eventIds], references: [id])
-  created VacationEvent[] @relation(name: "created")
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String              @unique @db.ObjectId
+  user       User                @relation(fields: [userId], references: [id])
+  groupIds   String[]            @db.ObjectId
+  groups     VacationGroup[]     @relation(fields: [groupIds], references: [id])
+  eventIds   String[]            @db.ObjectId
+  events     VacationEvent[]     @relation(fields: [eventIds], references: [id])
+  created    VacationEvent[]     @relation(name: "created")
   amountType String
   dependents VacationDependent[]
 }
 
 model VacationDependent {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  firstname String
-  lastname String
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  firstname  String
+  lastname   String
   amountType String
-  userId String @db.ObjectId
-  user UserVacation @relation(fields: [userId], references: [id])
+  userId     String       @db.ObjectId
+  user       UserVacation @relation(fields: [userId], references: [id])
 }
 
 model VacationEvent {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  location String
-  notes String
-  date DateTime
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  location        String
+  links           String[]     @default([])
+  notes           String
+  date            DateTime
   durationMinutes Int
-  amounts Json //Hacky for now
-  is_public Boolean
-  createdById String @db.ObjectId
-  createdBy UserVacation @relation(name: "created", fields: [createdById], references: [id])
+  amounts         Json //Hacky for now
+  is_public       Boolean
+  createdById     String       @db.ObjectId
+  createdBy       UserVacation @relation(name: "created", fields: [createdById], references: [id])
 
-  userIds String[] @db.ObjectId
-  users UserVacation[] @relation(fields: [userIds], references: [id])
-  groupIds String[] @db.ObjectId
-  groups VacationGroup[] @relation(fields: [groupIds], references: [id])
+  userIds  String[]        @db.ObjectId
+  users    UserVacation[]  @relation(fields: [userIds], references: [id])
+  groupIds String[]        @db.ObjectId
+  groups   VacationGroup[] @relation(fields: [groupIds], references: [id])
 }
 
 model VacationDay {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  name String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
   description String
-  date DateTime
+  date        DateTime
 }
 
 model VacationGroup {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  userIds String[] @db.ObjectId
-  users UserVacation[] @relation(fields: [userIds], references: [id])
-  eventIds String[] @db.ObjectId
-  events VacationEvent[] @relation(fields: [eventIds], references: [id])
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  userIds   String[]        @db.ObjectId
+  users     UserVacation[]  @relation(fields: [userIds], references: [id])
+  eventIds  String[]        @db.ObjectId
+  events    VacationEvent[] @relation(fields: [eventIds], references: [id])
   is_public Boolean
 }

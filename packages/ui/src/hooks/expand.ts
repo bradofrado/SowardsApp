@@ -5,6 +5,8 @@ export const useExpand = (trueClass = "block", falseClass = "hidden") => {
 
   return {
     expandClass: expand ? trueClass : falseClass,
-    onExpand: (force?: boolean) => setExpand(force ?? !expand),
+    onExpand: (force?: boolean) => {
+      setExpand(force ?? !expand);
+    },
   };
 };

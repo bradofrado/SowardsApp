@@ -15,7 +15,8 @@ export const prismaToVacationEvent = (event: Prisma.VacationEventGetPayload<true
 		location: event.location,
 		createdById: event.createdById,
 		amounts: z.array(vactionAmountSchema).parse(event.amounts),
-		groupIds: event.groupIds
+		groupIds: event.groupIds,
+		links: event.links
 	}
 }
 

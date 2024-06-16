@@ -32,7 +32,8 @@ export const CalendarView: React.FunctionComponent<{events: VacationEvent[], rol
 			isPublic: updatedEvent.isPublic,
 			userIds: [],
 			createdById: '',
-			groupIds: updatedEvent.groupIds
+			groupIds: updatedEvent.groupIds,
+			links: updatedEvent.links
 		}
 		if (edit) {
 			updateEvent(vacationEvent, {
@@ -86,6 +87,6 @@ export const CalendarView: React.FunctionComponent<{events: VacationEvent[], rol
 	const inGroup = Boolean(user && edit && user.groupIds.findIndex(group => events[currEvent].groupIds.includes(group)) > -1);
 	return (<>
 		<CalendarViewRaw events={events} initialDate={new Date('08/03/2024')} onAddEvent={role === 'admin' ? onAddEvent : undefined} onEventClick={role === 'admin' ? onEditEvent : undefined}/>
-		<EventFormModal edit={edit} event={currEvent < events.length ? events[currEvent] : {id: '', name: '', date: new Date(), durationMinutes: 60, color: 'blue', href: '', location: '', notes: '', amounts: [], isPublic: true, userIds: [], createdById: '', groupIds: []}} inGroup={inGroup} joined={joined} onClose={() => {setCurrEvent(-1)}} onJoin={onJoin} onLeave={onLeave} onRemove={onRemove} onSave={onSave} show={currEvent > -1}/>
+		<EventFormModal edit={edit} event={currEvent < events.length ? events[currEvent] : {id: '', name: '', date: new Date(), durationMinutes: 60, color: 'blue', href: '', location: '', notes: '', amounts: [], isPublic: true, userIds: [], createdById: '', groupIds: [], links: []}} inGroup={inGroup} joined={joined} onClose={() => {setCurrEvent(-1)}} onJoin={onJoin} onLeave={onLeave} onRemove={onRemove} onSave={onSave} show={currEvent > -1}/>
 	</>)
 }

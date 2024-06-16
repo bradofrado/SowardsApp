@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition -- ok*/
 import { useState, type Dispatch } from "react";
 import {
   closestCenter,
