@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { stringUnionSchema } from "./utils";
-import { UserVacation } from "./vacation";
+import { amountTypesSchema, UserVacation, userVacationSchema } from "./vacation";
 
 export type AuthContext = {
 	userId: string;
@@ -24,7 +24,9 @@ export const userSchema = z.object({
   lastname: z.string(),
   email: z.string(),
   roles: z.array(z.string()),
-  userVacationId: z.optional(z.string())
+  userVacationId: z.optional(z.string()),
+  userVacation: z.optional(userVacationSchema),
+  amountType: amountTypesSchema
 })
 export type User = z.infer<typeof userSchema>;
 

@@ -8,35 +8,62 @@ import { Label } from "ui/src/components/core/label"
 import { useChangeProperty } from "ui/src/hooks/change-property"
 import type { UserVacation, AmountType, VacationDependent } from "model/src/vacation";
 import { Input } from "ui/src/components/core/input"
-import { useUser } from "../../plan/components/user-provider";
 
 
-export const SetupForm: React.FunctionComponent<{onSubmit: (user: UserVacation, userId?: string) => Promise<void>, user: UserVacation}> = ({onSubmit, user: origUser}) => {
-    const {user, userId} = useUser();
-    const [userVacation, setUserVacation] = useState<UserVacation>(userId ? user || {id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''} : origUser);
+interface SetupFormProps {
+    onUpdate: (user: UserVacation) => Promise<void>, 
+    onConnect: (userVacationId: string) => Promise<void>,
+    user: UserVacation
+
+}
+export const SetupForm: React.FunctionComponent<SetupFormProps> = ({onUpdate, onConnect, user: origUser}) => {
+    const [userVacation, setUserVacation] = useState<UserVacation>(origUser);
     const changeProperty = useChangeProperty<UserVacation>(setUserVacation);
+    const [loading, setLoading] = useState(false);
+    const [loadingConnect, setLoadingConnect] = useState(false);
 
     useEffect(() => {
-        if (user && user.id !== userVacation.id) {
-            setUserVacation(user);
-        } else if (userId && !user && userVacation.id !== '') {
-            setUserVacation({id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''})
+        //If this is a normal user and the origin user changes, update user vacation
+        if (origUser.id !== userVacation.id) {
+            setUserVacation(origUser);
         }
-    }, [user, userVacation, userId])
+    }, [userVacation, origUser])
+
+    const onCreate = (): void => {
+        const submit = async (): Promise<void> => {
+            setLoading(true);
+            await onUpdate(userVacation)
+            setLoading(false);
+        }
+
+        void submit();
+    }
+
+    const onConnectAccount = (): void => {
+        const submit = async (): Promise<void> => {
+            setLoadingConnect(true);
+            await onConnect(userVacation.id)
+            setLoadingConnect(false);
+        }
+
+        void submit();
+    }
 
     return (<div className="flex flex-col gap-4">
-        <Header>Setup Account for </Header>
+        <Header>Edit Details for {userVacation.name} </Header>
         <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            <Label className="sm:col-span-full" label="Person Type">
-                <AmountTypeDropdown onChange={changeProperty.formFunc('amountType', userVacation)} value={userVacation.amountType}/>
+            <Label label="Family Name">
+                <Input onChange={changeProperty.formFunc('name', userVacation)} value={userVacation.name}/>
             </Label>
 			{/* <Label className="sm:col-span-full" label="Groups">
                 <VacationGroupDropdown onChange={changeProperty.formFunc('groupIds', userVacation)} value={userVacation.groupIds}/>
             </Label> */}
-            <Label className="sm:col-span-full" label="Dependents">
+            <Label className="sm:col-span-full" label="Members">
+                <p>Make sure your name is in this list</p>
                 <DependentsForm dependents={userVacation.dependents} onChange={changeProperty.formFunc('dependents', userVacation)}/>
             </Label>
-			<Button onClick={() => onSubmit(userVacation, userId)}>Create Account</Button>
+			<Button onClick={onCreate} loading={loading}>Update Information</Button>
+            <Button onClick={onConnectAccount} loading={loadingConnect}>Connect Account</Button>
 		</div>
     </div>)
 }

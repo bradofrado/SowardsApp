@@ -1,10 +1,11 @@
 import React from "react";
 
 import type { PolymorphicComponentProps } from "../../types/polymorphics";
+import { Spinner } from "./spinner";
 
 export type ButtonType = "primary" | "secondary" | "other";
-type ButtonProps =
-  | {
+type ButtonProps = {loading?: boolean} | 
+  (| {
       mode?: "primary" | "secondary";
       className?: string;
       backgroundColor?: string;
@@ -13,7 +14,7 @@ type ButtonProps =
       mode: "other";
       backgroundColor: string;
       className?: string;
-    };
+    });
 type TextProps<C extends React.ElementType> = PolymorphicComponentProps<
   C,
   ButtonProps
@@ -24,6 +25,7 @@ export const Button = <T extends React.ElementType>({
   mode = "primary",
   backgroundColor,
   className,
+  loading=false,
   ...rest
 }: TextProps<T>): JSX.Element => {
   const Component = as || "button";
@@ -38,7 +40,7 @@ export const Button = <T extends React.ElementType>({
   } inline-flex justify-center rounded-md px-2 py-1 text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75`;
   return (
     <Component className={_class} style={style} {...rest}>
-      {children}
+      {loading ? <Spinner className="rounded" sizeClass="w-5 h-5"/> : children}
     </Component>
   );
 };

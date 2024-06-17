@@ -9,27 +9,28 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String        @unique
-  username     String
-  password     String
-  firstname    String
-  lastname     String
-  email        String
-  roles        String[]
-  userVacation UserVacation?
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String        @unique
+  username       String
+  password       String
+  firstname      String
+  lastname       String
+  email          String
+  amountType     String
+  roles          String[]
+  userVacation   UserVacation? @relation(fields: [userVacationId], references: [id])
+  userVacationId String?       @db.ObjectId
 }
 
 model UserVacation {
   id         String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String              @unique @db.ObjectId
-  user       User                @relation(fields: [userId], references: [id])
+  name       String
+  users      User[]
   groupIds   String[]            @db.ObjectId
   groups     VacationGroup[]     @relation(fields: [groupIds], references: [id])
   eventIds   String[]            @db.ObjectId
   events     VacationEvent[]     @relation(fields: [eventIds], references: [id])
   created    VacationEvent[]     @relation(name: "created")
-  amountType String
   dependents VacationDependent[]
 }
 

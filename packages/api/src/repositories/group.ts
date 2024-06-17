@@ -1,5 +1,5 @@
 import type { Db, Prisma } from "db/lib/prisma";
-import { amountTypesSchema, type VacationGroup } from "model/src/vacation";
+import { type VacationGroup } from "model/src/vacation";
 
 export const getGroups = async ({db}: {db: Db}): Promise<VacationGroup[]> => {
     const groups = await db.vacationGroup.findMany(groupPayload);
@@ -11,7 +11,7 @@ export const groupPayload = {
     include: {
         users: {
             include: {
-                user: true,
+                users: true,
                 dependents: true
             }
         }
@@ -22,17 +22,17 @@ export const prismaToVacationGroup = (group: Prisma.VacationGroupGetPayload<type
         id: group.id,
         name: group.name,
         isPublic: group.is_public,
-        users: group.users.map(({amountType, user, dependents}) => ({
-            id: user.id,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            amountType: amountTypesSchema.parse(amountType),
-            dependents: dependents.map(dependent => ({
-                id: dependent.id,
-                firstname: dependent.firstname,
-                lastname: dependent.lastname,
-                amountType: amountTypesSchema.parse(dependent.amountType)
-            }))
-        }))
+        // users: group.users.map(({users, dependents}) => ({
+        //     id: user.id,
+        //     firstname: user.firstname,
+        //     lastname: user.lastname,
+        //     amountType: amountTypesSchema.parse(amountType),
+        //     dependents: dependents.map(dependent => ({
+        //         id: dependent.id,
+        //         firstname: dependent.firstname,
+        //         lastname: dependent.lastname,
+        //         amountType: amountTypesSchema.parse(dependent.amountType)
+        //     }))
+        // }))
     }
 }

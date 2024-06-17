@@ -2,7 +2,6 @@
 import type { VacationGroup } from "model/src/vacation";
 import { Card } from "ui/src/components/core/card";
 import { Header } from "ui/src/components/core/header";
-import { Pill } from 'ui/src/components/core/pill';
 import { useState } from "react";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { useRouter } from "next/navigation";
@@ -100,7 +99,7 @@ const GroupCard: React.FunctionComponent<GroupCardProps> = ({group, onUpdate, on
     }
     return (
         <Card items={items} label={group.name} onChange={onChange}>
-            {group.users.filter(user => 'id' in user).map(user => <Pill key={user.id}>{`${user.firstname} ${user.lastname}`}</Pill>)}
+            {/* {group.users.filter(user => 'id' in user).map(user => <Pill key={user.id}>{`${user.firstname} ${user.lastname}`}</Pill>)} */}
         </Card>
     )
 }

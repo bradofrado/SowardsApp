@@ -74,7 +74,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({event,
         </Label>
         <Label label="Links">
             <div className="flex flex-col gap-2">
-                {event.links.length ? event.links.map(link => <a key={link} href={link}>{link}</a>) : 'N/A'}
+                {event.links.length ? event.links.map(link => <a className="text-blue-500" target="_blank" key={link} href={link} rel="noopener">{link}</a>) : 'N/A'}
             </div>
         </Label>
         <Label label="Amount">

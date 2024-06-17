@@ -3,21 +3,19 @@
 import { createUserVacation, updateUserVacation } from "api/src/repositories/user-vacation";
 import type { UserVacation, VacationDependent } from "model/src/vacation";
 import { getAuthSession } from "../../../utils/auth";
+import { connectAccountToUserVacation } from "api/src/auth";
 
 export interface SetupUser {
     groupIds: string[],
     dependents: VacationDependent[],
     amountType: 'adult' | 'child'
 }
-export const createUser = async (user: UserVacation, _userId?: string): Promise<void> => {
+export const createUser = async (user: UserVacation): Promise<void> => {
     const session = await getAuthSession();
     if (!session?.auth.userId) return;
 
-    const userId = !_userId || session.auth.user.roles[0] !== 'admin' ? session.auth.user.id : _userId;
-
     await createUserVacation({
-        userId,
-        amountType: user.amountType,
+        name: user.name,
         groupIds: user.groupIds,
         groups: [],
         events: [],
@@ -25,24 +23,34 @@ export const createUser = async (user: UserVacation, _userId?: string): Promise<
         id: '',
         dependents: user.dependents,
         createdByEvents: [],
-        role: 'user'
-    })
+    }, session.auth.user.id)
 }
 
-export const updateUser = async (user: UserVacation, _userId?: string): Promise<void> => {
+export const connectUser = async (userVacationId: string): Promise<void> => {
     const session = await getAuthSession();
-    if (!session?.auth.userId || !session.auth.userVacation) return;
+    if (!session?.auth.userId) return;
+
+    await connectAccountToUserVacation(session.auth.user.id, userVacationId);
+}
+
+export const connectSessionToUserVacation = async (userVacationId: string): Promise<void> => {
+    const session = await getAuthSession();
+    if (!session?.auth.userId) return;
+
+    await connectAccountToUserVacation(session.auth.user.id, userVacationId);
+}
+
+export const updateUser = async (user: UserVacation): Promise<void> => {
+    const session = await getAuthSession();
+    if (!session?.auth.userId) return;
 
     if (!user.id) {
-        await createUser(user, _userId);
+        await createUser(user);
         return;
     }
 
-    const userId = !_userId || session.auth.user.roles[0] !== 'admin' ? session.auth.user.id : _userId;
-
     await updateUserVacation({
-        userId,
-        amountType: user.amountType,
+        name: user.name,
         groupIds: user.groupIds,
         groups: [],
         events: [],
@@ -50,6 +58,5 @@ export const updateUser = async (user: UserVacation, _userId?: string): Promise<
         id: user.id,
         dependents: user.dependents,
         createdByEvents: [],
-        role: 'user'
     })
 } 

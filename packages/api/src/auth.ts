@@ -1,11 +1,13 @@
 import { clerkClient } from "@clerk/nextjs";
 import { Prisma, prisma } from "db/lib/prisma";
 import type {AuthContext, Session, User} from 'model/src/auth';
-import { getUserVacation } from "./repositories/user-vacation";
+import { amountTypesSchema } from 'model/src/vacation';
+
+import { payload as userVacationPayload, prismaToUserVacation } from "./repositories/user-vacation";
 
 const payload = {
 	include: {
-		userVacation: true
+		userVacation: userVacationPayload
 	}
 } satisfies Prisma.UserDefaultArgs 
 
@@ -16,10 +18,25 @@ const prismaToUser = (user: Prisma.UserGetPayload<typeof payload>): User => {
 		lastname: user.lastname,
 		roles: user.roles,
 		email: user.email,
-		userVacationId: user.userVacation?.id
+		userVacationId: user.userVacation?.id,
+		amountType: amountTypesSchema.parse(user.amountType),
+		userVacation: user.userVacation ? prismaToUserVacation(user.userVacation) : undefined
 	}
 }
-export const getAccount = async (userId: string): Promise<User | undefined> => {
+export const getAccount= async (id: string): Promise<User | undefined> => {
+	const account = await prisma.user.findFirst({
+		where: {
+			id
+		},
+		...payload
+	});
+
+	if (account === null) return undefined;
+
+	return prismaToUser(account);
+}
+
+export const getAccountByClerkId = async (userId: string): Promise<User | undefined> => {
 	const account = await prisma.user.findFirst({
 		where: {
 			userId
@@ -47,12 +64,28 @@ export const createAccount = async ({lastname, firstname, email}: Omit<User, 'ro
 			firstname,
 			lastname,
 			email,
-			roles: ['user']
+			amountType: 'adult',
+			roles: ['user'],
 		},
 		...payload
 	});
 
 	return prismaToUser(newUser)
+}
+
+export const connectAccountToUserVacation = async (accountId: string, userVacationId: string): Promise<void> => {
+	await prisma.user.update({
+		where: {
+			id: accountId
+		},
+		data: {
+			userVacation: {
+				connect: {
+					id: userVacationId
+				}
+			}
+		}
+	});
 }
 
 export const getServerAuthSession = async (userId: string | null, mockUserId?: string): Promise<Session | undefined> => {
@@ -68,11 +101,11 @@ export const getServerAuthSession = async (userId: string | null, mockUserId?: s
 			throw new Error("User does not have an email address");
 		}
 		const email = user.emailAddresses[0].emailAddress;
-		let account = await getAccount(user.id);
+		let account = await getAccountByClerkId(user.id);
 		if (!account) {
-			account = await createAccount({firstname: user.firstName || '', lastname: user.lastName || '', email, userVacationId: ''}, user.id);
+			account = await createAccount({firstname: user.firstName || '', lastname: user.lastName || '', email, userVacationId: '', amountType: 'adult'}, user.id);
 		}
-		const vacationAccount = await getUserVacation(account.id);
+		const vacationAccount = account.userVacation
 		ourAuth = {
 			user: account,
 			userId: userIdToUse,

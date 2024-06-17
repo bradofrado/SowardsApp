@@ -30,7 +30,7 @@ export const CreateGroup: React.FunctionComponent = () => {
     }
     return (<>
         <Button onClick={onShow}>Create Group</Button>
-        <CreateGroupModal group={{id: '', name: 'My Group', users: [], isPublic: false}} onClose={onClose} onSave={onSave} show={show}/>
+        <CreateGroupModal group={{id: '', name: 'My Group', isPublic: false}} onClose={onClose} onSave={onSave} show={show}/>
     </>)
 }
 

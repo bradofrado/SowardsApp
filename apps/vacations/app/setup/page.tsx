@@ -1,20 +1,21 @@
-import { getUsers } from "api/src/auth";
+import { getUserVactions } from "api/src/repositories/user-vacation";
+import type { UserVacation } from "model/src/vacation";
 import { getAuthSession } from "../../utils/auth"
 import { UserProvider } from "../plan/components/user-provider";
-import { UserToggle } from "../plan/components/user-toggle";
 import { getUser } from "../plan/actions";
-import { createUser, updateUser } from "./components/actions"
-import { SetupForm } from "./components/setup-form"
+import { updateUser, connectUser } from "./components/actions"
+import { ConnectAccountForm } from "./components/connect-account-form";
 
 const SetupPage = async (): Promise<JSX.Element> => {
     const session = await getAuthSession();
-    const onSubmit = session?.auth.userVacation ? updateUser : createUser;
-    const user = session?.auth.userVacation || {id: '', amountType: 'adult', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: [], role: 'user', userId: ''};
-    const users = await getUsers();
+    const onSubmit = updateUser;
+    const onConnect = connectUser;
+    const user: UserVacation = session?.auth.userVacation || {id: '', name: 'New Family', createdByEvents: [], dependents: [], eventIds: [], events: [], groupIds: [], groups: []};
+    const users = await getUserVactions();
+    const isAdmin = session?.auth.user.roles.includes('admin') || false;
     return (
-        <UserProvider getUser={getUser} user={user}>
-            <UserToggle getUser={getUser} users={users}/>
-            <SetupForm onSubmit={onSubmit} user={user}/>
+        <UserProvider getUser={getUser} isAdmin={isAdmin} user={user}>
+            <ConnectAccountForm onConnect={onConnect} onUpdate={onSubmit} user={user} users={users}/>
         </UserProvider>
     )
 }

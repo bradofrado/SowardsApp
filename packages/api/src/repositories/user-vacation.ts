@@ -5,7 +5,7 @@ import { amountTypesSchema } from "model/src/vacation";
 import { prismaToVacationEvent } from "./event";
 import { groupPayload, prismaToVacationGroup } from "./group";
 
-const payload = {
+export const payload = {
     include: {
         groups: {
             ...groupPayload
@@ -13,13 +13,12 @@ const payload = {
         events: true,
         dependents: true,
         created: true,
-        user: true
     }
 } satisfies Prisma.UserVacationDefaultArgs
-export const getUserVacation = async (userId: string): Promise<UserVacation | undefined> => {
+export const getUserVacation = async (id: string): Promise<UserVacation | undefined> => {
     const vacationAccount = await prisma.userVacation.findUnique({
         where: {
-            userId
+            id
         },
         ...payload
     });
@@ -28,15 +27,20 @@ export const getUserVacation = async (userId: string): Promise<UserVacation | un
     return prismaToUserVacation(vacationAccount);
 }
 
-const prismaToUserVacation = (user: Prisma.UserVacationGetPayload<typeof payload>): UserVacation => {
+export const getUserVactions = async (): Promise<UserVacation[]> => {
+    const users = await prisma.userVacation.findMany(payload);
+
+    return users.map(user => prismaToUserVacation(user));
+}
+
+export const prismaToUserVacation = (user: Prisma.UserVacationGetPayload<typeof payload>): UserVacation => {
     return {
         id: user.id,
-        userId: user.userId,
+        name: user.name,
         eventIds: user.eventIds,
         groupIds: user.groupIds,
         events: user.events.map(event => prismaToVacationEvent(event)),
         groups: user.groups.map(group => prismaToVacationGroup(group)),
-        amountType: amountTypesSchema.parse(user.amountType),
         dependents: user.dependents.map(dependent => ({
             id: dependent.id,
             firstname: dependent.firstname,
@@ -44,14 +48,12 @@ const prismaToUserVacation = (user: Prisma.UserVacationGetPayload<typeof payload
             amountType: amountTypesSchema.parse(dependent.amountType)
         })),
         createdByEvents: user.created.map(event => prismaToVacationEvent(event)),
-        role: user.user.roles[0] || 'user'
     }
 } 
 
-export const createUserVacation = async (user: UserVacation): Promise<UserVacation> => {
+export const createUserVacation = async (user: UserVacation, userId: string): Promise<UserVacation> => {
     const newUser = await prisma.userVacation.create({
         data: {
-            userId: user.userId,
             groups: {
                 connect: user.groupIds.map(id => ({
                     id
@@ -62,7 +64,6 @@ export const createUserVacation = async (user: UserVacation): Promise<UserVacati
                     id
                 }))
             },
-            amountType: user.amountType,
             dependents: {
                 createMany: {
                     data: user.dependents.map(dependent => ({
@@ -70,6 +71,12 @@ export const createUserVacation = async (user: UserVacation): Promise<UserVacati
                         lastname: dependent.lastname,
                         amountType: dependent.amountType
                     }))
+                }
+            },
+            name: user.name,
+            users: {
+                connect: {
+                    id: userId
                 }
             }
         },
@@ -102,7 +109,7 @@ export const updateUserVacation = async (user: UserVacation): Promise<UserVacati
                     firstname: dependent.firstname,
                     lastname: dependent.lastname,
                     userId: user.id,
-                    amountType: dependent.amountType
+                    amountType: dependent.amountType,
                 }
             })
         }
@@ -119,10 +126,9 @@ export const updateUserVacation = async (user: UserVacation): Promise<UserVacati
     
     const newUser = await prisma.userVacation.update({
         where: {
-            userId: user.userId,
+            id: user.id,
         },
         data: {
-            userId: user.userId,
             groups: {
                 connect: user.groupIds.map(id => ({
                     id
@@ -133,7 +139,7 @@ export const updateUserVacation = async (user: UserVacation): Promise<UserVacati
                     id
                 }))
             },
-            amountType: user.amountType,
+            name: user.name,
         },
         ...payload
     });

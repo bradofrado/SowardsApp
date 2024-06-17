@@ -37,21 +37,19 @@ export type VacationEvent = z.infer<typeof vacationEventSchema>;
 export const vacationGroupSchema = z.object({
     id: z.string(),
     name: z.string(),
-    users: z.array(z.intersection(dependentSchema, z.object({dependents: z.array(dependentSchema)}))),
+    //users: z.array(z.intersection(dependentSchema, z.object({dependents: z.array(dependentSchema)}))),
     isPublic: z.boolean()
 });
 export type VacationGroup = z.infer<typeof vacationGroupSchema>;
 
 export const userVacationSchema = z.object({
     id: z.string(),
-    userId: z.string(),
+    name: z.string(),
     groupIds: z.array(z.string()),
     groups: z.array(vacationGroupSchema),
     eventIds: z.array(z.string()),
     events: z.array(vacationEventSchema),
-    amountType: amountTypesSchema,
     dependents: z.array(dependentSchema),
     createdByEvents: z.array(vacationEventSchema),
-    role: z.string()
 });
 export type UserVacation = z.infer<typeof userVacationSchema>

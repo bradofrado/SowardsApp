@@ -71,11 +71,11 @@ export const vacationGroupRouter = createTRPCRouter({
                     id: input
                 },
                 data: {
-                    users: {
-                        disconnect: {
-                            userId: ctx.session.auth.user.id
-                        }
-                    }
+                    // users: {
+                    //     disconnect: {
+                    //         userId: ctx.session.auth.user.id
+                    //     }
+                    // }
                 }
             });
         }),

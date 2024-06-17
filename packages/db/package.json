@@ -10,7 +10,7 @@
     "db:push": "pnpm withenv prisma db push --skip-generate",
     "db:makemigration": "pnpm withenv prisma migrate dev --name",
     "db:studio": "pnpm withenv prisma studio",
-    "db:migrate": "pnpm withenv ts-node migrations/run-migration.ts"
+    "db:migrate": "pnpm withenv ts-node migrations/run-migration.ts && pnpm withenv prisma db push"
   },
   "eslint": {
     "root": true,

@@ -74,11 +74,11 @@ const useCalculateStats = ({events, currUser}: CalculateStatsProps): CalculateSt
             if (!currUser?.dependents) return {adult: 0, child: 0};
 
             const amount = getAmountOfPeople(currUser.dependents);
-            if (currUser.amountType === 'adult') {
-                amount.adult += 1;
-            } else if (currUser.amountType === 'child') {
-                amount.child += 1;
-            }
+            // if (currUser..amountType === 'adult') {
+            //     amount.adult += 1;
+            // } else if (currUser.amountType === 'child') {
+            //     amount.child += 1;
+            // }
 
             return amount;
         })()

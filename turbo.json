@@ -24,7 +24,9 @@
       "persistent": true
     },
     "db:migrate": {},
-    "typecheck": {}
+    "typecheck": {
+      "cache": false
+    }
   },
 	"globalEnv": ["PORT", "DATABASE_URL", "VERCEL_URL", "NODE_ENV"]
 }
