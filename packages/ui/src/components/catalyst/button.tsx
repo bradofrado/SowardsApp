@@ -207,7 +207,7 @@ export const Button = forwardRef(function Button(
     </Link>
   ) : (
     <Headless.Button
-      {...props}
+      {...(props as Omit<Headless.ButtonProps, "className">)}
       className={clsx(classes, "cursor-default")}
       ref={ref}
     >
