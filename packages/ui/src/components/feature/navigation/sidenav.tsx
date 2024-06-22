@@ -1,12 +1,12 @@
 import { useExpand } from "../../../hooks/expand";
-import { HamburgerIcon } from "../../components/core/icons";
-import { SidePanel, type SidePanelItems } from "../../components/core/side-panel";
+import { HamburgerIcon } from "../../catalyst/core/icons";
+import { SidePanel, type SidePanelItems } from "../../catalyst/core/side-panel";
 
 export type SideNavComponentProps = {
   items: SidePanelItems[];
   className?: string;
   path: string;
-	title?: string;
+  title?: string;
   profileContent?: React.ReactNode;
 } & React.PropsWithChildren;
 export const SideNavComponent: React.FunctionComponent<
@@ -38,8 +38,8 @@ export const SideNavComponent: React.FunctionComponent<
         onBodyClick={() => {
           onExpand(false);
         }}
-				path={path}
-				title={title}
+        path={path}
+        title={title}
       >
         {children}
       </SidePanel>

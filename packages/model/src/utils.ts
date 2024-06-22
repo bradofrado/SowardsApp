@@ -5,23 +5,28 @@ export const displayDate = (date: Date) => {
   return dayjs(date).format("MM/DD/YY");
 };
 
+export const displayDateAndTime = (date: Date) => {
+  return dayjs(date).format("MMM, DD h:mm A");
+};
+
 export const displayTime = (date: Date): string => {
-	return dayjs(date).format("h:mm A");
-}
+  return dayjs(date).format("h:mm A");
+};
 
 export const displayDateLong = (date: Date): string => {
-	return dayjs(date).format('MMM, DD YYYY');
-}
+  return dayjs(date).format("MMM, DD YYYY");
+};
 
 export const displayWeekDayShort = (date: Date): string => {
-	return dayjs(date).format('dd');
-}
+  return dayjs(date).format("dd");
+};
 
 export const displayWeekDay = (date: Date): string => {
-	return dayjs(date).format('ddd');
-}
+  return dayjs(date).format("ddd");
+};
 
-export const datesEqual = (d1: Date, d2: Date): boolean => displayDate(d1) === displayDate(d2);
+export const datesEqual = (d1: Date, d2: Date): boolean =>
+  displayDate(d1) === displayDate(d2);
 
 export const formatDollarAmount = (amount: number): string => {
   const digits = Math.floor(amount).toString().split("").reverse();
@@ -44,12 +49,14 @@ export const minute = 60000;
 export const hour = 3600000;
 export const day = 86400000;
 export const week = 604800000;
-export const calculateDateDifference = (milisecondsSinceToday: number): Date => {
-	const today = new Date();
-	today.setTime(today.getTime() - milisecondsSinceToday);
+export const calculateDateDifference = (
+  milisecondsSinceToday: number,
+): Date => {
+  const today = new Date();
+  today.setTime(today.getTime() - milisecondsSinceToday);
 
-	return today;
-}
+  return today;
+};
 
 export const displayElapsedTime = (time: Date): string => {
   const currTime = new Date();
@@ -75,17 +82,17 @@ export const displayElapsedTime = (time: Date): string => {
 };
 
 export const displayRelativeDate = (date: Date): string => {
-	const elapsedTime = new Date().getTime() - date.getTime();
-	if (elapsedTime < day) {
-		return 'Today';
-	}
+  const elapsedTime = new Date().getTime() - date.getTime();
+  if (elapsedTime < day) {
+    return "Today";
+  }
 
-	if (elapsedTime < day * 2) {
-		return 'Yesterday';
-	}
+  if (elapsedTime < day * 2) {
+    return "Yesterday";
+  }
 
-	return displayDate(date);
-}
+  return displayDate(date);
+};
 
 export const round = (value: number, digits = 0): number => {
   const places = Math.pow(10, digits);
@@ -178,21 +185,29 @@ export function isDateInBetween(
   test: Date | undefined,
   start: Date | undefined,
   end: Date | undefined,
-  checkOnlyDate?: boolean
+  checkOnlyDate?: boolean,
 ): boolean {
   if (test === undefined) {
     return true;
   }
-  const _end = checkOnlyDate && end ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59) : end;
+  const _end =
+    checkOnlyDate && end
+      ? new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59)
+      : end;
   return (
     (start !== undefined ? start <= test : true) &&
     (_end !== undefined ? test <= _end : true)
   );
 }
 
-export const arrayOfAll = <T,>() => <U extends T[]>(
-  array: U & ([T] extends [U[number]] ? unknown : Exclude<T, U[number]>)
-) => array;
+export const arrayOfAll =
+  <T>() =>
+  <U extends T[]>(
+    array: U & ([T] extends [U[number]] ? unknown : Exclude<T, U[number]>),
+  ) =>
+    array;
 
-export const stringUnionSchema = <T extends readonly string[]>(array: T) => z.custom<T[number]>((data) => typeof data === 'string' && array.includes(data));
-
+export const stringUnionSchema = <T extends readonly string[]>(array: T) =>
+  z.custom<T[number]>(
+    (data) => typeof data === "string" && array.includes(data),
+  );
