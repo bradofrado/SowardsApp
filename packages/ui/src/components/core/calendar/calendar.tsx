@@ -1159,8 +1159,9 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
               <ChevronRightIcon aria-hidden="true" className="h-5 w-5" />
             </button>
           </div>
-          <div className="hidden md:ml-4 md:flex md:items-center">
+          <div className="md:ml-4 flex items-center">
             <Dropdown
+              className="hidden md:block"
               initialValue={view}
               items={viewItems}
               onChange={(item) => {

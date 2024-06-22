@@ -37,7 +37,7 @@ export const Home: React.FunctionComponent<{
           <TableRow>
             <TableHeader>Name</TableHeader>
             <TableHeader>Date</TableHeader>
-            <TableHeader>Created By</TableHeader>
+            <TableHeader className="hidden lg:block">Created By</TableHeader>
             <TableHeader className="text-right">Amount</TableHeader>
           </TableRow>
         </TableHead>
@@ -48,7 +48,7 @@ export const Home: React.FunctionComponent<{
               <TableCell className="text-zinc-500">
                 {displayDateAndTime(event.date)}
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden lg:block">
                 {users.find((_user) => _user.id === event.createdById)?.name ||
                   "N/A"}
               </TableCell>

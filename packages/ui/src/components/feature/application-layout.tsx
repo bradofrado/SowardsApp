@@ -100,14 +100,7 @@ export function ApplicationLayout({
       navbar={
         <Navbar>
           <NavbarSpacer />
-          <NavbarSection>
-            <Dropdown>
-              <DropdownButton as={NavbarItem}>
-                <Avatar src="/users/erica.jpg" square />
-              </DropdownButton>
-              <AccountDropdownMenu anchor="bottom end" />
-            </Dropdown>
-          </NavbarSection>
+          <NavbarSection>{profileItem}</NavbarSection>
         </Navbar>
       }
       sidebar={
