@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { Subscriber } from "../../../hooks/subscriber";
-import { Button } from "../../components/core/button";
-import { Input } from "../../components/core/input";
+import { Button } from "../../catalyst/core/button";
+import { Input } from "../../catalyst/core/input";
 
 export interface EditableTextProps {
   text: string;

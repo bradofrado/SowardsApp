@@ -1,4 +1,4 @@
-import { UserCircleIcon } from "../../components/core/icons";
+import { UserCircleIcon } from "../../catalyst/core/icons";
 
 export interface ProfileImageProps {
   image: string | undefined;

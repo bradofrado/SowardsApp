@@ -1,4 +1,4 @@
-import { CheckmarkIcon } from "../components/core/icons";
+import { CheckmarkIcon } from "../catalyst/core/icons";
 
 export interface StatusTrackerProps {
   statuses: readonly string[];
