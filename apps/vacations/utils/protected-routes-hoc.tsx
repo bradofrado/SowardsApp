@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- ok*/
 import { type GetServerSideProps } from "next";
 import { redirect } from "next/navigation";
-import {cookies} from 'next/headers';
+import { cookies } from "next/headers";
 import { auth } from "@clerk/nextjs/server";
 import type { AuthedSession, Session } from "model/src/auth";
 import { getServerAuthSession } from "api/src/auth";
@@ -18,14 +18,14 @@ export const requireRoute =
   ({ redirect, check }: RequireRouteProps) =>
   () =>
   async (mockUserId?: string) => {
-    const {userId} = auth();
+    const { userId } = auth();
     const session = await getServerAuthSession(userId, mockUserId);
 
-    if ((check && check(session))) {
-      return {redirect, session: undefined}
+    if (check && check(session)) {
+      return { redirect, session: undefined };
     }
 
-		return {session: session as AuthedSession, redirect: undefined};
+    return { session: session as AuthedSession, redirect: undefined };
   };
 
 // export const isNotRole =
@@ -43,29 +43,40 @@ export const requireRoute =
 //     return role !== desiredRole && role !== "admin";
 //   };
 
-export const requireUserVacation = requireRoute({redirect: '/setup', check: (session) => Boolean(session && !session.auth.userVacation)})
+export const requireUserVacation = requireRoute({
+  redirect: "/settings",
+  check: (session) => Boolean(session && !session.auth.userVacation),
+});
 
-export const requireAuth = requireRoute({ redirect: "/setup", check: (session) => {
-	return session?.auth === undefined;
-} });
+export const requireAuth = requireRoute({
+  redirect: "/settings",
+  check: (session) => {
+    return session?.auth === undefined;
+  },
+});
 
-export interface AuthProps {ctx: TRPCContext}
+export interface AuthProps {
+  ctx: TRPCContext;
+}
 interface PageProps {
   params: Record<string, string>;
   searchParams: { [key: string]: string | string[] | undefined };
 }
-export const withAuth = (Component: React.FunctionComponent<AuthProps>): (props: PageProps) => Promise<JSX.Element> => 
-	async () => {
+export const withAuth =
+  (
+    Component: React.FunctionComponent<AuthProps>,
+  ): ((props: PageProps) => Promise<JSX.Element>) =>
+  async () => {
     const cookie = cookies();
-    const mockUserId = cookie.get('harmony-user-id');
+    const mockUserId = cookie.get("harmony-user-id");
     const response = await requireAuth()(mockUserId?.value);
 
-		if (response.redirect) {
-			redirect('/setup');
-		}
+    if (response.redirect) {
+      redirect("/settings");
+    }
 
-		return <Component ctx={{prisma, session: response.session!}}/>
-	}
+    return <Component ctx={{ prisma, session: response.session! }} />;
+  };
 
 // export const requireRole = (role: UserRole) =>
 //   requireRoute({

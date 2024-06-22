@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- ok*/
+/* eslint-disable @typescript-eslint/no-confusing-void-expression -- ok*/
 "use client";
 import type {
   AmountType,
@@ -15,7 +15,6 @@ import { Input } from "ui/src/components/core/input";
 import { Text } from "ui/src/components/catalyst/text";
 import { Dropdown } from "ui/src/components/core/dropdown";
 import { useChangeProperty } from "ui/src/hooks/change-property";
-import { useRouter } from "next/navigation";
 
 interface ConnectAccountFormProps {
   users: UserVacation[];
