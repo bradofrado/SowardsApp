@@ -19,16 +19,10 @@ const PlanPage = async (): Promise<JSX.Element> => {
 
   const events = await getVacationEvents({ db: prisma });
   const groups = await getGroups({ db: prisma });
-  const users = await getUserVactions();
 
   const session = result.session;
-  const isAdmin = session?.auth.user.roles.includes("admin") || false;
   return (
-    <UserProvider
-      getUser={getUser}
-      isAdmin={false}
-      user={session?.auth.userVacation}
-    >
+    <>
       <Heading>Events</Heading>
       <div className="mt-8 flex items-end justify-between">
         <Subheading>Budget</Subheading>
@@ -40,7 +34,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
           role={session?.auth.user.roles[0] || "user"}
         />
       </div>
-    </UserProvider>
+    </>
   );
 };
 

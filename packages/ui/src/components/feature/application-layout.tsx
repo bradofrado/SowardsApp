@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 "use client";
 
+import { UserVacation } from "model/src/vacation";
 import { Avatar } from "../catalyst/avatar";
 import {
   Dropdown,
@@ -24,6 +26,7 @@ import {
   SidebarLabel,
   SidebarSection,
   SidebarSpacer,
+  SidebarHeading,
 } from "../catalyst/sidebar";
 import { SidebarLayout } from "../catalyst/sidebar-layout";
 import {
@@ -44,6 +47,7 @@ import {
   Square2StackIcon,
   TicketIcon,
 } from "@heroicons/react/20/solid";
+import { Dropdown as DropdownCore } from "../core/dropdown";
 
 function AccountDropdownMenu({
   anchor,
@@ -77,11 +81,19 @@ function AccountDropdownMenu({
 export function ApplicationLayout({
   children,
   pathname,
-  profileItem
+  profileItem,
+  currUser,
+  isAdmin,
+  users,
+  onUserChange,
 }: {
   children: React.ReactNode;
   pathname: string;
-  profileItem: React.ReactNode
+  profileItem: React.ReactNode;
+  currUser: UserVacation | undefined;
+  isAdmin: boolean;
+  users: UserVacation[];
+  onUserChange: (user: UserVacation) => void;
 }) {
   return (
     <SidebarLayout
@@ -164,14 +176,18 @@ export function ApplicationLayout({
               </SidebarItem>
             </SidebarSection>
 
-            {/* <SidebarSection className="max-lg:hidden">
-              <SidebarHeading>Upcoming Events</SidebarHeading>
-              {events.map((event) => (
-                <SidebarItem key={event.id} href={event.url}>
-                  {event.name}
-                </SidebarItem>
-              ))}
-            </SidebarSection> */}
+            {isAdmin && currUser ? (
+              <SidebarSection className="max-lg:hidden">
+                <SidebarHeading>Select User</SidebarHeading>
+
+                <DropdownCore
+                  className="w-full"
+                  items={users}
+                  initialValue={currUser.id}
+                  onChange={(item) => onUserChange(item as UserVacation)}
+                />
+              </SidebarSection>
+            ) : null}
 
             <SidebarSpacer />
 

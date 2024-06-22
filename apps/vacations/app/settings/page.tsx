@@ -20,12 +20,8 @@ const SetupPage = async (): Promise<JSX.Element> => {
     groups: [],
   };
   const users = await getUserVactions();
-  const isAdmin = session?.auth.user.roles.includes("admin") || false;
-  return (
-    <UserProvider getUser={getUser} isAdmin={isAdmin} user={user}>
-      <ConnectAccountForm onUpdate={onSubmit} user={user} users={users} />
-    </UserProvider>
-  );
+
+  return <ConnectAccountForm onUpdate={onSubmit} user={user} users={users} />;
 };
 
 export default SetupPage;
