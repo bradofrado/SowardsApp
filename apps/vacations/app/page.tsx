@@ -7,6 +7,7 @@ import { getVacationEvents } from "api/src/repositories/event";
 import { prisma } from "db/lib/prisma";
 import { requireUserVacation } from "../utils/protected-routes-hoc";
 import { UserProvider } from "./plan/components/user-provider";
+import { getUserVactions } from "api/src/repositories/user-vacation";
 
 export default async function HomePage() {
   const result = await requireUserVacation()();
@@ -16,14 +17,6 @@ export default async function HomePage() {
 
   const events = await getVacationEvents({ db: prisma });
 
-  const session = result.session;
-  return (
-    <UserProvider
-      getUser={getUser}
-      isAdmin={false}
-      user={session?.auth.userVacation}
-    >
-      <Home events={events} />
-    </UserProvider>
-  );
+  const users = await getUserVactions();
+  return <Home events={events} users={users} />;
 }

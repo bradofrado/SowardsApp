@@ -79,29 +79,6 @@ export const useCalculateStats = ({
   events,
   currUser,
 }: CalculateStatsProps): CalculateStatsResults => {
-  const getAmountOfPeople = <T extends { amountType: AmountType }>(
-    userLike: T[],
-    callback?: (item: T) => { child: number; adult: number },
-  ): { child: number; adult: number } => {
-    return userLike.reduce(
-      (prev, curr) => {
-        if (curr.amountType === "adult") {
-          prev.adult += 1;
-        } else if (curr.amountType === "child") {
-          prev.child += 1;
-        }
-
-        if (callback) {
-          const res = callback(curr);
-          prev.adult += res.adult;
-          prev.child += res.child;
-        }
-
-        return prev;
-      },
-      { adult: 0, child: 0 },
-    );
-  };
   const getAmountsForGroup = (group?: VacationGroup): Stat[] => {
     const _events = currUser?.events ?? events;
     const groupId = group?.id;
@@ -110,44 +87,40 @@ export const useCalculateStats = ({
         ...events.filter((event) => event.groupIds.includes(groupId)),
       );
     }
-    const amounts = _events.reduce<Record<AmountType, number>>(
+    const amounts = _events.reduce<Record<"adult" | "child" | "total", number>>(
       (prev, curr) => {
-        curr.amounts.forEach((amount) => {
-          if (!isUserAmount(amount, currUser?.id)) {
-            return;
-          }
-
-          prev[amount.type] += amount.amount;
-        });
+        const eventAmount = getAmountForEvent(curr, currUser);
+        prev.adult += eventAmount.adult;
+        prev.child += eventAmount.child;
+        prev.total += eventAmount.total;
 
         return prev;
       },
-      { custom: 0, adult: 0, child: 0 },
+      { total: 0, adult: 0, child: 0 },
     );
 
-    const numPeopleInGroup = //group?.users ? getAmountOfPeople(group.users, (item) => getAmountOfPeople(item.dependents)) :
-      (function UserAmounts() {
-        if (!currUser?.dependents) return { adult: 0, child: 0 };
+    // const numPeopleInGroup = //group?.users ? getAmountOfPeople(group.users, (item) => getAmountOfPeople(item.dependents)) :
+    //   (function UserAmounts() {
+    //     if (!currUser?.dependents) return { adult: 0, child: 0 };
 
-        const amount = getAmountOfPeople(currUser.dependents);
-        // if (currUser..amountType === 'adult') {
-        //     amount.adult += 1;
-        // } else if (currUser.amountType === 'child') {
-        //     amount.child += 1;
-        // }
+    //     const amount = getAmountOfPeople(currUser.dependents);
+    //     // if (currUser..amountType === 'adult') {
+    //     //     amount.adult += 1;
+    //     // } else if (currUser.amountType === 'child') {
+    //     //     amount.child += 1;
+    //     // }
 
-        return amount;
-      })();
-    const numAdults = numPeopleInGroup.adult;
-    const numChilds = numPeopleInGroup.child;
+    //     return amount;
+    //   })();
+    // const numAdults = numPeopleInGroup.adult;
+    // const numChilds = numPeopleInGroup.child;
 
-    const totalChild = amounts.child * numChilds;
-    const totalAdult = amounts.adult * numAdults;
-    const total = totalAdult + totalChild + amounts.custom;
+    // const totalChild = amounts.child * numChilds;
+    // const totalAdult = amounts.adult * numAdults;
+    // const total = totalAdult + totalChild + amounts.custom;
 
     return [
-      { name: "Total", stat: total, type: "number" },
-      //{name: 'All', stat: amounts.all, type: 'number'},
+      { name: "Total", stat: amounts.total, type: "number" },
       { name: "Adult", stat: amounts.adult, type: "number" },
       { name: "Child", stat: amounts.child, type: "number" },
     ];
@@ -170,6 +143,60 @@ export const useCalculateStats = ({
   return {
     groups: [],
     total: amountsTotal,
+  };
+};
+
+const getAmountOfPeople = <T extends { amountType: AmountType }>(
+  userLike: T[],
+  callback?: (item: T) => { child: number; adult: number },
+): { child: number; adult: number } => {
+  return userLike.reduce(
+    (prev, curr) => {
+      if (curr.amountType === "adult") {
+        prev.adult += 1;
+      } else if (curr.amountType === "child") {
+        prev.child += 1;
+      }
+
+      if (callback) {
+        const res = callback(curr);
+        prev.adult += res.adult;
+        prev.child += res.child;
+      }
+
+      return prev;
+    },
+    { adult: 0, child: 0 },
+  );
+};
+
+export const getAmountForEvent = (
+  event: VacationEvent,
+  currUser?: UserVacation,
+): { total: number; adult: number; child: number } => {
+  const results = event.amounts.reduce(
+    (prev, curr) => {
+      if (
+        (currUser && !currUser.eventIds.includes(event.id)) ||
+        !isUserAmount(curr, currUser?.id)
+      )
+        return prev;
+
+      prev[curr.type] += curr.amount;
+
+      return prev;
+    },
+    { custom: 0, adult: 0, child: 0 },
+  );
+
+  const amounts = getAmountOfPeople(currUser?.dependents ?? []);
+  return {
+    total:
+      results.custom +
+      results.adult * amounts.adult +
+      results.child * amounts.child,
+    adult: results.adult * amounts.adult,
+    child: results.child * amounts.child,
   };
 };
 
