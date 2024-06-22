@@ -77,9 +77,11 @@ function AccountDropdownMenu({
 export function ApplicationLayout({
   children,
   pathname,
+  profileItem
 }: {
   children: React.ReactNode;
   pathname: string;
+  profileItem: React.ReactNode
 }) {
   return (
     <SidebarLayout
@@ -99,7 +101,7 @@ export function ApplicationLayout({
       sidebar={
         <Sidebar>
           <SidebarHeader>
-            <Dropdown>
+            {/* <Dropdown>
               <DropdownButton as={SidebarItem}>
                 <Avatar src="/teams/catalyst.svg" />
                 <SidebarLabel>Catalyst</SidebarLabel>
@@ -132,7 +134,8 @@ export function ApplicationLayout({
                   <DropdownLabel>New team&hellip;</DropdownLabel>
                 </DropdownItem>
               </DropdownMenu>
-            </Dropdown>
+            </Dropdown> */}
+            <SidebarLabel>Sowards Vacations</SidebarLabel>
           </SidebarHeader>
 
           <SidebarBody>
@@ -143,15 +146,15 @@ export function ApplicationLayout({
               </SidebarItem>
               <SidebarItem href="/plan" current={pathname.startsWith("/plan")}>
                 <Square2StackIcon />
-                <SidebarLabel>Events</SidebarLabel>
+                <SidebarLabel>Plan</SidebarLabel>
               </SidebarItem>
-              <SidebarItem
+              {/* <SidebarItem
                 href="/orders"
                 current={pathname.startsWith("/orders")}
               >
                 <TicketIcon />
                 <SidebarLabel>Orders</SidebarLabel>
-              </SidebarItem>
+              </SidebarItem> */}
               <SidebarItem
                 href="/settings"
                 current={pathname.startsWith("/settings")}
@@ -185,7 +188,7 @@ export function ApplicationLayout({
           </SidebarBody>
 
           <SidebarFooter className="max-lg:hidden">
-            <Dropdown>
+            {/* <Dropdown>
               <DropdownButton as={SidebarItem}>
                 <span className="flex min-w-0 items-center gap-3">
                   <Avatar
@@ -206,7 +209,8 @@ export function ApplicationLayout({
                 <ChevronUpIcon />
               </DropdownButton>
               <AccountDropdownMenu anchor="top start" />
-            </Dropdown>
+            </Dropdown> */}
+            {profileItem}
           </SidebarFooter>
         </Sidebar>
       }
