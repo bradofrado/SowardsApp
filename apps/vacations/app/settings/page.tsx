@@ -1,8 +1,6 @@
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import type { UserVacation } from "model/src/vacation";
 import { getAuthSession } from "../../utils/auth";
-import { UserProvider } from "../plan/components/user-provider";
-import { getUser } from "../plan/actions";
 import { updateUser } from "./components/actions";
 import { ConnectAccountForm } from "./components/connect-account-form";
 

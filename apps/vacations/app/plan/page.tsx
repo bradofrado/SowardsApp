@@ -2,13 +2,9 @@ import { prisma } from "db/lib/prisma";
 import { getVacationEvents } from "api/src/repositories/event";
 import { getGroups } from "api/src/repositories/group";
 import { redirect } from "next/navigation";
-import { getUserVactions } from "api/src/repositories/user-vacation";
 import { requireUserVacation } from "../../utils/protected-routes-hoc";
 import { StatsView } from "./components/stats-view";
 import { CalendarView } from "./components/calendar-view";
-import { UserProvider } from "./components/user-provider";
-import { UserToggle } from "./components/user-toggle";
-import { getUser } from "./actions";
 import { Heading, Subheading } from "ui/src/components/catalyst/heading";
 
 const PlanPage = async (): Promise<JSX.Element> => {

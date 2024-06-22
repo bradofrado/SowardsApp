@@ -1,7 +1,5 @@
 "use client";
-import { Header } from "ui/src/components/core/header";
 import { Label } from "ui/src/components/core/label";
-import { BaseModal } from "ui/src/components/core/modal";
 import { Input, InputBlur } from "ui/src/components/core/input";
 import { useEffect, useMemo, useState } from "react";
 import { useChangeProperty } from "ui/src/hooks/change-property";
@@ -24,6 +22,11 @@ import {
   DialogActions,
 } from "ui/src/components/catalyst/dialog";
 import { usePrevious } from "ui/src/hooks/previous";
+import {
+  DescriptionList,
+  DescriptionDetails,
+  DescriptionTerm,
+} from "ui/src/components/catalyst/description-list";
 
 type EventAmount = Event["amounts"][number];
 type EventAmountType = AmountType;
@@ -117,40 +120,51 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
       <DialogTitle>{event.name}</DialogTitle>
       <DialogDescription>{event.notes}</DialogDescription>
       <DialogBody className="space-y-4">
-        <Label label="Date">{displayDate(event.date)}</Label>
-        <Label label="Time">{displayTime(event.date)}</Label>
-        <Label label="Location">{event.location || "N/A"}</Label>
-        <Label label="Links">
-          <div className="flex flex-col gap-2">
-            {event.links.length
-              ? event.links.map((link) => (
-                  <a
-                    className="text-blue-500"
-                    target="_blank"
-                    key={link}
-                    href={link}
-                    rel="noopener"
-                  >
-                    {link}
-                  </a>
-                ))
-              : "N/A"}
-          </div>
-        </Label>
-        <Label label="Amount">
-          <div className="flex flex-col gap-2">
-            {event.amounts.map((amount) => (
-              <div
-                key={`${amount.amount}-${amount.type}`}
-                className="flex gap-2"
-              >
-                <div>{formatDollarAmount(amount.amount)}</div>
-                <span>-</span>
-                <div>{amount.type}</div>
-              </div>
-            ))}
-          </div>
-        </Label>
+        <DescriptionList>
+          <DescriptionTerm>Date</DescriptionTerm>
+          <DescriptionDetails>{displayDate(event.date)}</DescriptionDetails>
+
+          <DescriptionTerm>Time</DescriptionTerm>
+          <DescriptionDetails>{displayTime(event.date)}</DescriptionDetails>
+
+          <DescriptionTerm>Location</DescriptionTerm>
+          <DescriptionDetails>{event.location || "N/A"}</DescriptionDetails>
+
+          <DescriptionTerm>Links</DescriptionTerm>
+          <DescriptionDetails>
+            <div className="flex flex-col gap-2">
+              {event.links.length
+                ? event.links.map((link) => (
+                    <a
+                      className="text-blue-500"
+                      target="_blank"
+                      key={link}
+                      href={link}
+                      rel="noopener"
+                    >
+                      {link}
+                    </a>
+                  ))
+                : "N/A"}
+            </div>
+          </DescriptionDetails>
+
+          <DescriptionTerm>Amount</DescriptionTerm>
+          <DescriptionDetails>
+            <div className="flex flex-col gap-2">
+              {event.amounts.map((amount) => (
+                <div
+                  key={`${amount.amount}-${amount.type}`}
+                  className="flex gap-2"
+                >
+                  <div>{formatDollarAmount(amount.amount)}</div>
+                  <span>-</span>
+                  <div>{amount.type}</div>
+                </div>
+              ))}
+            </div>
+          </DescriptionDetails>
+        </DescriptionList>
       </DialogBody>
       <DialogActions>
         {!inGroup ? (
