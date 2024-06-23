@@ -12,11 +12,9 @@
       "cache": false,
       "persistent": true
     },
-		"format": {},
-		"db:generate": {
-      
-    },
-		"db:push": {
+    "format": {},
+    "db:generate": {},
+    "db:push": {
       "cache": false
     },
     "db:studio": {
@@ -28,5 +26,11 @@
       "cache": false
     }
   },
-	"globalEnv": ["PORT", "DATABASE_URL", "VERCEL_URL", "NODE_ENV"]
+  "globalEnv": [
+    "PORT",
+    "DATABASE_URL",
+    "VERCEL_URL",
+    "NODE_ENV",
+    "NEXT_PUBLIC_GENERATE_EVENTS"
+  ]
 }

@@ -1,6 +1,5 @@
 "use client";
 import type {
-  AmountType,
   UserVacation,
   VacationAmount,
   VacationEvent,

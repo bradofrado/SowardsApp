@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+/* eslint-disable @typescript-eslint/no-confusing-void-expression -- ok*/
 "use client";
 import { Label } from "ui/src/components/core/label";
 import {
