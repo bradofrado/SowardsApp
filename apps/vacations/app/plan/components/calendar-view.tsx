@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { CalendarView as CalendarViewRaw } from "ui/src/components/core/calendar/calendar";
-import type { VacationEvent } from "model/src/vacation";
+import type { UserVacation, VacationEvent } from "model/src/vacation";
 import { useRouter } from "next/navigation";
 import { api } from "../../../utils/api";
 import type { Event } from "./event-form";
@@ -12,7 +12,8 @@ import { useUser } from "./user-provider";
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];
   role: string;
-}> = ({ events: eventsProps, role }) => {
+  users: UserVacation[];
+}> = ({ events: eventsProps, role, users }) => {
   const { user } = useUser();
   const [currEvent, setCurrEvent] = useState<number>(-1);
   const { mutate: createEvent } =
@@ -130,6 +131,7 @@ export const CalendarView: React.FunctionComponent<{
       />
       <EventFormModal
         existingEvent={edit}
+        users={users}
         canEdit={role === "admin"}
         event={
           edit

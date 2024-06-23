@@ -8,7 +8,11 @@ import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import type { TimeRangeValue } from "ui/src/components/core/calendar/time-picker";
 import { TimeRangeInput } from "ui/src/components/core/calendar/time-picker";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
-import type { AmountType, VacationEvent } from "model/src/vacation";
+import type {
+  AmountType,
+  UserVacation,
+  VacationEvent,
+} from "model/src/vacation";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { Dropdown } from "ui/src/components/core/dropdown";
 import { useUser } from "./user-provider";
@@ -41,6 +45,7 @@ interface EventFormProps {
   existingEvent: boolean;
   joined: boolean;
   inGroup: boolean;
+  users: UserVacation[];
 }
 interface EventFormModalProps extends EventFormProps {
   show: boolean;
@@ -105,6 +110,7 @@ interface EventDetailsProps {
   joined: boolean;
   inGroup: boolean;
   canEdit: boolean;
+  users: UserVacation[];
 }
 export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   event,
@@ -114,6 +120,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   onJoin,
   onEdit,
   inGroup,
+  users,
 }) => {
   const { user } = useUser();
   return (
@@ -173,6 +180,19 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
                   </div>
                 ))}
             </div>
+          </DescriptionDetails>
+
+          <DescriptionTerm>Created By</DescriptionTerm>
+          <DescriptionDetails>
+            {users.find((_user) => _user.id === event.createdById)?.name ||
+              "N/A"}
+          </DescriptionDetails>
+
+          <DescriptionTerm>Joined</DescriptionTerm>
+          <DescriptionDetails>
+            {event.userIds
+              .map((id) => users.find((_user) => _user.id === id)?.name)
+              .join(", ") || "N/A"}
           </DescriptionDetails>
         </DescriptionList>
       </DialogBody>

@@ -6,6 +6,7 @@ import { requireUserVacation } from "../../utils/protected-routes-hoc";
 import { StatsView } from "./components/stats-view";
 import { CalendarView } from "./components/calendar-view";
 import { Heading, Subheading } from "ui/src/components/catalyst/heading";
+import { getUserVactions } from "api/src/repositories/user-vacation";
 
 const PlanPage = async (): Promise<JSX.Element> => {
   const result = await requireUserVacation()();
@@ -15,6 +16,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
 
   const events = await getVacationEvents({ db: prisma });
   const groups = await getGroups({ db: prisma });
+  const users = await getUserVactions();
 
   const session = result.session;
   return (
@@ -26,6 +28,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
       <StatsView events={events} groups={groups} />
       <div className="mt-5">
         <CalendarView
+          users={users}
           events={events}
           role={session?.auth.user.roles[0] || "user"}
         />
