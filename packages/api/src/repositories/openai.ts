@@ -18,8 +18,10 @@ const eventResponseSchema = z.object({
 
 export const generateEvents = async (
   user: UserVacation,
-  date: Date,
+  event: VacationEvent,
 ): Promise<VacationEvent[]> => {
+  const date = event.date;
+  const notes = event.notes;
   const amounts = getAmountOfPeople(user.dependents);
   const location = isDateInBetween(date, new Date(), new Date("2024-08-07"))
     ? "Oahu"
@@ -29,7 +31,7 @@ export const generateEvents = async (
     amounts.adult
   } adults and ${
     amounts.child
-  } children. We will be in ${location} on ${date.toDateString()}. The activities should be family-friendly and suitable for all ages. Prioritize free activites, but paid activities are ok. Give the answers in this JSON format: \`{name: string, description: string, location: string, website: string, amountAdult: number, amountChild: number, durationMinutes: number}\``;
+  } children. We will be in ${location} on ${date.toDateString()}. The activities should be family-friendly and suitable for all ages. Prioritize free activites, but paid activities are ok. Here is some more information, if any: ${notes}. Give the answers in this JSON format: \`{name: string, description: string, location: string, website: string, amountAdult: number, amountChild: number, durationMinutes: number}\``;
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [

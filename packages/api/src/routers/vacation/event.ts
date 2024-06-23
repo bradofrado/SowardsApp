@@ -182,7 +182,7 @@ export const vacationEventRouter = createTRPCRouter({
       });
     }),
   generateEvents: protectedProcedure
-    .input(z.date())
+    .input(vacationEventSchema)
     .output(z.array(vacationEventSchema))
     .mutation(async ({ ctx, input }) => {
       if (

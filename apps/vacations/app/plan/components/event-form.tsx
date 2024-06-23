@@ -308,7 +308,7 @@ export const EventForm: React.FunctionComponent<
     }
 
     setLoading(true);
-    generateEvents(event.date, {
+    generateEvents(event, {
       onSuccess(_events) {
         setGeneratedEvents(_events);
         setOpenGenerate(true);
