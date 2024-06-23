@@ -22,6 +22,7 @@ import {
 import { Button } from "../../catalyst/button";
 import type { DropdownItem } from "../dropdown";
 import { Dropdown } from "../dropdown";
+import { type CalendarColorType } from "model/src/calendar";
 
 interface Meeting {
   id: number;
@@ -338,7 +339,6 @@ export const CalendarForm: React.FunctionComponent<CalendarProps> = ({
   );
 };
 
-type CalendarColorType = "blue" | "pink" | "gray";
 interface CalendarColor<T extends CalendarColorType> {
   background: `bg-${T}-50`;
   backgroundHover: `hover:bg-${T}-100`;
@@ -366,6 +366,38 @@ const getColorClasses = (
         text: "text-pink-700",
         textLight: "text-pink-500",
         groupHoverText: "group-hover:text-pink-700",
+      };
+    case "yellow":
+      return {
+        background: "bg-yellow-50",
+        backgroundHover: "hover:bg-yellow-100",
+        text: "text-yellow-700",
+        textLight: "text-yellow-500",
+        groupHoverText: "group-hover:text-yellow-700",
+      };
+    case "green":
+      return {
+        background: "bg-green-50",
+        backgroundHover: "hover:bg-green-100",
+        text: "text-green-700",
+        textLight: "text-green-500",
+        groupHoverText: "group-hover:text-green-700",
+      };
+    case "red":
+      return {
+        background: "bg-red-50",
+        backgroundHover: "hover:bg-red-100",
+        text: "text-red-700",
+        textLight: "text-red-500",
+        groupHoverText: "group-hover:text-red-700",
+      };
+    case "violet":
+      return {
+        background: "bg-violet-50",
+        backgroundHover: "hover:bg-violet-100",
+        text: "text-violet-700",
+        textLight: "text-violet-500",
+        groupHoverText: "group-hover:text-violet-700",
       };
     case "gray":
       return {

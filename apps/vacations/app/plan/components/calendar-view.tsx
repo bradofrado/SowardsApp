@@ -102,7 +102,8 @@ export const CalendarView: React.FunctionComponent<{
     () =>
       eventsProps.map((e) => ({
         ...e,
-        color: user && e.userIds.includes(user.id) ? "blue" : ("gray" as const),
+        color:
+          user && e.userIds.includes(user.id) ? user.color : ("gray" as const),
         href: "",
       })),
     [eventsProps, user],

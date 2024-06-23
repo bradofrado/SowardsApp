@@ -25,6 +25,7 @@ model User {
 model UserVacation {
   id         String              @id @default(auto()) @map("_id") @db.ObjectId
   name       String
+  color      String
   users      User[]
   groupIds   String[]            @db.ObjectId
   groups     VacationGroup[]     @relation(fields: [groupIds], references: [id])

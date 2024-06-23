@@ -27,6 +27,7 @@ export const createUser = async (user: UserVacation): Promise<void> => {
       id: "",
       dependents: user.dependents,
       createdByEvents: [],
+      color: user.color,
     },
     session.auth.user.id,
   );
@@ -66,6 +67,7 @@ export const updateUser = async (user: UserVacation): Promise<void> => {
     id: user.id,
     dependents: user.dependents,
     createdByEvents: [],
+    color: user.color,
   });
 
   await connectUser(user.id);

@@ -10,6 +10,7 @@ const SetupPage = async (): Promise<JSX.Element> => {
   const user: UserVacation = session?.auth.userVacation || {
     id: "",
     name: "New Family",
+    color: "blue",
     createdByEvents: [],
     dependents: [],
     eventIds: [],

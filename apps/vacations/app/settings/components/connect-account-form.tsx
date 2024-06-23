@@ -15,6 +15,7 @@ import { Input } from "ui/src/components/core/input";
 import { Text } from "ui/src/components/catalyst/text";
 import { Dropdown } from "ui/src/components/core/dropdown";
 import { useChangeProperty } from "ui/src/hooks/change-property";
+import { CalendarColorType } from "model/src/calendar";
 
 interface ConnectAccountFormProps {
   users: UserVacation[];
@@ -59,6 +60,7 @@ export const ConnectAccountForm: React.FunctionComponent<
               const newUser: UserVacation = {
                 id: "",
                 name: "New Family",
+                color: "blue",
                 createdByEvents: [],
                 dependents: [
                   {
@@ -96,6 +98,32 @@ export const ConnectAccountForm: React.FunctionComponent<
             className="w-full"
             value={selectedUser.name}
             onChange={changeProperty.formFunc("name", selectedUser)}
+          />
+        </div>
+      </section>
+
+      <Divider className="my-10" soft />
+
+      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Subheading>Color</Subheading>
+          <Text>
+            This is the color that your family&#39;s events will show up as.
+          </Text>
+        </div>
+        <div>
+          <Dropdown
+            items={
+              [
+                { id: "red", name: "Red" },
+                { id: "green", name: "Green" },
+                { id: "blue", name: "Blue" },
+                { id: "yellow", name: "Yellow" },
+                { id: "violet", name: "Violet" },
+              ] as DropdownItem<CalendarColorType>[]
+            }
+            initialValue={selectedUser.color}
+            onChange={(item) => changeProperty(selectedUser, "color", item.id)}
           />
         </div>
       </section>
