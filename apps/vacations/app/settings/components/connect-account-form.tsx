@@ -15,23 +15,38 @@ import { Input } from "ui/src/components/core/input";
 import { Text } from "ui/src/components/catalyst/text";
 import { Dropdown } from "ui/src/components/core/dropdown";
 import { useChangeProperty } from "ui/src/hooks/change-property";
+import { useUser } from "@clerk/nextjs";
 
 interface ConnectAccountFormProps {
   users: UserVacation[];
   onUpdate: (user: UserVacation) => Promise<void>;
-  user: UserVacation;
+  user: UserVacation | undefined;
 }
 export const ConnectAccountForm: React.FunctionComponent<
   ConnectAccountFormProps
 > = ({ users, onUpdate, user: origUser }) => {
-  const [selectedUser, setSelectedUser] = useState<UserVacation>(origUser);
+  const { user } = useUser();
+  const [selectedUser, setSelectedUser] = useState<UserVacation | undefined>(
+    origUser,
+  );
   const [userItems, setUserItems] = useState<UserVacation[]>(users);
   const changeProperty = useChangeProperty<UserVacation>(setSelectedUser);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+    if (!selectedUser) {
+      setError("Please select a family.");
+      return;
+    }
+
     setLoading(true);
     event.preventDefault();
+    selectedUser.dependents.forEach((dependent) => {
+      if (dependent.id.startsWith("test-")) {
+        dependent.id = "";
+      }
+    });
     onUpdate(selectedUser)
       .then(() => setLoading(false))
       .catch(() => setLoading(false));
@@ -48,11 +63,15 @@ export const ConnectAccountForm: React.FunctionComponent<
           <Text>Select the family this account is apart of or new family.</Text>
         </div>
         <div className="flex gap-4 items-center justify-between">
-          <Dropdown
-            items={userItems}
-            initialValue={selectedUser.id}
-            onChange={(item) => setSelectedUser(item as UserVacation)}
-          />
+          {userItems.length > 0 ? (
+            <Dropdown
+              items={userItems}
+              initialValue={selectedUser?.id}
+              onChange={(item) => setSelectedUser(item as UserVacation)}
+            >
+              Select Family
+            </Dropdown>
+          ) : null}
           <Button
             type="button"
             onClick={() => {
@@ -63,8 +82,8 @@ export const ConnectAccountForm: React.FunctionComponent<
                 dependents: [
                   {
                     id: "0",
-                    firstname: "New",
-                    lastname: "Dependent",
+                    firstname: user?.firstName || "New",
+                    lastname: user?.lastName || "Dependent",
                     amountType: "adult",
                   },
                 ],
@@ -84,41 +103,51 @@ export const ConnectAccountForm: React.FunctionComponent<
         </div>
       </section>
 
-      <Divider className="my-10" soft />
+      {userItems.length > 0 && selectedUser ? (
+        <>
+          <Divider className="my-10" soft />
 
-      <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Subheading>Family Name</Subheading>
-          <Text>This is the name of your family.</Text>
-        </div>
-        <div>
-          <Input
-            className="w-full"
-            value={selectedUser.name}
-            onChange={changeProperty.formFunc("name", selectedUser)}
+          <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Subheading>Family Name</Subheading>
+              <Text>This is the name of your family.</Text>
+            </div>
+            <div>
+              <Input
+                className="w-full"
+                value={selectedUser.name}
+                onChange={changeProperty.formFunc("name", selectedUser)}
+              />
+            </div>
+          </section>
+
+          <Divider className="my-10" soft />
+
+          <Heading>Members</Heading>
+
+          <Divider className="my-10" soft />
+
+          <DependentsForm
+            dependents={selectedUser.dependents}
+            onChange={changeProperty.formFunc("dependents", selectedUser)}
           />
-        </div>
-      </section>
 
-      <Divider className="my-10" soft />
+          {error ? <p className="text-red-500">{error}</p> : null}
 
-      <Heading>Members</Heading>
-
-      <Divider className="my-10" soft />
-
-      <DependentsForm
-        dependents={selectedUser.dependents}
-        onChange={changeProperty.formFunc("dependents", selectedUser)}
-      />
-
-      <div className="flex justify-end gap-4 mt-4">
-        <Button type="reset" plain onClick={() => setSelectedUser(origUser)}>
-          Reset
-        </Button>
-        <Button type="submit" loading={loading}>
-          Save changes
-        </Button>
-      </div>
+          <div className="flex justify-end gap-4 mt-4">
+            <Button
+              type="reset"
+              plain
+              onClick={() => setSelectedUser(origUser)}
+            >
+              Reset
+            </Button>
+            <Button type="submit" loading={loading}>
+              Save changes
+            </Button>
+          </div>
+        </>
+      ) : null}
     </form>
   );
 };
@@ -142,7 +171,7 @@ const DependentsForm: React.FunctionComponent<{
   const onAddDependent = (): void => {
     const copy = dependents.slice();
     copy.push({
-      id: String(selectedDependent),
+      id: `test-${String(copy.length)}`,
       firstname: "New",
       lastname: "Dependent",
       amountType: "adult",

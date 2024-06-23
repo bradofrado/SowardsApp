@@ -13,7 +13,7 @@ export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];
   role: string;
   users: UserVacation[];
-}> = ({ events: eventsProps, role, users }) => {
+}> = ({ events: eventsProps, users }) => {
   const { user } = useUser();
   const [currEvent, setCurrEvent] = useState<number>(-1);
   const { mutate: createEvent } =
@@ -111,9 +111,7 @@ export const CalendarView: React.FunctionComponent<{
   );
   const edit = currEvent >= 0 && currEvent < events.length;
   const joined = Boolean(
-    user &&
-      edit &&
-      user.events.findIndex((ev) => ev.id === events[currEvent].id) > -1,
+    user && edit && events[currEvent].userIds.includes(user.id),
   );
   const inGroup = Boolean(
     user &&
@@ -127,13 +125,13 @@ export const CalendarView: React.FunctionComponent<{
       <CalendarViewRaw
         events={events}
         initialDate={new Date("08/03/2024")}
-        onAddEvent={role === "admin" ? onAddEvent : undefined}
+        onAddEvent={user !== undefined ? onAddEvent : undefined}
         onEventClick={onEditEvent}
       />
       <EventFormModal
         existingEvent={edit}
         users={users}
-        canEdit={role === "admin"}
+        canEdit={user !== undefined}
         event={
           edit
             ? events[currEvent]

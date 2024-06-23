@@ -47,7 +47,7 @@ export const ListBox = <T,>({
   ...isOpenStuff
 }: ListBoxProps<T>): JSX.Element => {
   const button = (
-    <Button className={className} mode={mode}>
+    <Button type="button" className={className} mode={mode}>
       <div className="flex items-center w-full px-1 py-1">{children}</div>
     </Button>
   );
@@ -116,8 +116,10 @@ export const Dropdown = <T,>({
       mode={value === undefined ? "secondary" : "secondary"}
       setIsOpen={setIsOpen}
     >
-      <div className="flex w-full justify-between items-center">{value === undefined ? children : value.name}{" "}
-      {chevron ? <ChevronDownIcon className="w-4 h-4 ml-1" /> : null}</div>
+      <div className="flex w-full justify-between items-center">
+        {value === undefined ? children : value.name}{" "}
+        {chevron ? <ChevronDownIcon className="w-4 h-4 ml-1" /> : null}
+      </div>
     </ListBox>
   );
 };

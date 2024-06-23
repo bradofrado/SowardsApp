@@ -6,7 +6,7 @@ import {
 } from "api/src/repositories/user-vacation";
 import type { UserVacation, VacationDependent } from "model/src/vacation";
 import { getAuthSession } from "../../../utils/auth";
-import { connectAccountToUserVacation } from "api/src/auth";
+import { connectAccountToUserVacation, createAccount } from "api/src/auth";
 
 export interface SetupUser {
   groupIds: string[];
@@ -16,6 +16,11 @@ export interface SetupUser {
 export const createUser = async (user: UserVacation): Promise<void> => {
   const session = await getAuthSession();
   if (!session?.auth.userId) return;
+
+  if (!session.auth.user.id) {
+    const newUser = await createAccount(session.auth.user, session.auth.userId);
+    session.auth.user.id = newUser.id;
+  }
 
   await createUserVacation(
     {
@@ -51,6 +56,11 @@ export const connectSessionToUserVacation = async (
 export const updateUser = async (user: UserVacation): Promise<void> => {
   const session = await getAuthSession();
   if (!session?.auth.userId) return;
+
+  if (!session.auth.user.id) {
+    const newUser = await createAccount(session.auth.user, session.auth.userId);
+    session.auth.user.id = newUser.id;
+  }
 
   if (!user.id) {
     await createUser(user);

@@ -129,14 +129,15 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
 }) => {
   const [error, setError] = useState<string>("");
   const { user } = useUser();
-  const usersInEvent = event.userIds
+  const usersInEvent: UserVacation[] = event.userIds
     .map((id) => users.find((_user) => _user.id === id))
-    .filter((_user) => _user !== undefined);
+    .filter((_user) => _user !== undefined) as UserVacation[];
 
-  const onJoin = (_event: Event): void => {
+  const onJoin = (_event: VacationEvent): void => {
     if (!user) return;
 
-    const amountInEvent = getTotalDependents([...usersInEvent, user]);
+    const userVacatinons: UserVacation[] = [...usersInEvent, user];
+    const amountInEvent = getTotalDependents(userVacatinons);
     if (event.personLimit && amountInEvent > event.personLimit) {
       setError("Your party exceeds this event's available capacity.");
       return;
@@ -227,7 +228,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
         {error ? <div className="text-red-500">{error}</div> : null}
       </DialogBody>
       <DialogActions>
-        {!inGroup ? (
+        {!inGroup && user !== undefined ? (
           <div className="mt-8 flex flex-col-reverse items-center justify-end gap-3 *:w-full sm:flex-row sm:*:w-auto">
             {!joined ? (
               <Button
@@ -256,16 +257,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
 
 export const EventForm: React.FunctionComponent<
   EventFormProps & { onView: () => void }
-> = ({
-  event: eventProp,
-  onSave,
-  onRemove,
-  onLeave,
-  onView,
-  existingEvent,
-  joined,
-  inGroup,
-}) => {
+> = ({ event: eventProp, onSave, onRemove, onView, existingEvent }) => {
   const [event, setEvent] = useState<Event>(eventProp);
   const changeProperty = useChangeProperty<Event>(setEvent);
 
@@ -434,7 +426,7 @@ const AmountFields: React.FunctionComponent<{
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-2 items-start">
       {filteredAmounts.map((amount, i) => (
         <AmountField
           key={amount.type}
@@ -482,7 +474,7 @@ const AmountField: React.FunctionComponent<AmountFieldProps> = ({
   return (
     <div>
       <div className="flex gap-2">
-        <Input
+        <InputBlur
           onChange={(val) => changeProperty(value, "amount", Number(val))}
           value={value.amount}
         />
