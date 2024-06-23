@@ -115,6 +115,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   onEdit,
   inGroup,
 }) => {
+  const { user } = useUser();
   return (
     <div className="flex flex-col">
       <DialogTitle>{event.name}</DialogTitle>
@@ -125,7 +126,14 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
           <DescriptionDetails>{displayDate(event.date)}</DescriptionDetails>
 
           <DescriptionTerm>Time</DescriptionTerm>
-          <DescriptionDetails>{displayTime(event.date)}</DescriptionDetails>
+          <DescriptionDetails>
+            {displayTime(event.date)} -{" "}
+            {displayTime(
+              new Date(
+                event.date.getTime() + event.durationMinutes * 1000 * 60,
+              ),
+            )}
+          </DescriptionDetails>
 
           <DescriptionTerm>Location</DescriptionTerm>
           <DescriptionDetails>{event.location || "N/A"}</DescriptionDetails>
@@ -152,16 +160,18 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
           <DescriptionTerm>Amount</DescriptionTerm>
           <DescriptionDetails>
             <div className="flex flex-col gap-2">
-              {event.amounts.map((amount) => (
-                <div
-                  key={`${amount.amount}-${amount.type}`}
-                  className="flex gap-2"
-                >
-                  <div>{formatDollarAmount(amount.amount)}</div>
-                  <span>-</span>
-                  <div>{amount.type}</div>
-                </div>
-              ))}
+              {event.amounts
+                .filter((amount) => isUserAmount(amount, user?.id))
+                .map((amount) => (
+                  <div
+                    key={`${amount.amount}-${amount.type}`}
+                    className="flex gap-2"
+                  >
+                    <div>{formatDollarAmount(amount.amount)}</div>
+                    <span>-</span>
+                    <div>{amount.type}</div>
+                  </div>
+                ))}
             </div>
           </DescriptionDetails>
         </DescriptionList>

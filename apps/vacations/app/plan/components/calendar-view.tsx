@@ -25,6 +25,7 @@ export const CalendarView: React.FunctionComponent<{
     api.vacationEvent.joinVacationEvent.useMutation();
   const { mutate: leaveEvent } =
     api.vacationEvent.leaveVacationEvent.useMutation();
+  const [show, setShow] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -89,10 +90,12 @@ export const CalendarView: React.FunctionComponent<{
 
   const onAddEvent = (): void => {
     setCurrEvent(events.length);
+    setShow(true);
   };
 
   const onEditEvent = (event: CalendarEvent): void => {
     setCurrEvent(events.indexOf(event as Event));
+    setShow(true);
   };
 
   const events: Event[] = useMemo(
@@ -151,13 +154,13 @@ export const CalendarView: React.FunctionComponent<{
         inGroup={inGroup}
         joined={joined}
         onClose={() => {
-          setCurrEvent(-1);
+          setShow(false);
         }}
         onJoin={onJoin}
         onLeave={onLeave}
         onRemove={onRemove}
         onSave={onSave}
-        show={currEvent > -1}
+        show={show}
       />
     </>
   );

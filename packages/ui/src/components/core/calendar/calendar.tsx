@@ -724,7 +724,7 @@ const totalHours = [
   "11PM",
 ] as const;
 type Hour = (typeof totalHours)[number];
-const hoursStart: Hour = "6AM";
+const hoursStart: Hour = "4AM";
 const interval: "hour" | "half-hour" = "half-hour";
 export const CalendarWeekView: CalendarView = ({
   days: pureDays,
