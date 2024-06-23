@@ -631,7 +631,8 @@ export const CalendarEvent: React.FunctionComponent<{
   onClick: () => void;
   className?: string;
   hourOffset?: number;
-}> = ({ event, hidden, onClick, className, hourOffset = 0 }) => {
+  index: number;
+}> = ({ event, hidden, onClick, className, index, hourOffset = 0 }) => {
   const ref = useRef<HTMLLIElement>(null);
   const color = getColorClasses(event.color);
   const hours = event.date.getHours() - hourOffset;
@@ -650,7 +651,7 @@ export const CalendarEvent: React.FunctionComponent<{
       } ${className}`}
       key={event.id}
       ref={ref}
-      style={{ gridRow: `${gridRow} / span ${gridSpan}` }}
+      style={{ gridRow: `${gridRow} / span ${gridSpan}`, zIndex: index }}
     >
       <button
         type="button"
@@ -883,7 +884,7 @@ export const CalendarWeekView: CalendarView = ({
                 }, minmax(0, 1fr)) auto`,
               }}
             >
-              {events.map((event) =>
+              {events.map((event, i) =>
                 isDateInBetween(
                   event.date,
                   days[0].date,
@@ -896,6 +897,7 @@ export const CalendarWeekView: CalendarView = ({
                       !selectedDate || !datesEqual(event.date, selectedDate)
                     }
                     key={event.id}
+                    index={i + 1}
                     onClick={() => {
                       onEventClick && onEventClick(event);
                     }}
@@ -1018,13 +1020,14 @@ export const CalendarDayView: CalendarView = ({
                 }, minmax(0, 1fr)) auto`,
               }}
             >
-              {events.map((event) =>
+              {events.map((event, i) =>
                 datesEqual(selectedDate, event.date) ? (
                   <CalendarEvent
                     className="!col-start-1"
                     event={event}
                     hidden={!datesEqual(event.date, selectedDate)}
                     key={event.id}
+                    index={i + 1}
                     onClick={() => {
                       onEventClick && onEventClick(event);
                     }}
@@ -1182,7 +1185,9 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
       </header>
       <CurrView
         days={days}
-        events={events}
+        events={events
+          .slice()
+          .sort((a, b) => a.date.getTime() - b.date.getTime())}
         onEventClick={onEventClick}
         initialDate={date}
       />
