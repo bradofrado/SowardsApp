@@ -1,6 +1,10 @@
 "use client";
 import { Label } from "ui/src/components/core/label";
-import { Input, InputBlur } from "ui/src/components/core/input";
+import {
+  Input,
+  InputBlur,
+  NumberStepperInput,
+} from "ui/src/components/core/input";
 import { useEffect, useMemo, useState } from "react";
 import { useChangeProperty } from "ui/src/hooks/change-property";
 import { Button } from "ui/src/components/catalyst/button";
@@ -31,6 +35,7 @@ import {
   DescriptionDetails,
   DescriptionTerm,
 } from "ui/src/components/catalyst/description-list";
+import { getTotalDependents } from "model/src/vacation-utils";
 
 type EventAmount = Event["amounts"][number];
 type EventAmountType = AmountType;
@@ -117,12 +122,29 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   joined,
   canEdit,
   onLeave,
-  onJoin,
+  onJoin: onJoinProp,
   onEdit,
   inGroup,
   users,
 }) => {
+  const [error, setError] = useState<string>("");
   const { user } = useUser();
+  const usersInEvent = event.userIds
+    .map((id) => users.find((_user) => _user.id === id))
+    .filter((_user) => _user !== undefined);
+
+  const onJoin = (_event: Event): void => {
+    if (!user) return;
+
+    const amountInEvent = getTotalDependents([...usersInEvent, user]);
+    if (event.personLimit && amountInEvent > event.personLimit) {
+      setError("Your party exceeds this event's available capacity.");
+      return;
+    }
+
+    onJoinProp(_event);
+  };
+
   return (
     <div className="flex flex-col">
       <DialogTitle>{event.name}</DialogTitle>
@@ -190,11 +212,19 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
 
           <DescriptionTerm>Joined</DescriptionTerm>
           <DescriptionDetails>
-            {event.userIds
-              .map((id) => users.find((_user) => _user.id === id)?.name)
-              .join(", ") || "N/A"}
+            {usersInEvent.map((_user) => _user.name).join(", ") || "N/A"}
           </DescriptionDetails>
+
+          {event.personLimit ? (
+            <>
+              <DescriptionTerm>Person Limit</DescriptionTerm>
+              <DescriptionDetails>
+                {getTotalDependents(usersInEvent)}/{event.personLimit}
+              </DescriptionDetails>
+            </>
+          ) : null}
         </DescriptionList>
+        {error ? <div className="text-red-500">{error}</div> : null}
       </DialogBody>
       <DialogActions>
         {!inGroup ? (
@@ -230,7 +260,6 @@ export const EventForm: React.FunctionComponent<
   event: eventProp,
   onSave,
   onRemove,
-  onJoin,
   onLeave,
   onView,
   existingEvent,
@@ -282,6 +311,12 @@ export const EventForm: React.FunctionComponent<
             onChange={changeProperty.formFunc("amounts", event)}
           />
         </Label>
+        <Label label="Person Limit">
+          <NumberStepperInput
+            onChange={(value) => changeProperty(event, "personLimit", value)}
+            value={event.personLimit || 0}
+          />
+        </Label>
         <Label label="Notes">
           <Input
             className="w-full min-h-[80px]"
@@ -300,36 +335,13 @@ export const EventForm: React.FunctionComponent<
           Save
         </Button>
         {existingEvent ? (
-          <>
-            <Button
-              onClick={() => {
-                onRemove(event);
-              }}
-            >
-              Delete
-            </Button>
-            {!inGroup ? (
-              <>
-                {!joined ? (
-                  <Button
-                    onClick={() => {
-                      onJoin(event);
-                    }}
-                  >
-                    Join
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => {
-                      onLeave(event);
-                    }}
-                  >
-                    Leave
-                  </Button>
-                )}
-              </>
-            ) : null}
-          </>
+          <Button
+            onClick={() => {
+              onRemove(event);
+            }}
+          >
+            Delete
+          </Button>
         ) : null}
         {existingEvent ? <Button onClick={onView}>View Details</Button> : null}
       </DialogActions>

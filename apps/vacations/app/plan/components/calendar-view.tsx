@@ -44,6 +44,7 @@ export const CalendarView: React.FunctionComponent<{
       createdById: "",
       groupIds: updatedEvent.groupIds,
       links: updatedEvent.links,
+      personLimit: updatedEvent.personLimit,
     };
     if (edit) {
       updateEvent(vacationEvent, {
@@ -151,6 +152,7 @@ export const CalendarView: React.FunctionComponent<{
                 createdById: "",
                 groupIds: [],
                 links: [],
+                personLimit: undefined,
               }
         }
         inGroup={inGroup}

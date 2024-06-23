@@ -7,7 +7,7 @@ import { usePrevious } from "../../hooks/previous";
 
 interface InputProps {
   onChange?: (value: string) => void;
-	onBlur?: (value: string) => void;
+  onBlur?: (value: string) => void;
   value?: string | number | readonly string[] | undefined;
   className?: string;
   type?: "input" | "textarea" | "password" | "email";
@@ -17,7 +17,7 @@ interface InputProps {
 }
 export const Input: React.FunctionComponent<InputProps> = ({
   onChange,
-	onBlur,
+  onBlur,
   value,
   className,
   label,
@@ -34,9 +34,9 @@ export const Input: React.FunctionComponent<InputProps> = ({
     ) => {
       onChange && onChange(e.target.value);
     },
-		onBlur: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-			onBlur && onBlur(e.target.value);
-		},
+    onBlur: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      onBlur && onBlur(e.target.value);
+    },
     placeholder,
     required,
   };
@@ -52,21 +52,27 @@ export const Input: React.FunctionComponent<InputProps> = ({
   return input;
 };
 
-export const InputBlur: React.FunctionComponent<Omit<InputProps, 'onBlur'>> = ({onChange, value: valueProps, ...rest}) => {
-	const [value, setValue] = useState(valueProps);
+export const InputBlur: React.FunctionComponent<Omit<InputProps, "onBlur">> = ({
+  onChange,
+  value: valueProps,
+  ...rest
+}) => {
+  const [value, setValue] = useState(valueProps);
   const prevValue = usePrevious(valueProps);
 
   useEffect(() => {
     if (prevValue !== valueProps) {
       setValue(valueProps);
     }
-  }, [prevValue, valueProps])
+  }, [prevValue, valueProps]);
 
-	const onInputChange = (_value: string): void => {
-		setValue(_value);
-	}
-	return <Input {...rest} value={value} onChange={onInputChange} onBlur={onChange} />
-}
+  const onInputChange = (_value: string): void => {
+    setValue(_value);
+  };
+  return (
+    <Input {...rest} value={value} onChange={onInputChange} onBlur={onChange} />
+  );
+};
 
 export interface CheckboxInputProps {
   className?: string;
@@ -112,20 +118,21 @@ interface NumberStepperInputProps {
   value: number;
   onChange: (value: number) => void;
 }
-export const NumberStepperInput: React.FunctionComponent<NumberStepperInputProps> = ({value: valueProp, onChange: onChangeProps}) => {
+export const NumberStepperInput: React.FunctionComponent<
+  NumberStepperInputProps
+> = ({ value: valueProp, onChange: onChangeProps }) => {
   const [value, setValue] = useState(String(valueProp));
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const _value = e.target.value;
     setValue(_value);
-  }
-
+  };
 
   const changeValue = (newVal: number) => {
     const _newVal = Math.min(Math.max(0, newVal), 99);
     setValue(String(_newVal));
     onChangeProps(_newVal);
-  }
+  };
 
   const onBlur = () => {
     let num = parseInt(value);
@@ -134,13 +141,28 @@ export const NumberStepperInput: React.FunctionComponent<NumberStepperInputProps
     }
 
     changeValue(num);
-  }
+  };
 
   return (
-    <div className="hw-flex hw-rounded-[3px] hw-border hw-border-gray-400 hw-items-center hw-overflow-auto">
-      <button className="hover:hw-bg-gray-100 hw-py-[1px] hw-px-2.5 hw-border-r hw-border-gray-400" onClick={() => changeValue(valueProp - 1)}>-</button>
-      <input className="hw-px-1.5 hw-text-sm hw-py-[1px] hw-border-none hw-w-8 focus:hw-ring-0" value={value} onChange={onChange} onBlur={onBlur}/>
-      <button className="hover:hw-bg-gray-100 hw-py-[1px] hw-px-2.5 hw-border-l hw-border-gray-400" onClick={() => changeValue(valueProp + 1)}>+</button>
+    <div className="flex rounded-[3px] border border-gray-400 items-center overflow-auto w-fit">
+      <button
+        className="hover:bg-gray-100 py-[1px] px-2.5 border-r border-gray-400"
+        onClick={() => changeValue(valueProp - 1)}
+      >
+        -
+      </button>
+      <input
+        className="px-1.5 text-sm py-[1px] border-none w-8 focus:ring-0"
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+      />
+      <button
+        className="hover:bg-gray-100 py-[1px] px-2.5 border-l border-gray-400"
+        onClick={() => changeValue(valueProp + 1)}
+      >
+        +
+      </button>
     </div>
-  )
-}
+  );
+};

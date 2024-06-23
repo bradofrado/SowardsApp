@@ -55,6 +55,7 @@ model VacationEvent {
   is_public       Boolean
   createdById     String       @db.ObjectId
   createdBy       UserVacation @relation(name: "created", fields: [createdById], references: [id])
+  personLimit     Int?
 
   userIds  String[]        @db.ObjectId
   users    UserVacation[]  @relation(fields: [userIds], references: [id])
