@@ -291,7 +291,7 @@ const EventDetail: React.FunctionComponent<EventDetailProps> = ({
 
 export const EventForm: React.FunctionComponent<
   EventFormProps & { onView: () => void }
-> = ({ event: eventProp, onSave, onRemove, onView, existingEvent }) => {
+> = ({ event: eventProp, onSave, onRemove, onView, existingEvent, roles }) => {
   const [event, setEvent] = useState<Event>(eventProp);
   const changeProperty = useChangeProperty<Event>(setEvent);
   const [openGenerate, setOpenGenerate] = useState(false);
@@ -394,7 +394,8 @@ export const EventForm: React.FunctionComponent<
             Delete
           </Button>
         ) : null}
-        {process.env.NEXT_PUBLIC_GENERATE_EVENTS === "true" ? (
+        {process.env.NEXT_PUBLIC_GENERATE_EVENTS === "true" ||
+        roles.includes("admin") ? (
           <Button onClick={onGenerate} loading={loading}>
             <SparklesIcon className="h-4 w-4" /> Generate
           </Button>

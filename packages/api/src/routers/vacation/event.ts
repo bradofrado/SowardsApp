@@ -185,7 +185,11 @@ export const vacationEventRouter = createTRPCRouter({
     .input(z.date())
     .output(z.array(vacationEventSchema))
     .mutation(async ({ ctx, input }) => {
-      if (process.env.NEXT_PUBLIC_GENERATE_EVENTS !== "true") return [];
+      if (
+        !ctx.session.auth.user.roles.includes("admin") &&
+        process.env.NEXT_PUBLIC_GENERATE_EVENTS !== "true"
+      )
+        return [];
 
       const events = await generateEvents(ctx.session.auth.userVacation, input);
 
