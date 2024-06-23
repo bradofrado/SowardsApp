@@ -76,6 +76,20 @@ export const vacationEventRouter = createTRPCRouter({
           id: input.id,
         },
       });
+      const event = await ctx.prisma.vacationEvent.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (
+        !event ||
+        (event.createdById !== ctx.session.auth.userVacation.id &&
+          !ctx.session.auth.user.roles.includes("admin"))
+      ) {
+        throw new Error("You are not the creator of this event");
+      }
+
       const newEvent = await ctx.prisma.vacationEvent.update({
         data: {
           name: input.name,

@@ -51,6 +51,7 @@ interface EventFormProps {
   joined: boolean;
   inGroup: boolean;
   users: UserVacation[];
+  roles: string[];
 }
 interface EventFormModalProps extends EventFormProps {
   show: boolean;
@@ -116,6 +117,7 @@ interface EventDetailsProps {
   inGroup: boolean;
   canEdit: boolean;
   users: UserVacation[];
+  roles: string[];
 }
 export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   event,
@@ -126,6 +128,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   onEdit,
   inGroup,
   users,
+  roles,
 }) => {
   const [error, setError] = useState<string>("");
   const { user } = useUser();
@@ -247,7 +250,10 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
                 Leave
               </Button>
             )}
-            {canEdit ? <Button onClick={onEdit}>Edit</Button> : null}
+            {canEdit &&
+            (event.createdById === user.id || roles.includes("admin")) ? (
+              <Button onClick={onEdit}>Edit</Button>
+            ) : null}
           </div>
         ) : null}
       </DialogActions>

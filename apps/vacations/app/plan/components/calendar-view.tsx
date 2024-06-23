@@ -11,9 +11,9 @@ import { useUser } from "./user-provider";
 
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];
-  role: string;
+  roles: string[];
   users: UserVacation[];
-}> = ({ events: eventsProps, users }) => {
+}> = ({ events: eventsProps, users, roles }) => {
   const { user } = useUser();
   const [currEvent, setCurrEvent] = useState<number>(-1);
   const { mutate: createEvent } =
@@ -131,6 +131,7 @@ export const CalendarView: React.FunctionComponent<{
       <EventFormModal
         existingEvent={edit}
         users={users}
+        roles={roles}
         canEdit={user !== undefined}
         event={
           edit

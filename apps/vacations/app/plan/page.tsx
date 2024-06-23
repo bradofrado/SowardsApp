@@ -30,7 +30,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
         <CalendarView
           users={users}
           events={events}
-          role={session?.auth.user.roles[0] || "user"}
+          roles={session?.auth.user.roles || []}
         />
       </div>
     </>
