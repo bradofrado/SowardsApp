@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
 "use client";
 import { Label } from "ui/src/components/core/label";
 import {
@@ -36,6 +37,10 @@ import {
   DescriptionTerm,
 } from "ui/src/components/catalyst/description-list";
 import { getTotalDependents } from "model/src/vacation-utils";
+import { SparklesIcon } from "ui/src/components/core/icons";
+import { api } from "../../../utils/api";
+import { Subheading } from "ui/src/components/catalyst/heading";
+import { Text } from "ui/src/components/catalyst/text";
 
 type EventAmount = Event["amounts"][number];
 type EventAmountType = AmountType;
@@ -154,80 +159,12 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
       <DialogTitle>{event.name}</DialogTitle>
       <DialogDescription>{event.notes}</DialogDescription>
       <DialogBody className="space-y-4">
-        <DescriptionList>
-          <DescriptionTerm>Date</DescriptionTerm>
-          <DescriptionDetails>{displayDate(event.date)}</DescriptionDetails>
-
-          <DescriptionTerm>Time</DescriptionTerm>
-          <DescriptionDetails>
-            {displayTime(event.date)} -{" "}
-            {displayTime(
-              new Date(
-                event.date.getTime() + event.durationMinutes * 1000 * 60,
-              ),
-            )}
-          </DescriptionDetails>
-
-          <DescriptionTerm>Location</DescriptionTerm>
-          <DescriptionDetails>{event.location || "N/A"}</DescriptionDetails>
-
-          <DescriptionTerm>Links</DescriptionTerm>
-          <DescriptionDetails>
-            <div className="flex flex-col gap-2">
-              {event.links.length
-                ? event.links.map((link) => (
-                    <a
-                      className="text-blue-500"
-                      target="_blank"
-                      key={link}
-                      href={link}
-                      rel="noopener"
-                    >
-                      {link}
-                    </a>
-                  ))
-                : "N/A"}
-            </div>
-          </DescriptionDetails>
-
-          <DescriptionTerm>Amount</DescriptionTerm>
-          <DescriptionDetails>
-            <div className="flex flex-col gap-2">
-              {event.amounts
-                .filter((amount) => isUserAmount(amount, user?.id))
-                .map((amount) => (
-                  <div
-                    key={`${amount.amount}-${amount.type}`}
-                    className="flex gap-2"
-                  >
-                    <div>{formatDollarAmount(amount.amount)}</div>
-                    <span>-</span>
-                    <div>{amount.type}</div>
-                  </div>
-                ))}
-            </div>
-          </DescriptionDetails>
-
-          <DescriptionTerm>Created By</DescriptionTerm>
-          <DescriptionDetails>
-            {users.find((_user) => _user.id === event.createdById)?.name ||
-              "N/A"}
-          </DescriptionDetails>
-
-          <DescriptionTerm>Joined</DescriptionTerm>
-          <DescriptionDetails>
-            {usersInEvent.map((_user) => _user.name).join(", ") || "N/A"}
-          </DescriptionDetails>
-
-          {event.personLimit ? (
-            <>
-              <DescriptionTerm>Person Limit</DescriptionTerm>
-              <DescriptionDetails>
-                {getTotalDependents(usersInEvent)}/{event.personLimit}
-              </DescriptionDetails>
-            </>
-          ) : null}
-        </DescriptionList>
+        <EventDetail
+          event={event}
+          users={users}
+          user={user}
+          usersInEvent={usersInEvent}
+        />
         {error ? <div className="text-red-500">{error}</div> : null}
       </DialogBody>
       <DialogActions>
@@ -261,11 +198,127 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   );
 };
 
+interface EventDetailProps {
+  event: VacationEvent;
+  users: UserVacation[];
+  user: UserVacation | undefined;
+  usersInEvent?: UserVacation[];
+}
+const EventDetail: React.FunctionComponent<EventDetailProps> = ({
+  event,
+  users,
+  user,
+  usersInEvent,
+}) => {
+  return (
+    <DescriptionList>
+      <DescriptionTerm>Date</DescriptionTerm>
+      <DescriptionDetails>{displayDate(event.date)}</DescriptionDetails>
+
+      <DescriptionTerm>Time</DescriptionTerm>
+      <DescriptionDetails>
+        {displayTime(event.date)} -{" "}
+        {displayTime(
+          new Date(event.date.getTime() + event.durationMinutes * 1000 * 60),
+        )}
+      </DescriptionDetails>
+
+      <DescriptionTerm>Location</DescriptionTerm>
+      <DescriptionDetails>{event.location || "N/A"}</DescriptionDetails>
+
+      <DescriptionTerm>Links</DescriptionTerm>
+      <DescriptionDetails>
+        <div className="flex flex-col gap-2">
+          {event.links.length
+            ? event.links.map((link) => (
+                <a
+                  className="text-blue-500"
+                  target="_blank"
+                  key={link}
+                  href={link}
+                  rel="noopener"
+                >
+                  {link}
+                </a>
+              ))
+            : "N/A"}
+        </div>
+      </DescriptionDetails>
+
+      <DescriptionTerm>Amount</DescriptionTerm>
+      <DescriptionDetails>
+        <div className="flex flex-col gap-2">
+          {event.amounts
+            .filter((amount) => isUserAmount(amount, user?.id))
+            .map((amount) => (
+              <div
+                key={`${amount.amount}-${amount.type}`}
+                className="flex gap-2"
+              >
+                <div>{formatDollarAmount(amount.amount)}</div>
+                <span>-</span>
+                <div>{amount.type}</div>
+              </div>
+            ))}
+        </div>
+      </DescriptionDetails>
+
+      <DescriptionTerm>Created By</DescriptionTerm>
+      <DescriptionDetails>
+        {users.find((_user) => _user.id === event.createdById)?.name || "N/A"}
+      </DescriptionDetails>
+
+      {usersInEvent ? (
+        <>
+          <DescriptionTerm>Joined</DescriptionTerm>
+          <DescriptionDetails>
+            {usersInEvent.map((_user) => _user.name).join(", ") || "N/A"}
+          </DescriptionDetails>
+
+          {event.personLimit ? (
+            <>
+              <DescriptionTerm>Person Limit</DescriptionTerm>
+              <DescriptionDetails>
+                {getTotalDependents(usersInEvent)}/{event.personLimit}
+              </DescriptionDetails>
+            </>
+          ) : null}
+        </>
+      ) : null}
+    </DescriptionList>
+  );
+};
+
 export const EventForm: React.FunctionComponent<
   EventFormProps & { onView: () => void }
 > = ({ event: eventProp, onSave, onRemove, onView, existingEvent }) => {
   const [event, setEvent] = useState<Event>(eventProp);
   const changeProperty = useChangeProperty<Event>(setEvent);
+  const [openGenerate, setOpenGenerate] = useState(false);
+
+  const { mutate: generateEvents } =
+    api.vacationEvent.generateEvents.useMutation();
+  const [generatedEvents, setGeneratedEvents] = useState<VacationEvent[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const onGenerate = () => {
+    if (generatedEvents.length > 0) {
+      setOpenGenerate(true);
+      return;
+    }
+
+    setLoading(true);
+    generateEvents(event.date, {
+      onSuccess(_events) {
+        setGeneratedEvents(_events);
+        setOpenGenerate(true);
+        setLoading(false);
+      },
+      onError() {
+        setLoading(false);
+      },
+    });
+  };
 
   return (
     <div>
@@ -341,9 +394,54 @@ export const EventForm: React.FunctionComponent<
             Delete
           </Button>
         ) : null}
+        {process.env.NEXT_PUBLIC_GENERATE_EVENTS === "true" ? (
+          <Button onClick={onGenerate} loading={loading}>
+            <SparklesIcon className="h-4 w-4" /> Generate
+          </Button>
+        ) : null}
         {existingEvent ? <Button onClick={onView}>View Details</Button> : null}
       </DialogActions>
+      <GenerateModal
+        isOpen={openGenerate}
+        onClose={() => setOpenGenerate(false)}
+        events={generatedEvents}
+        onSelect={(_event) => {
+          setEvent({ ...event, ..._event });
+          setOpenGenerate(false);
+        }}
+      />
     </div>
+  );
+};
+
+const GenerateModal: React.FunctionComponent<{
+  isOpen: boolean;
+  onClose: () => void;
+  events: VacationEvent[];
+  onSelect: (event: VacationEvent) => void;
+}> = ({ isOpen, onClose, events, onSelect }) => {
+  const { user } = useUser();
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>Generated Event</DialogTitle>
+      <DialogBody>
+        <div className="flex flex-col gap-4">
+          {events.map((event) => (
+            <>
+              <Subheading>{event.name}</Subheading>
+              <Text>{event.notes}</Text>
+              <EventDetail
+                key={event.id}
+                event={event}
+                users={[]}
+                user={user}
+              />
+              <Button onClick={() => onSelect(event)}>Select</Button>
+            </>
+          ))}
+        </div>
+      </DialogBody>
+    </Dialog>
   );
 };
 

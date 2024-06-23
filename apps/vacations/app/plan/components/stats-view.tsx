@@ -11,6 +11,7 @@ import { useUser } from "./user-provider";
 import { formatDollarAmount } from "model/src/utils";
 import { Divider } from "ui/src/components/catalyst/divider";
 import { Badge } from "ui/src/components/catalyst/badge";
+import { getAmountOfPeople } from "model/src/vacation-utils";
 
 export function Stat({
   title,
@@ -144,30 +145,6 @@ export const useCalculateStats = ({
     groups: [],
     total: amountsTotal,
   };
-};
-
-const getAmountOfPeople = <T extends { amountType: AmountType }>(
-  userLike: T[],
-  callback?: (item: T) => { child: number; adult: number },
-): { child: number; adult: number } => {
-  return userLike.reduce(
-    (prev, curr) => {
-      if (curr.amountType === "adult") {
-        prev.adult += 1;
-      } else if (curr.amountType === "child") {
-        prev.child += 1;
-      }
-
-      if (callback) {
-        const res = callback(curr);
-        prev.adult += res.adult;
-        prev.child += res.child;
-      }
-
-      return prev;
-    },
-    { adult: 0, child: 0 },
-  );
 };
 
 export const getAmountForEvent = (

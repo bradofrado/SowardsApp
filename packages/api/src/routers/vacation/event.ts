@@ -12,6 +12,7 @@ import {
 } from "../../repositories/event";
 import { getUserVactions } from "../../repositories/user-vacation";
 import { getTotalDependents } from "model/src/vacation-utils";
+import { generateEvents } from "../../repositories/openai";
 
 export const vacationEventRouter = createTRPCRouter({
   getVacationEvents: publicProcedure
@@ -179,5 +180,15 @@ export const vacationEventRouter = createTRPCRouter({
           id: input,
         },
       });
+    }),
+  generateEvents: protectedProcedure
+    .input(z.date())
+    .output(z.array(vacationEventSchema))
+    .mutation(async ({ ctx, input }) => {
+      if (process.env.NEXT_PUBLIC_GENERATE_EVENTS !== "true") return [];
+
+      const events = await generateEvents(ctx.session.auth.userVacation, input);
+
+      return events;
     }),
 });
