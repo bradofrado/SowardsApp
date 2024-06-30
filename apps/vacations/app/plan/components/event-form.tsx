@@ -403,7 +403,7 @@ export const EventForm: React.FunctionComponent<
         onClose={() => setOpenGenerate(false)}
         events={generatedEvents}
         onSelect={(_event) => {
-          setEvent({ ...event, ..._event });
+          setEvent({ ...event, ..._event, id: event.id });
           setOpenGenerate(false);
         }}
       />
