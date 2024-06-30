@@ -133,7 +133,6 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
   onEdit,
   inGroup,
   users,
-  roles,
 }) => {
   const [error, setError] = useState<string>("");
   const { user } = useUser();
@@ -187,10 +186,7 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
                 Leave
               </Button>
             )}
-            {canEdit &&
-            (event.createdById === user.id || roles.includes("admin")) ? (
-              <Button onClick={onEdit}>Edit</Button>
-            ) : null}
+            {canEdit ? <Button onClick={onEdit}>Edit</Button> : null}
           </div>
         ) : null}
       </DialogActions>
