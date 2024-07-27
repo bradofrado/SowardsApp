@@ -646,7 +646,7 @@ export const CalendarEvent: React.FunctionComponent<{
   }, [ref, colStart]);
   return (
     <li
-      className={`relative mt-px sm:flex sm:col-start-[var(--col-start)] ${
+      className={`relative mt-px sm:flex sm:col-start-[var(--col-start)] col-start-1 ${
         hidden ? "hidden" : ""
       } ${className}`}
       key={event.id}
