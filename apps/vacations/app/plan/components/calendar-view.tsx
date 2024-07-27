@@ -96,7 +96,7 @@ export const CalendarView: React.FunctionComponent<{
   };
 
   const onEditEvent = (event: CalendarEvent): void => {
-    setCurrEvent(events.indexOf(event as Event));
+    setCurrEvent(events.findIndex((curr) => curr.id === event.id));
     setShow(true);
   };
 

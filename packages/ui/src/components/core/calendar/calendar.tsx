@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid -- this is all fine*/
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import {
   arrayOfAll,
@@ -1097,6 +1097,12 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
     view,
     initialDate,
   );
+  const {
+    timezone,
+    timezoneItems,
+    onChange: onTimeZoneChange,
+    events: formattedEvents,
+  } = useTimezone(events, "Pacific/Honolulu");
 
   const dateDisplay = `${
     view !== "year"
@@ -1164,6 +1170,14 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
           </div>
           <div className="md:ml-4 flex items-center">
             <Dropdown
+              className="mr-2"
+              initialValue={timezone}
+              items={timezoneItems}
+              onChange={(item) => {
+                onTimeZoneChange(item.id);
+              }}
+            />
+            <Dropdown
               className="hidden md:block"
               initialValue={view}
               items={viewItems}
@@ -1185,14 +1199,57 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
       </header>
       <CurrView
         days={days}
-        events={events
-          .slice()
-          .sort((a, b) => a.date.getTime() - b.date.getTime())}
+        events={formattedEvents}
         onEventClick={onEventClick}
         initialDate={date}
       />
     </div>
   );
+};
+
+type Timezone = "local" | "Pacific/Honolulu";
+const useTimezone = (events: CalendarEvent[], initialTimeZone?: Timezone) => {
+  const [timezone, setTimezone] = useState<Timezone>(
+    initialTimeZone || "local",
+  );
+
+  const adjustDateTimezone = (date: Date, timeZone: Timezone): Date => {
+    if (timeZone === "local") {
+      return date;
+    }
+    return new Date(date.toLocaleString("en-US", { timeZone }));
+  };
+
+  // Sort and set event timezone
+  const formattedEvents = useMemo(
+    () =>
+      events
+        .slice()
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .map((event) => ({
+          ...event,
+          date: adjustDateTimezone(event.date, timezone),
+        })),
+    [events, timezone],
+  );
+
+  const timezoneItems: DropdownItem<Timezone>[] = [
+    {
+      id: "local",
+      name: "Local Time",
+    },
+    {
+      id: "Pacific/Honolulu",
+      name: "Hawaii Time",
+    },
+  ];
+
+  return {
+    timezone,
+    timezoneItems,
+    onChange: setTimezone,
+    events: formattedEvents,
+  };
 };
 
 export const CalendarExample: React.FunctionComponent = () => {
