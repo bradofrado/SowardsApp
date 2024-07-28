@@ -1,46 +1,19 @@
 /* eslint-disable jsx-a11y/anchor-is-valid -- this is all fine*/
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { Menu, Transition } from "@headlessui/react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   arrayOfAll,
   classNames,
   datesEqual,
-  displayDateLong,
   displayTime,
   displayWeekDay,
   displayWeekDayShort,
   isDateInBetween,
 } from "model/src/utils";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CalendarIcon,
-  MapPinIcon,
-  EllipsisHorizontalIcon,
-  ClockIcon,
-} from "../icons";
+import { ChevronLeftIcon, ChevronRightIcon, ClockIcon } from "../icons";
 import { Button } from "../../catalyst/button";
 import type { DropdownItem } from "../dropdown";
 import { Dropdown } from "../dropdown";
-
-interface Meeting {
-  id: number;
-  date: Date;
-  name: string;
-  imageUrl: string;
-  location: string;
-}
-const _meetings: Meeting[] = [
-  {
-    id: 1,
-    date: new Date("2023-10-10T17:00"),
-    name: "Leslie Alexander",
-    imageUrl:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    location: "Starbucks",
-  },
-  // More meetings...
-];
+import { Timezone, useTimezoneContext } from "./timezone";
 
 interface Day {
   date: Date;
@@ -139,6 +112,7 @@ const useDateStepper = (
   initialDate = new Date(),
 ): DateStepper => {
   const [currDate, setCurrDate] = useState<Date>(initialDate);
+
   const days = getDaysFromType[type](currDate);
 
   const decrement = (): void => {
@@ -386,73 +360,6 @@ export interface CalendarEvent {
   href: string;
   color: CalendarColorType;
 }
-
-const _events: CalendarEvent[] = [
-  {
-    id: "1",
-    name: "Design review",
-    date: new Date("2023-10-03T10:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "blue",
-  },
-  {
-    id: "2",
-    name: "Sales meeting",
-    date: new Date("2023-10-03T14:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "pink",
-  },
-  {
-    id: "8",
-    name: "Sales meeting",
-    date: new Date("2023-10-03T16:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "gray",
-  },
-  {
-    id: "3",
-    name: "Date night",
-    date: new Date("2023-10-08T18:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "blue",
-  },
-  {
-    id: "4",
-    name: "Maple syrup museum",
-    date: new Date("2023-10-22T15:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "blue",
-  },
-  {
-    id: "5",
-    name: "Hockey game",
-    date: new Date("2023-10-22T19:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "pink",
-  },
-  {
-    id: "6",
-    name: "Sam's birthday party",
-    date: new Date("2023-10-25T14:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "blue",
-  },
-  {
-    id: "7",
-    name: "Cinema with friends",
-    date: new Date("2023-10-04T21:00"),
-    durationMinutes: 60,
-    href: "#",
-    color: "blue",
-  },
-];
 
 type CalendarView = React.FunctionComponent<{
   days: Day[];
@@ -739,6 +646,7 @@ export const CalendarWeekView: CalendarView = ({
   const container = useRef<HTMLDivElement>(null);
   const containerNav = useRef<HTMLDivElement>(null);
   const containerOffset = useRef<HTMLDivElement>(null);
+  const { formatDate } = useTimezoneContext();
 
   const days: (Day & { events: CalendarEvent[] })[] = pureDays.map((day) => ({
     ...day,
@@ -747,7 +655,7 @@ export const CalendarWeekView: CalendarView = ({
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
-    const currentMinute = new Date().getHours() * 60;
+    const currentMinute = formatDate().getHours() * 60;
     if (container.current && containerNav.current && containerOffset.current) {
       container.current.scrollTop =
         ((container.current.scrollHeight -
@@ -782,7 +690,7 @@ export const CalendarWeekView: CalendarView = ({
             {days.map((day) => (
               <button
                 className={`flex flex-col items-center pb-3 pt-2 ${
-                  datesEqual(day.date, selectedDate || new Date())
+                  datesEqual(day.date, selectedDate || formatDate())
                     ? "bg-primary-light"
                     : ""
                 }`}
@@ -923,6 +831,7 @@ export const CalendarDayView: CalendarView = ({
   const container = useRef<HTMLDivElement>(null);
   const containerNav = useRef<HTMLDivElement>(null);
   const containerOffset = useRef<HTMLDivElement>(null);
+  const { formatDate } = useTimezoneContext();
 
   const days: (Day & { events: CalendarEvent[] })[] = pureDays.map((day) => ({
     ...day,
@@ -931,7 +840,7 @@ export const CalendarDayView: CalendarView = ({
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
-    const currentMinute = new Date().getHours() * 60;
+    const currentMinute = formatDate().getHours() * 60;
     if (container.current && containerNav.current && containerOffset.current) {
       container.current.scrollTop =
         ((container.current.scrollHeight -
@@ -1102,7 +1011,8 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
     timezoneItems,
     onChange: onTimeZoneChange,
     events: formattedEvents,
-  } = useTimezone(events, "Pacific/Honolulu");
+    formatDate,
+  } = useTimezone(events);
 
   const dateDisplay = `${
     view !== "year"
@@ -1111,7 +1021,7 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
   }${date.getFullYear()}`;
 
   const onTodayClick = (): void => {
-    setDate(new Date());
+    setDate(formatDate());
   };
 
   const viewItems: DropdownItem<DateStepperType>[] =
@@ -1207,18 +1117,10 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
   );
 };
 
-type Timezone = "local" | "Pacific/Honolulu";
-const useTimezone = (events: CalendarEvent[], initialTimeZone?: Timezone) => {
-  const [timezone, setTimezone] = useState<Timezone>(
-    initialTimeZone || "local",
-  );
+const useTimezone = (events: CalendarEvent[]) => {
+  const { timezone, setTimezone, ...rest } = useTimezoneContext();
 
-  const adjustDateTimezone = (date: Date, timeZone: Timezone): Date => {
-    if (timeZone === "local") {
-      return date;
-    }
-    return new Date(date.toLocaleString("en-US", { timeZone }));
-  };
+  const formatDate = rest.formatDate;
 
   // Sort and set event timezone
   const formattedEvents = useMemo(
@@ -1228,9 +1130,9 @@ const useTimezone = (events: CalendarEvent[], initialTimeZone?: Timezone) => {
         .sort((a, b) => a.date.getTime() - b.date.getTime())
         .map((event) => ({
           ...event,
-          date: adjustDateTimezone(event.date, timezone),
+          date: formatDate(event.date),
         })),
-    [events, timezone],
+    [events, formatDate],
   );
 
   const timezoneItems: DropdownItem<Timezone>[] = [
@@ -1249,142 +1151,6 @@ const useTimezone = (events: CalendarEvent[], initialTimeZone?: Timezone) => {
     timezoneItems,
     onChange: setTimezone,
     events: formattedEvents,
+    ...rest,
   };
-};
-
-export const CalendarExample: React.FunctionComponent = () => {
-  const [meetings, setMeetings] = useState<Meeting[]>(_meetings);
-
-  const onMeetingsChange = (dates: Date[]): void => {
-    setMeetings(
-      dates.map((date, id) => ({
-        id,
-        date,
-        time: "5:00 PM",
-        location: "Starbucks",
-        imageUrl:
-          "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        name: "Leslie Alexander",
-      })),
-    );
-  };
-  return (
-    <div>
-      <h2 className="text-base font-semibold leading-6 text-gray-900">
-        Upcoming meetings
-      </h2>
-      <div className="lg:grid lg:grid-cols-12 lg:gap-x-16">
-        <CalendarForm
-          className="mt-10 text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9"
-          onChange={onMeetingsChange}
-          value={meetings.map((meeting) => meeting.date)}
-        />
-        <ol className="mt-4 divide-y divide-gray-100 text-sm leading-6 lg:col-span-7 xl:col-span-8">
-          {meetings.map((meeting) => (
-            <li
-              className="relative flex space-x-6 py-6 xl:static"
-              key={meeting.id}
-            >
-              <img
-                alt=""
-                className="h-14 w-14 flex-none rounded-full"
-                src={meeting.imageUrl}
-              />
-              <div className="flex-auto">
-                <h3 className="pr-10 font-semibold text-gray-900 xl:pr-0">
-                  {meeting.name}
-                </h3>
-                <dl className="mt-2 flex flex-col text-gray-500 xl:flex-row">
-                  <div className="flex items-start space-x-3">
-                    <dt className="mt-0.5">
-                      <span className="sr-only">Date</span>
-                      <CalendarIcon
-                        aria-hidden="true"
-                        className="h-5 w-5 text-gray-400"
-                      />
-                    </dt>
-                    <dd>
-                      <time dateTime={meeting.date.toLocaleDateString()}>
-                        {displayDateLong(meeting.date)} at{" "}
-                        {displayTime(meeting.date)}
-                      </time>
-                    </dd>
-                  </div>
-                  <div className="mt-2 flex items-start space-x-3 xl:ml-3.5 xl:mt-0 xl:border-l xl:border-gray-400 xl:border-opacity-50 xl:pl-3.5">
-                    <dt className="mt-0.5">
-                      <span className="sr-only">Location</span>
-                      <MapPinIcon
-                        aria-hidden="true"
-                        className="h-5 w-5 text-gray-400"
-                      />
-                    </dt>
-                    <dd>{meeting.location}</dd>
-                  </div>
-                </dl>
-              </div>
-              <Menu
-                as="div"
-                className="absolute right-0 top-6 xl:relative xl:right-auto xl:top-auto xl:self-center"
-              >
-                <div>
-                  <Menu.Button className="-m-2 flex items-center rounded-full p-2 text-gray-500 hover:text-gray-600">
-                    <span className="sr-only">Open options</span>
-                    <EllipsisHorizontalIcon
-                      aria-hidden="true"
-                      className="h-5 w-5"
-                    />
-                  </Menu.Button>
-                </div>
-
-                <Transition
-                  as={Fragment}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute right-0 z-10 mt-2 w-36 origin-top-right rounded-md bg-white shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    <div className="py-1">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            className={classNames(
-                              active
-                                ? "bg-gray-100 text-gray-900"
-                                : "text-gray-700",
-                              "block px-4 py-2 text-sm",
-                            )}
-                            href="#"
-                          >
-                            Edit
-                          </a>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            className={classNames(
-                              active
-                                ? "bg-gray-100 text-gray-900"
-                                : "text-gray-700",
-                              "block px-4 py-2 text-sm",
-                            )}
-                            href="#"
-                          >
-                            Cancel
-                          </a>
-                        )}
-                      </Menu.Item>
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </div>
-  );
 };

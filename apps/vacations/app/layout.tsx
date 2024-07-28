@@ -7,6 +7,7 @@ import { UserProvider } from "./plan/components/user-provider";
 import { requireUserVacation } from "../utils/protected-routes-hoc";
 import { getUser } from "./plan/actions";
 import { getUserVactions } from "api/src/repositories/user-vacation";
+import { TimezoneProvider } from "ui/src/components/core/calendar/timezone";
 
 export const metadata: Metadata = {
   title: "Create Turborepo",
@@ -28,18 +29,20 @@ async function RootLayout({
           user={result.session?.auth.userVacation}
           isAdmin={result.session?.auth.user.roles.includes("admin") || false}
         >
-          <html
-            lang="en"
-            className="text-zinc-950 antialiased lg:bg-zinc-100 dark:bg-zinc-900 dark:text-white dark:lg:bg-zinc-950"
-          >
-            <head>
-              <link rel="preconnect" href="https://rsms.me/" />
-              <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-            </head>
-            <body>
-              <ApplicationLayout users={users}>{children}</ApplicationLayout>
-            </body>
-          </html>
+          <TimezoneProvider initialTimezone="Pacific/Honolulu">
+            <html
+              lang="en"
+              className="text-zinc-950 antialiased lg:bg-zinc-100 dark:bg-zinc-900 dark:text-white dark:lg:bg-zinc-950"
+            >
+              <head>
+                <link rel="preconnect" href="https://rsms.me/" />
+                <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+              </head>
+              <body>
+                <ApplicationLayout users={users}>{children}</ApplicationLayout>
+              </body>
+            </html>
+          </TimezoneProvider>
         </UserProvider>
       </TrpcProvider>
     </ClerkProvider>

@@ -8,6 +8,7 @@ import { api } from "../../../utils/api";
 import type { Event } from "./event-form";
 import { EventFormModal } from "./event-form";
 import { useUser } from "./user-provider";
+import { useTimezoneContext } from "ui/src/components/core/calendar/timezone";
 
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];
@@ -29,6 +30,7 @@ export const CalendarView: React.FunctionComponent<{
   const [show, setShow] = useState<boolean>(false);
 
   const router = useRouter();
+  const { formatDate, normalizeFormattedDate } = useTimezoneContext();
 
   const onSave = (updatedEvent: Event): void => {
     const vacationEvent: VacationEvent = {
@@ -37,7 +39,7 @@ export const CalendarView: React.FunctionComponent<{
       location: updatedEvent.location,
       notes: updatedEvent.notes,
       amounts: updatedEvent.amounts,
-      date: updatedEvent.date,
+      date: normalizeFormattedDate(updatedEvent.date),
       durationMinutes: updatedEvent.durationMinutes,
       isPublic: updatedEvent.isPublic,
       userIds: [],
@@ -134,12 +136,12 @@ export const CalendarView: React.FunctionComponent<{
         roles={roles}
         canEdit={user !== undefined}
         event={
-          edit
-            ? events[currEvent]
+          edit && events[currEvent]
+            ? { ...events[currEvent], date: formatDate(events[currEvent].date) }
             : {
                 id: "",
                 name: "",
-                date: new Date(),
+                date: formatDate(new Date()),
                 durationMinutes: 60,
                 color: "blue",
                 href: "",
