@@ -1080,7 +1080,7 @@ export const CalendarView: React.FunctionComponent<CalendarViewProps> = ({
           </div>
           <div className="md:ml-4 flex items-center">
             <Dropdown
-              className="mr-2"
+              className="hidden md:block mr-2"
               initialValue={timezone}
               items={timezoneItems}
               onChange={(item) => {
