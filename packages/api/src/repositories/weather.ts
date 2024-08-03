@@ -32,7 +32,7 @@ interface WeatherDataOptions {
 }
 export const getWeatherData = async ({lat, long}: WeatherDataOptions) => {
   const response = await axios<WeatherResponse>(
-    `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&long=${long}&appid=${weatherAPIKey}&units=imperial`,
+    `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${long}&appid=${weatherAPIKey}&units=imperial`,
   );
 
   return response.data;
