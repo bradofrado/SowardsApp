@@ -35,7 +35,7 @@ export const generateItinerary = async (date: Date): Promise<string> => {
 };
 
 const getLocationFromDate = (date: Date) => {
-  return isDateInBetween(date, new Date(), new Date("2024-08-07"))
+  return isDateInBetween(date, new Date("2024-08-01"), new Date("2024-08-07"))
     ? {lat: 21.64, long: -157.91 }
     : {lat: 19.93, long: -155.78}
 };
