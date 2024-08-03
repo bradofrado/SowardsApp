@@ -20,7 +20,8 @@ export const generateItinerary = async (date: Date): Promise<string> => {
       ),
     }));
 
-  const weatherData = await getWeatherData();
+  const location = getLocationFromDate(date)
+  const weatherData = await getWeatherData(location);
 
   const weatherDescription = `${weatherData.daily[0].weather[0].description} with a high of ${weatherData.daily[0].temp.max} and a low of ${weatherData.daily[0].temp.min}`;
 
@@ -31,4 +32,10 @@ export const generateItinerary = async (date: Date): Promise<string> => {
   });
 
   return itinerary;
+};
+
+const getLocationFromDate = (date: Date) => {
+  return isDateInBetween(date, new Date(), new Date("2024-08-07"))
+    ? {lat: 21.641000, long: -157.919790 }
+    : {lat: 19.938360, long: -155.787460}
 };
