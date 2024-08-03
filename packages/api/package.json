@@ -23,6 +23,7 @@
     "@clerk/nextjs": "^4.29.2",
     "@trpc/client": "^10.38.3",
     "@trpc/server": "^10.38.3",
+    "axios": "^1.7.2",
     "db": "workspace:^",
     "model": "workspace:^",
     "openai": "^4.52.0",

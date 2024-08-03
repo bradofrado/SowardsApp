@@ -28,7 +28,11 @@ export async function getVacationEvents({
 }: {
   db: Db;
 }): Promise<VacationEvent[]> {
-  const vacationEvents = await db.vacationEvent.findMany();
+  const vacationEvents = await db.vacationEvent.findMany({
+    orderBy: {
+      date: "asc",
+    },
+  });
 
   return vacationEvents.map((event) => prismaToVacationEvent(event));
 }

@@ -7,6 +7,8 @@ import { StatsView } from "./components/stats-view";
 import { CalendarView } from "./components/calendar-view";
 import { Heading, Subheading } from "ui/src/components/catalyst/heading";
 import { getUserVactions } from "api/src/repositories/user-vacation";
+import { ItineraryButton } from "./components/itinerary-button";
+import { generateItinerary } from "./actions";
 
 const PlanPage = async (): Promise<JSX.Element> => {
   const result = await requireUserVacation()();
@@ -27,6 +29,7 @@ const PlanPage = async (): Promise<JSX.Element> => {
       </div>
       <StatsView events={events} groups={groups} />
       <div className="mt-5">
+        <ItineraryButton generateItinerary={generateItinerary} />
         <CalendarView
           users={users}
           events={events}
