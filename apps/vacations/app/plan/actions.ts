@@ -4,7 +4,7 @@ import { getVacationEvents } from "api/src/repositories/event";
 import { getUserVacation } from "api/src/repositories/user-vacation";
 import { getWeatherData } from "api/src/repositories/weather";
 import { prisma } from "db/lib/prisma";
-import { datesEqual } from "model/src/utils";
+import { datesEqual, isDateInBetween } from "model/src/utils";
 import { generateItinerary as generateItineraryAI } from "api/src/repositories/openai";
 
 export const getUser = getUserVacation;
