@@ -12,13 +12,13 @@ export const getUser = getUserVacation;
 export const generateItinerary = async (date: Date): Promise<string> => {
   const events = await getVacationEvents({ db: prisma });
   const eventsToday = events
-    .filter((event) => datesEqual(date, event.date))
     .map((event) => ({
       ...event,
       date: new Date(
         event.date.toLocaleString("en-US", { timeZone: "Pacific/Honolulu" }),
       ),
-    }));
+    }))
+    .filter((event) => datesEqual(date, event.date));
 
   const location = getLocationFromDate(date)
   const weatherData = await getWeatherData(location);
