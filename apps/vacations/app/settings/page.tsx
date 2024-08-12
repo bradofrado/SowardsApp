@@ -1,10 +1,10 @@
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import type { UserVacation } from "model/src/vacation";
-import { getAuthSession } from "../../utils/auth";
 import { updateUser } from "./components/actions";
 import { ConnectAccountForm } from "./components/connect-account-form";
 import { SignInButton } from "@clerk/nextjs";
-import { requireAuth } from "../../utils/protected-routes-hoc";
+import { requireAuth } from "next-utils/src/protected-routes-hoc";
+import { getAuthSession } from "next-utils/src/auth";
 
 const SetupPage = async (): Promise<JSX.Element> => {
   const auth = await requireAuth()();

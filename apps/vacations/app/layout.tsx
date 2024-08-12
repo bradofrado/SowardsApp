@@ -1,13 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { TrpcProvider } from "../utils/trpc-provider";
 import { ApplicationLayout } from "./application-layout";
 import { UserProvider } from "./plan/components/user-provider";
-import { requireUserVacation } from "../utils/protected-routes-hoc";
 import { getUser } from "./plan/actions";
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import { TimezoneProvider } from "ui/src/components/core/calendar/timezone";
+import { requireUserVacation } from "../utils/protected-routes-hoc";
+import { TrpcProvider } from "next-utils/src/trpc-provider";
 
 export const metadata: Metadata = {
   title: "Sowards Vacation",
