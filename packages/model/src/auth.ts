@@ -1,21 +1,25 @@
 import { z } from "zod";
 import { stringUnionSchema } from "./utils";
-import { amountTypesSchema, UserVacation, userVacationSchema } from "./vacation";
+import {
+  amountTypesSchema,
+  UserVacation,
+  userVacationSchema,
+} from "./vacation";
 
 export type AuthContext = {
-	userId: string;
-	user: User,
-  userVacation: UserVacation | undefined
+  userId: string;
+  user: User;
+  userVacation: UserVacation | undefined;
 };
 
 export interface Session {
-  auth: AuthContext,
+  auth: AuthContext;
 }
 
 export interface AuthedSession {
-  auth: Omit<AuthContext, 'userVacation'> & {
-    userVacation: UserVacation
-  }
+  auth: Omit<AuthContext, "userVacation"> & {
+    userVacation: UserVacation;
+  };
 }
 
 export const userSchema = z.object({
@@ -26,8 +30,8 @@ export const userSchema = z.object({
   roles: z.array(z.string()),
   userVacationId: z.optional(z.string()),
   userVacation: z.optional(userVacationSchema),
-  amountType: amountTypesSchema
-})
+  amountType: amountTypesSchema,
+});
 export type User = z.infer<typeof userSchema>;
 
 export type Email = `${string}@${string}`;

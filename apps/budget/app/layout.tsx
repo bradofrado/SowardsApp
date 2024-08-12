@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ApplicationLayout } from "./application-layout";
 import { getUserVactions } from "api/src/repositories/user-vacation";
-import { TrpcProvider } from "next-utils/src/trpc-provider";
+import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
 
 export const metadata: Metadata = {
   title: "Sowards Bugdets",

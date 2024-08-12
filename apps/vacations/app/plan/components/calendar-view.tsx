@@ -8,7 +8,7 @@ import type { Event } from "./event-form";
 import { EventFormModal } from "./event-form";
 import { useUser } from "./user-provider";
 import { useTimezoneContext } from "ui/src/components/core/calendar/timezone";
-import { api } from "next-utils/src/api";
+import { api } from "next-utils/src/utils/api";
 
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];

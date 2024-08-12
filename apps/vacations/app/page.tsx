@@ -5,7 +5,7 @@ import { prisma } from "db/lib/prisma";
 import { requireUserVacation } from "../utils/protected-routes-hoc";
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import { SignInButton } from "@clerk/nextjs";
-import { requireAuth } from "next-utils/src/protected-routes-hoc";
+import { requireAuth } from "next-utils/src/utils/protected-routes-hoc";
 
 export default async function HomePage() {
   const auth = await requireAuth()();

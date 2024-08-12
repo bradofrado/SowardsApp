@@ -22,16 +22,34 @@ model User {
   userVacationId String?       @db.ObjectId
 }
 
+model SpendingRecord {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  date        DateTime
+  description String
+  userId      String         @db.ObjectId
+  user        UserVacation   @relation(fields: [userId], references: [id])
+  categoryId  String         @db.ObjectId
+  category    BudgetCategory @relation(fields: [categoryId], references: [id])
+}
+
+model BudgetCategory {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  spendingRecords SpendingRecord[]
+}
+
 model UserVacation {
-  id         String              @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  users      User[]
-  groupIds   String[]            @db.ObjectId
-  groups     VacationGroup[]     @relation(fields: [groupIds], references: [id])
-  eventIds   String[]            @db.ObjectId
-  events     VacationEvent[]     @relation(fields: [eventIds], references: [id])
-  created    VacationEvent[]     @relation(name: "created")
-  dependents VacationDependent[]
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  users           User[]
+  groupIds        String[]            @db.ObjectId
+  groups          VacationGroup[]     @relation(fields: [groupIds], references: [id])
+  eventIds        String[]            @db.ObjectId
+  events          VacationEvent[]     @relation(fields: [eventIds], references: [id])
+  created         VacationEvent[]     @relation(name: "created")
+  dependents      VacationDependent[]
+  spendingRecords SpendingRecord[]
 }
 
 model VacationDependent {

@@ -5,8 +5,8 @@ import {
   updateUserVacation,
 } from "api/src/repositories/user-vacation";
 import type { UserVacation, VacationDependent } from "model/src/vacation";
-import { getAuthSession } from "../../../utils/auth";
 import { connectAccountToUserVacation, createAccount } from "api/src/auth";
+import { getAuthSession } from "../utils/auth";
 
 export interface SetupUser {
   groupIds: string[];

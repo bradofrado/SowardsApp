@@ -7,7 +7,7 @@ import { getUser } from "./plan/actions";
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import { TimezoneProvider } from "ui/src/components/core/calendar/timezone";
 import { requireUserVacation } from "../utils/protected-routes-hoc";
-import { TrpcProvider } from "next-utils/src/trpc-provider";
+import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
 
 export const metadata: Metadata = {
   title: "Sowards Vacation",
