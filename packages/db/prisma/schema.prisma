@@ -36,6 +36,7 @@ model SpendingRecord {
 model BudgetCategory {
   id              String           @id @default(auto()) @map("_id") @db.ObjectId
   name            String
+  type            String //Income or Expense
   spendingRecords SpendingRecord[]
 }
 
