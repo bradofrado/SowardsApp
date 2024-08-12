@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "next-utils/src/utils/api";
+import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Button } from "ui/src/components/catalyst/button";
@@ -36,6 +37,7 @@ export const PlaidLink: React.FunctionComponent = () => {
   const { linkToken, setAccessToken } = usePlaid();
   const { mutate: updateAccessToken } = api.plaid.setAccessToken.useMutation();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const { open } = usePlaidLink({
     onSuccess: (publicToken) => {
@@ -46,6 +48,7 @@ export const PlaidLink: React.FunctionComponent = () => {
             setLoading(false);
             setAccessToken(item.accessToken);
             localStorage.removeItem("linkToken");
+            router.refresh();
           },
         },
       );
@@ -60,7 +63,7 @@ export const PlaidLink: React.FunctionComponent = () => {
 
   return (
     <Button onClick={onClick} loading={loading || linkToken === null}>
-      Connect Plaid
+      Add Account
     </Button>
   );
 };
@@ -68,6 +71,7 @@ export const PlaidLink: React.FunctionComponent = () => {
 const usePlaidLinkToken = () => {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const { mutate: createLinkToken } = api.plaid.createLinkToken.useMutation();
+
   useEffect(() => {
     if (linkToken === null) {
       const storageLinkToken = localStorage.getItem("linkToken");

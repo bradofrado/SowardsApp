@@ -16,9 +16,7 @@ import {
 } from "../repositories/budget/spending";
 import { SpendingRecord } from "model/src/budget";
 
-export const getExternalLogins = async (
-  userId: string,
-): Promise<AccountBase[]> => {
+export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
 };
 

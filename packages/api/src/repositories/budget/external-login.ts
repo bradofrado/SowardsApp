@@ -34,6 +34,20 @@ export const updateExternalLoginCursor = async ({
   });
 };
 
+export const deleteExternalLogin = async ({
+  db,
+  accessToken,
+}: {
+  db: Db;
+  accessToken: string;
+}): Promise<void> => {
+  await db.externalLogin.delete({
+    where: {
+      accessToken,
+    },
+  });
+};
+
 export const getLogins = async ({
   db,
   userId,

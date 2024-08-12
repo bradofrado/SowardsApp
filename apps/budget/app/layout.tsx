@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ApplicationLayout } from "./application-layout";
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
-import { PlaidProvider } from "./plaid";
+import { PlaidProvider } from "./settings/components/plaid";
 
 export const metadata: Metadata = {
   title: "Sowards Bugdets",

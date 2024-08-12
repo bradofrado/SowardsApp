@@ -61,6 +61,12 @@ export const setAccessToken = async (
   };
 };
 
+export const removeAccount = async (accessToken: string): Promise<void> => {
+  await plaidClient.itemRemove({
+    access_token: accessToken,
+  });
+};
+
 export const compareTxnsByDateAscending = (
   a: Transaction,
   b: Transaction,
@@ -104,10 +110,13 @@ export const getTransactionsSync = async ({
 
 export const getAccounts = async ({
   accessToken,
-}: LoginRequest): Promise<AccountBase[]> => {
+}: LoginRequest): Promise<(AccountBase & { access_token: string })[]> => {
   const response = await plaidClient.accountsGet({
     access_token: accessToken,
   });
 
-  return response.data.accounts;
+  return response.data.accounts.map((account) => ({
+    ...account,
+    access_token: accessToken,
+  }));
 };

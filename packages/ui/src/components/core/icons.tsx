@@ -809,3 +809,11 @@ export const Cog6ToochIcon: IconComponent = (props) => {
 export const Square2StackIcon: IconComponent = (props) => {
   return <Square2StackIconRaw {...props} />;
 };
+
+export const BankIcon: IconComponent = (props) => {
+  return (
+    <svg aria-hidden="true" {...props} viewBox="0 0 24 24" focusable="false">
+      <path d="M3,8.32V19.17h1.8V8.32h.6V19.17h2.4V8.33h.6V19.18h1.8V8.33h.6V19.18h2.4V8.33h.6V19.19h1.8V8.34h.6V19.19h2.4V8.34h.6V19.2H21L21,8.35h.6l0,10.85h1.8a.6.6,0,0,1,.6.61v3.61a.6.6,0,0,1-.6.61L.56,24a.6.6,0,0,1-.6-.6V19.77a.6.6,0,0,1,.6-.6h1.8V8.32ZM23.36,19.81l-22.79,0v3.62l22.8,0ZM12.22.09,23.5,7.24a.6.6,0,0,1,.19.83.61.61,0,0,1-.51.28L.6,8.31a.6.6,0,0,1-.6-.6A.61.61,0,0,1,.28,7.2L11.59.09A.6.6,0,0,1,12.22.09ZM11.9.6.6,7.71l22.58,0Z" />
+    </svg>
+  );
+};

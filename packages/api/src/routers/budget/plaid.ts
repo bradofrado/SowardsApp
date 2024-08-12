@@ -1,10 +1,14 @@
 import { z } from "zod";
 import {
   createLinkToken,
+  removeAccount,
   setAccessToken,
 } from "../../repositories/budget/plaid";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
-import { addExternalLogin } from "../../repositories/budget/external-login";
+import {
+  addExternalLogin,
+  deleteExternalLogin,
+} from "../../repositories/budget/external-login";
 import { prisma } from "db/lib/prisma";
 
 export const plaidRouter = createTRPCRouter({
@@ -30,5 +34,11 @@ export const plaidRouter = createTRPCRouter({
       });
 
       return newLogin;
+    }),
+  removeAccount: protectedProcedure
+    .input(z.object({ accessToken: z.string() }))
+    .mutation(async ({ input }) => {
+      await deleteExternalLogin({ db: prisma, accessToken: input.accessToken });
+      await removeAccount(input.accessToken);
     }),
 });
