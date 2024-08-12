@@ -6,7 +6,8 @@ import {
   FormRow,
 } from "ui/src/components/catalyst/form/form";
 import { Heading } from "ui/src/components/catalyst/heading";
+import { CategoryForm } from "./components/category-form";
 
-export default function Home() {
-  return <div>Home</div>;
+export default function Plan() {
+  return <CategoryForm />;
 }

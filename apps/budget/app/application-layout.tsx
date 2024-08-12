@@ -6,7 +6,11 @@ import {
   ApplicationLayout as Layout,
   SidebarItem,
 } from "ui/src/components/feature/application-layout";
-import { Cog6ToochIcon, HomeIcon } from "ui/src/components/core/icons";
+import {
+  Cog6ToochIcon,
+  HomeIcon,
+  Square2StackIcon,
+} from "ui/src/components/core/icons";
 
 export const ApplicationLayout: React.FunctionComponent<{
   children: React.ReactNode;
@@ -17,6 +21,11 @@ export const ApplicationLayout: React.FunctionComponent<{
       href: "/",
       label: "Home",
       icon: <HomeIcon />,
+    },
+    {
+      href: "/plan",
+      label: "Plan",
+      icon: <Square2StackIcon />,
     },
     {
       href: "/settings",
