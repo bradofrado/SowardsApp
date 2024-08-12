@@ -1,17 +1,24 @@
+import { classNames } from "model/src/utils";
 import { Divider } from "../divider";
 import { Heading, Subheading } from "../heading";
 import { Text } from "../text";
 
 interface FormProps {
   children: React.ReactNode;
+  className?: string;
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 export const Form: React.FunctionComponent<FormProps> = ({
   children,
   onSubmit,
+  className,
 }) => {
   return (
-    <form method="post" className="mx-auto max-w-4xl" onSubmit={onSubmit}>
+    <form
+      method="post"
+      className={classNames("mx-auto max-w-4xl", className)}
+      onSubmit={onSubmit}
+    >
       {children}
     </form>
   );

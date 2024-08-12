@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "ui/src/components/catalyst/table";
+import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 
 interface SpendingFormProps {
@@ -30,9 +31,26 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { mutate: saveTransactions } =
     api.plaid.updateTransactions.useMutation();
+  const [selected, setSelected] = useState<string[]>([]);
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
+  };
+
+  const onSelect = (checked: boolean, transactionId: string) => {
+    if (checked) {
+      setSelected([...selected, transactionId]);
+    } else {
+      setSelected(selected.filter((id) => id !== transactionId));
+    }
+  };
+
+  const onSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelected(transactions.map((t) => t.transactionId));
+    } else {
+      setSelected([]);
+    }
   };
 
   const onSubmit = () => {
@@ -50,7 +68,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     );
   };
   return (
-    <Form>
+    <Form className="mt-4">
       <Heading>Spending</Heading>
       <FormDivider />
       {transactions !== origTransactions ? (
@@ -69,14 +87,32 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       ) : null}
       <Table>
         <TableHead>
-          <TableHeader>Date</TableHeader>
-          <TableHeader>Name</TableHeader>
-          <TableHeader>Category</TableHeader>
-          <TableHeader>Amount</TableHeader>
+          <TableRow>
+            <TableHeader>
+              <CheckboxInput
+                className="w-fit"
+                value={transactions.length === selected.length}
+                onChange={onSelectAll}
+              />
+            </TableHeader>
+            <TableHeader>Date</TableHeader>
+            <TableHeader>Name</TableHeader>
+            <TableHeader>Category</TableHeader>
+            <TableHeader>Amount</TableHeader>
+          </TableRow>
         </TableHead>
         <TableBody>
           {transactions.map((transaction, i) => (
             <TableRow key={transaction.transactionId}>
+              <TableCell>
+                <CheckboxInput
+                  className="w-fit"
+                  value={selected.includes(transaction.transactionId)}
+                  onChange={(checked) =>
+                    onSelect(checked, transaction.transactionId)
+                  }
+                />
+              </TableCell>
               <TableCell>{displayDate(transaction.date)}</TableCell>
               <TableCell>{transaction.description}</TableCell>
               <TableCell>
