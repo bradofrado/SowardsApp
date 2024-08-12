@@ -20,10 +20,7 @@ const Plan = withAuth(async ({ ctx }) => {
   return (
     <>
       <CategoryForm categories={categories} saveCategories={saveCategories} />
-      <SpendingForm
-        transactions={transactions}
-        categoryNames={categories.map((c) => c.name)}
-      />
+      <SpendingForm transactions={transactions} categories={categories} />
     </>
   );
 });

@@ -1,10 +1,11 @@
 "use client";
-import { SpendingRecord } from "model/src/budget";
+import { CategoryBudget, SpendingRecord } from "model/src/budget";
 import { displayDate, formatDollarAmount } from "model/src/utils";
+import { api } from "next-utils/src/utils/api";
 import { Transaction } from "plaid";
 import { useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
-import { FormDivider } from "ui/src/components/catalyst/form/form";
+import { Form, FormDivider } from "ui/src/components/catalyst/form/form";
 import { Heading } from "ui/src/components/catalyst/heading";
 import {
   Table,
@@ -14,37 +15,58 @@ import {
   TableHeader,
   TableRow,
 } from "ui/src/components/catalyst/table";
+import { useChangeArray } from "ui/src/hooks/change-property";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
-  categoryNames: string[];
+  categories: CategoryBudget[];
 }
 export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
-  transactions,
-  categoryNames,
+  transactions: origTransactions,
+  categories,
 }) => {
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [transactions, setTransactions] = useState(origTransactions);
+  const changeProperty = useChangeArray(setTransactions);
+  const [loading, setLoading] = useState(false);
+  const { mutate: saveTransactions } =
+    api.plaid.updateTransactions.useMutation();
 
-  const onCategoryChange = (transactionId: string, name: string) => {
-    setCategories((prev) => {
-      const copy = prev.slice();
-      const index = copy.findIndex((c) => c.id === transactionId);
-      if (index > -1) {
-        copy[index] = {
-          id: transactionId,
-          name,
-        };
-        return copy;
-      }
-      return [...copy, { id: transactionId, name }];
-    });
+  const onCategoryChange = (index: number, category: CategoryBudget) => {
+    changeProperty(transactions, index, "category", category);
+  };
+
+  const onSubmit = () => {
+    setLoading(true);
+    saveTransactions(
+      { transactions },
+      {
+        onSuccess() {
+          setLoading(false);
+        },
+        onError() {
+          setLoading(false);
+        },
+      },
+    );
   };
   return (
-    <div>
+    <Form>
       <Heading>Spending</Heading>
       <FormDivider />
+      {transactions !== origTransactions ? (
+        <div className="flex justify-end gap-4 my-4">
+          <Button
+            onClick={() => setTransactions(origTransactions)}
+            plain
+            type="reset"
+          >
+            Reset
+          </Button>
+          <Button loading={loading} type="submit" onClick={onSubmit}>
+            Save changes
+          </Button>
+        </div>
+      ) : null}
       <Table>
         <TableHead>
           <TableHeader>Date</TableHeader>
@@ -53,47 +75,42 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           <TableHeader>Amount</TableHeader>
         </TableHead>
         <TableBody>
-          {transactions
-            .filter((t) => t.category?.[0] !== "Payment")
-            .map((transaction) => (
-              <TableRow key={transaction.transactionId}>
-                <TableCell>{displayDate(transaction.date)}</TableCell>
-                <TableCell>{transaction.description}</TableCell>
-                <TableCell>
-                  <CategoryPicker
-                    value={
-                      categories.find((c) => c.id === transaction.transactionId)
-                        ?.name
-                    }
-                    categories={categoryNames}
-                    onChange={(name) => {
-                      onCategoryChange(transaction.transactionId, name);
-                    }}
-                  />
-                </TableCell>
-                <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
-              </TableRow>
-            ))}
+          {transactions.map((transaction, i) => (
+            <TableRow key={transaction.transactionId}>
+              <TableCell>{displayDate(transaction.date)}</TableCell>
+              <TableCell>{transaction.description}</TableCell>
+              <TableCell>
+                <CategoryPicker
+                  value={transaction.category?.id}
+                  categories={categories}
+                  onChange={(category) => {
+                    onCategoryChange(i, category);
+                  }}
+                />
+              </TableCell>
+              <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
-    </div>
+    </Form>
   );
 };
 
 export const CategoryPicker: React.FunctionComponent<{
-  onChange: (name: string) => void;
+  onChange: (name: CategoryBudget) => void;
   value: string | undefined;
-  categories: string[];
+  categories: CategoryBudget[];
 }> = ({ onChange, value, categories }) => {
   return (
     <div className="flex gap-2">
       {categories.map((category) => (
         <Button
-          key={category}
+          key={category.id}
           onClick={() => onChange(category)}
-          plain={value !== category}
+          plain={value !== category.id}
         >
-          {category}
+          {category.name}
         </Button>
       ))}
     </div>

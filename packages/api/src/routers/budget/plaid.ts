@@ -9,7 +9,8 @@ import {
   addExternalLogin,
   deleteExternalLogin,
 } from "../../repositories/budget/external-login";
-import { prisma } from "db/lib/prisma";
+import { spendingRecordSchema } from "model/src/budget";
+import { updateSpendingRecord } from "../../repositories/budget/spending";
 
 export const plaidRouter = createTRPCRouter({
   createLinkToken: protectedProcedure.mutation(async ({ ctx }) => {
@@ -24,7 +25,7 @@ export const plaidRouter = createTRPCRouter({
       const { accessToken, itemId } = await setAccessToken(publicToken);
 
       const newLogin = await addExternalLogin({
-        db: prisma,
+        db: ctx.prisma,
         login: {
           accessToken,
           itemId,
@@ -37,8 +38,24 @@ export const plaidRouter = createTRPCRouter({
     }),
   removeAccount: protectedProcedure
     .input(z.object({ accessToken: z.string() }))
-    .mutation(async ({ input }) => {
-      await deleteExternalLogin({ db: prisma, accessToken: input.accessToken });
+    .mutation(async ({ input, ctx }) => {
+      await deleteExternalLogin({
+        db: ctx.prisma,
+        accessToken: input.accessToken,
+      });
       await removeAccount(input.accessToken);
+    }),
+  updateTransactions: protectedProcedure
+    .input(z.object({ transactions: z.array(spendingRecordSchema) }))
+    .mutation(async ({ input, ctx }) => {
+      await Promise.all(
+        input.transactions.map(async (transaction) => {
+          await updateSpendingRecord({
+            db: ctx.prisma,
+            spendingRecord: transaction,
+            userId: ctx.session.auth.userVacation.id,
+          });
+        }),
+      );
     }),
 });

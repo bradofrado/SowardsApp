@@ -1,6 +1,5 @@
 /* eslint-disable no-await-in-loop -- ok*/
 import { prisma } from "db/lib/prisma";
-import type { AccountBase } from "plaid";
 import {
   getLogins,
   updateExternalLoginCursor,
