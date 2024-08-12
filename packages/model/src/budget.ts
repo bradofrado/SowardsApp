@@ -8,17 +8,17 @@ export const categoryBudgetSchema = z.object({
 export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;
 
 export const spendingRecordSchema = z.object({
-  id: z.string(),
+  transactionId: z.string(),
   amount: z.number(),
   date: z.date(),
   description: z.string(),
-  category: categoryBudgetSchema,
+  category: categoryBudgetSchema.nullable(),
 });
 export type SpendingRecord = z.infer<typeof spendingRecordSchema>;
 
 export const externalLoginSchema = z.object({
-  id: z.string(),
   accessToken: z.string(),
+  cursor: z.string().nullable(),
   itemId: z.string(),
   userId: z.string(),
 });

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { createLinkToken, setAccessToken } from "../../repositories/plaid";
+import {
+  createLinkToken,
+  setAccessToken,
+} from "../../repositories/budget/plaid";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
 import { addExternalLogin } from "../../repositories/budget/external-login";
 import { prisma } from "db/lib/prisma";
@@ -22,6 +25,7 @@ export const plaidRouter = createTRPCRouter({
           accessToken,
           itemId,
           userId: ctx.session.auth.userVacation.id,
+          cursor: null,
         },
       });
 

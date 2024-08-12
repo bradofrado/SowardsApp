@@ -1,18 +1,37 @@
-import { Db } from "db/lib/prisma";
-import { ExternalLogin } from "model/src/budget";
+import type { Db } from "db/lib/prisma";
+import type { ExternalLogin } from "model/src/budget";
 
 export const addExternalLogin = async ({
   db,
   login,
 }: {
   db: Db;
-  login: Omit<ExternalLogin, "id">;
+  login: ExternalLogin;
 }): Promise<ExternalLogin> => {
   const newLogin = await db.externalLogin.create({
     data: login,
   });
 
   return newLogin;
+};
+
+export const updateExternalLoginCursor = async ({
+  db,
+  accessToken,
+  cursor,
+}: {
+  db: Db;
+  accessToken: string;
+  cursor: string | null;
+}): Promise<void> => {
+  await db.externalLogin.update({
+    where: {
+      accessToken,
+    },
+    data: {
+      cursor,
+    },
+  });
 };
 
 export const getLogins = async ({

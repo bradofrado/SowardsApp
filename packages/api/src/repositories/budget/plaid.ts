@@ -1,11 +1,18 @@
+/* eslint-disable no-await-in-loop -- ok*/
+import type {
+  LinkTokenCreateRequest,
+  Transaction,
+  AccountBase,
+  RemovedTransaction,
+} from "plaid";
 import {
   Configuration,
   PlaidApi,
   Products,
   PlaidEnvironments,
-  LinkTokenCreateRequest,
   CountryCode,
 } from "plaid";
+import type { LoginRequest } from "./types";
 
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
@@ -54,18 +61,50 @@ export const setAccessToken = async (
   };
 };
 
-interface PlaidRequest {
-  accessToken: string;
-}
-export const getTransactions = async ({ accessToken }: PlaidRequest) => {
-  const response = await plaidClient.transactionsSync({
-    access_token: accessToken,
-  });
+export const compareTxnsByDateAscending = (
+  a: Transaction,
+  b: Transaction,
+): number => (a.date > b.date ? 1 : 0) - (a.date < b.date ? 1 : 0);
 
-  return response.data.added;
+export const getTransactionsSync = async ({
+  accessToken,
+  cursor,
+}: LoginRequest): Promise<{
+  added: Transaction[];
+  removed: RemovedTransaction[];
+  modified: Transaction[];
+  cursor: string | null;
+  accessToken: string;
+}> => {
+  const added: Transaction[] = [];
+  const removed: RemovedTransaction[] = [];
+  const modified: Transaction[] = [];
+  let hasMore = true;
+  let currCursor = cursor;
+  while (hasMore) {
+    const response = await plaidClient.transactionsSync({
+      access_token: accessToken,
+      cursor: currCursor ?? undefined,
+    });
+    added.push(...response.data.added);
+    removed.push(...response.data.removed);
+    modified.push(...response.data.modified);
+    hasMore = response.data.has_more;
+    currCursor = response.data.next_cursor;
+  }
+
+  return {
+    added: added.sort(compareTxnsByDateAscending),
+    removed,
+    modified: modified.sort(compareTxnsByDateAscending),
+    cursor: currCursor,
+    accessToken,
+  };
 };
 
-export const getAccounts = async ({ accessToken }: PlaidRequest) => {
+export const getAccounts = async ({
+  accessToken,
+}: LoginRequest): Promise<AccountBase[]> => {
   const response = await plaidClient.accountsGet({
     access_token: accessToken,
   });

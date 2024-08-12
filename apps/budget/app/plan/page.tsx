@@ -10,10 +10,22 @@ import { CategoryForm } from "./components/category-form";
 import { getCategories } from "api/src/repositories/budget/category";
 import { saveCategories } from "./components/actions";
 import { prisma } from "db/lib/prisma";
+import { getTransactions } from "api/src/services/budget";
+import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
+import { SpendingForm } from "./components/spending-form";
 
-export default async function Plan() {
+const Plan = withAuth(async ({ ctx }) => {
   const categories = await getCategories({ db: prisma });
+  const transactions = await getTransactions(ctx.session.auth.userVacation.id);
   return (
-    <CategoryForm categories={categories} saveCategories={saveCategories} />
+    <>
+      <CategoryForm categories={categories} saveCategories={saveCategories} />
+      <SpendingForm
+        transactions={transactions}
+        categoryNames={categories.map((c) => c.name)}
+      />
+    </>
   );
-}
+});
+
+export default Plan;

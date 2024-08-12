@@ -1,5 +1,5 @@
-import { Db, Prisma } from "db/lib/prisma";
-import { SpendingRecord } from "model/src/budget";
+import type { Db, Prisma } from "db/lib/prisma";
+import type { SpendingRecord } from "model/src/budget";
 import { prismaToBudgetCategory } from "./category";
 
 const spendingRecordPayload = {
@@ -23,6 +23,23 @@ export const getSpendingRecords = async ({
   return records.map(prismaToSpendingRecord);
 };
 
+export const getSpendingRecord = async ({
+  db,
+  transactionId,
+}: {
+  db: Db;
+  transactionId: string;
+}): Promise<SpendingRecord | null> => {
+  const record = await db.spendingRecord.findFirst({
+    where: {
+      transactionId,
+    },
+    ...spendingRecordPayload,
+  });
+
+  return record ? prismaToSpendingRecord(record) : null;
+};
+
 export const createSpendingRecord = async ({
   spendingRecord,
   db,
@@ -35,10 +52,11 @@ export const createSpendingRecord = async ({
   const newRecord = await db.spendingRecord.create({
     data: {
       userId,
+      transactionId: spendingRecord.transactionId,
       amount: spendingRecord.amount,
       date: spendingRecord.date,
       description: spendingRecord.description,
-      categoryId: spendingRecord.category.id,
+      categoryId: spendingRecord.category ? spendingRecord.category.id : null,
     },
     ...spendingRecordPayload,
   });
@@ -55,15 +73,22 @@ export const createSpendingRecords = async ({
   db: Db;
   userId: string;
 }): Promise<void> => {
-  await db.spendingRecord.updateMany({
-    data: spendingRecords.map((spendingRecord) => ({
-      userId,
-      amount: spendingRecord.amount,
-      date: spendingRecord.date,
-      description: spendingRecord.description,
-      categoryId: spendingRecord.category.id,
-    })),
-  });
+  await Promise.all(
+    spendingRecords.map((spendingRecord) =>
+      db.spendingRecord.create({
+        data: {
+          userId,
+          amount: spendingRecord.amount,
+          date: spendingRecord.date,
+          description: spendingRecord.description,
+          categoryId: spendingRecord.category
+            ? spendingRecord.category.id
+            : null,
+          transactionId: spendingRecord.transactionId,
+        },
+      }),
+    ),
+  );
 };
 
 export const updateSpendingRecord = async ({
@@ -77,28 +102,44 @@ export const updateSpendingRecord = async ({
 }): Promise<SpendingRecord> => {
   const record = await db.spendingRecord.update({
     where: {
-      id: spendingRecord.id,
+      transactionId: spendingRecord.transactionId,
     },
     data: {
       userId,
       amount: spendingRecord.amount,
       date: spendingRecord.date,
       description: spendingRecord.description,
-      categoryId: spendingRecord.category.id,
+      categoryId: spendingRecord.category ? spendingRecord.category.id : null,
     },
     ...spendingRecordPayload,
   });
   return prismaToSpendingRecord(record);
 };
 
+export const deleteSpendingRecord = async ({
+  transactionId,
+  db,
+}: {
+  transactionId: string;
+  db: Db;
+}): Promise<void> => {
+  await db.spendingRecord.delete({
+    where: {
+      transactionId,
+    },
+  });
+};
+
 export const prismaToSpendingRecord = (
   spendingRecord: Prisma.SpendingRecordGetPayload<typeof spendingRecordPayload>,
 ): SpendingRecord => {
   return {
-    id: spendingRecord.id,
+    transactionId: spendingRecord.transactionId,
     amount: spendingRecord.amount,
     date: spendingRecord.date,
     description: spendingRecord.description,
-    category: prismaToBudgetCategory(spendingRecord.category),
+    category: spendingRecord.category
+      ? prismaToBudgetCategory(spendingRecord.category)
+      : null,
   };
 };

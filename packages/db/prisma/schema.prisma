@@ -23,14 +23,14 @@ model User {
 }
 
 model SpendingRecord {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  amount      Float
-  date        DateTime
-  description String
-  userId      String         @db.ObjectId
-  user        UserVacation   @relation(fields: [userId], references: [id])
-  categoryId  String         @db.ObjectId
-  category    BudgetCategory @relation(fields: [categoryId], references: [id])
+  transactionId String          @id @map("_id")
+  amount        Float
+  date          DateTime
+  description   String
+  userId        String          @db.ObjectId
+  user          UserVacation    @relation(fields: [userId], references: [id])
+  categoryId    String?         @db.ObjectId
+  category      BudgetCategory? @relation(fields: [categoryId], references: [id])
 }
 
 model BudgetCategory {
@@ -41,9 +41,9 @@ model BudgetCategory {
 }
 
 model ExternalLogin {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  accessToken String
+  accessToken String       @id @map("_id")
   itemId      String
+  cursor      String?
   userId      String       @db.ObjectId
   user        UserVacation @relation(fields: [userId], references: [id])
 }

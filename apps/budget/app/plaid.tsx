@@ -45,6 +45,7 @@ export const PlaidLink: React.FunctionComponent = () => {
           onSuccess(item) {
             setLoading(false);
             setAccessToken(item.accessToken);
+            localStorage.removeItem("linkToken");
           },
         },
       );
