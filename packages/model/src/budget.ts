@@ -10,7 +10,7 @@ export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;
 export const spendingRecordSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  date: z.string(),
+  date: z.date(),
   description: z.string(),
   category: categoryBudgetSchema,
 });
