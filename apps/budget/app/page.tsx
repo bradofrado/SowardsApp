@@ -1,12 +1,18 @@
-import Image from "next/image";
-import { FormAddRemove } from "ui/src/components/catalyst/form/add-remove";
-import {
-  Form,
-  FormDivider,
-  FormRow,
-} from "ui/src/components/catalyst/form/form";
-import { Heading } from "ui/src/components/catalyst/heading";
+import { getAuthSession } from "next-utils/src/utils/auth";
+import { PlaidLink } from "./plaid";
+import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
+import { getExternalLogins } from "api/src/services/budget";
 
-export default function Home() {
-  return <div>Home</div>;
-}
+const Home = withAuth(async ({ ctx }) => {
+  const accounts = await getExternalLogins(ctx.session.auth.userVacation.id);
+  return (
+    <div>
+      <PlaidLink />
+      {accounts.map((account) => (
+        <div key={account.account_id}>{account.name}</div>
+      ))}
+    </div>
+  );
+});
+
+export default Home;

@@ -27,6 +27,7 @@
     "db": "workspace:^",
     "model": "workspace:^",
     "openai": "^4.52.0",
+    "plaid": "^26.0.0",
     "superjson": "^1.13.1",
     "zod": "^3.22.2"
   },

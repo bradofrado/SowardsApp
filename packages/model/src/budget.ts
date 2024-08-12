@@ -15,3 +15,11 @@ export const spendingRecordSchema = z.object({
   category: categoryBudgetSchema,
 });
 export type SpendingRecord = z.infer<typeof spendingRecordSchema>;
+
+export const externalLoginSchema = z.object({
+  id: z.string(),
+  accessToken: z.string(),
+  itemId: z.string(),
+  userId: z.string(),
+});
+export type ExternalLogin = z.infer<typeof externalLoginSchema>;

@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { AuthedSession, Session } from "model/src/auth";
 import { getServerAuthSession } from "api/src/auth";
 import { prisma } from "db/lib/prisma";
-import type { TRPCContext } from "api/src/trpc";
+import type { TRPCContextAuth } from "api/src/trpc";
 
 interface RequireRouteProps {
   redirect: string;
@@ -36,7 +36,7 @@ export const requireAuth = requireRoute({
 });
 
 export interface AuthProps {
-  ctx: TRPCContext;
+  ctx: TRPCContextAuth;
 }
 interface PageProps {
   params: Record<string, string>;
@@ -44,8 +44,10 @@ interface PageProps {
 }
 export const withAuth =
   (
-    Component: React.FunctionComponent<AuthProps>,
-  ): ((props: PageProps) => Promise<JSX.Element>) =>
+    Component:
+      | React.FunctionComponent<AuthProps>
+      | ((props: AuthProps) => Promise<JSX.Element>),
+  ): ((props: PageProps) => Promise<JSX.Element | null>) =>
   async () => {
     const cookie = cookies();
     const mockUserId = cookie.get("harmony-user-id");
@@ -55,7 +57,7 @@ export const withAuth =
       redirect("/settings");
     }
 
-    return <Component ctx={{ prisma, session: response.session! }} />;
+    return Component({ ctx: { prisma, session: response.session! } });
   };
 
 // export const requireRole = (role: UserRole) =>

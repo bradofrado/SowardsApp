@@ -40,6 +40,14 @@ model BudgetCategory {
   spendingRecords SpendingRecord[]
 }
 
+model ExternalLogin {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  accessToken String
+  itemId      String
+  userId      String       @db.ObjectId
+  user        UserVacation @relation(fields: [userId], references: [id])
+}
+
 model UserVacation {
   id              String              @id @default(auto()) @map("_id") @db.ObjectId
   name            String
@@ -51,6 +59,7 @@ model UserVacation {
   created         VacationEvent[]     @relation(name: "created")
   dependents      VacationDependent[]
   spendingRecords SpendingRecord[]
+  externalLogins  ExternalLogin[]
 }
 
 model VacationDependent {
