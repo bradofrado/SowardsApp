@@ -1,0 +1,43 @@
+{
+  "name": "budget",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/clerk-js": "^5.4.0",
+    "@clerk/nextjs": "^5.0.12",
+    "@prisma/nextjs-monorepo-workaround-plugin": "^5.3.1",
+    "@tanstack/react-query": "^4.35.3",
+    "@trpc/client": "^10.38.3",
+    "@trpc/next": "^10.38.3",
+    "@trpc/react-query": "^10.38.3",
+    "@trpc/server": "^10.38.3",
+    "api": "workspace:^",
+    "db": "workspace:*",
+    "dotenv-cli": "^7.3.0",
+    "model": "workspace:*",
+    "react": "^18",
+    "react-dom": "^18",
+    "next": "14.2.5",
+    "superjson": "^1.13.1",
+    "tailwind-config": "workspace:^",
+    "tsconfig": "workspace:*",
+    "ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^13.4.19",
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint-config-custom": "workspace:*",
+    "prettier-config": "workspace:*",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
+  }
+}
