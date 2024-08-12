@@ -1,3 +1,9 @@
+import {
+  Cog6ToothIcon as Cog6ToochIconRaw,
+  HomeIcon as HomeIconRaw,
+  Square2StackIcon as Square2StackIconRaw,
+} from "@heroicons/react/20/solid";
+
 export type IconComponent = (
   props: React.ComponentPropsWithoutRef<"svg">,
 ) => JSX.Element;
@@ -790,4 +796,16 @@ export const SparklesIcon: IconComponent = (props) => {
       ></path>
     </svg>
   );
+};
+
+export const HomeIcon: IconComponent = (props) => {
+  return <HomeIconRaw {...props} />;
+};
+
+export const Cog6ToochIcon: IconComponent = (props) => {
+  return <Cog6ToochIconRaw {...props} />;
+};
+
+export const Square2StackIcon: IconComponent = (props) => {
+  return <Square2StackIconRaw {...props} />;
 };
