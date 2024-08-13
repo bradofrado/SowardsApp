@@ -3,7 +3,7 @@ import { CategoryBudget, SpendingRecord } from "model/src/budget";
 import { classNames, displayDate, formatDollarAmount } from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
 import { AccountBase, Transaction } from "plaid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Form, FormDivider } from "ui/src/components/catalyst/form/form";
 import { Heading } from "ui/src/components/catalyst/heading";
@@ -23,6 +23,8 @@ import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 import { AccountDisplay } from "../../../settings/components/account-display";
 import { Accordion } from "ui/src/components/core/accordion";
+import { useQueryState } from "ui/src/hooks/query-state";
+import { usePrevious } from "ui/src/hooks/previous";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -44,7 +46,21 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
   const [pickCategory, setPickCategory] = useState<SpendingRecord>();
   const [updateTransaction, setUpdateTransaction] = useState<SpendingRecord>();
-  const [grouping, setGrouping] = useState<"all" | "account">("all");
+  const [grouping, setGrouping] = useQueryState<"all" | "account">({
+    key: "grouping",
+    defaultValue: "all",
+  });
+  const prevTransactions = usePrevious(transactions);
+
+  useEffect(() => {
+    if (prevTransactions !== transactions) {
+      setSelected(
+        selected.filter((id) =>
+          transactions.find((t) => t.transactionId === id),
+        ),
+      );
+    }
+  }, [transactions, prevTransactions, setSelected, selected]);
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
@@ -87,7 +103,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
 
   const onEdit = (): void => {
     setUpdateTransaction(
-      transactions.find((t) => selected.includes(t.transactionId)),
+      transactions.find((t) => selected[0] === t.transactionId),
     );
   };
 
@@ -161,6 +177,15 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               setPickCategory={setPickCategory}
             />
           ))}
+          <AccountTransactions
+            transactions={transactions}
+            selected={selected}
+            setSelected={setSelected}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+            setPickCategory={setPickCategory}
+            manual
+          />
         </>
       )}
       <ExportSpendingModal
@@ -200,19 +225,28 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   );
 };
 
-interface AccountTransactionProps {
-  account: AccountBase;
+type AccountTransactionProps = {
   transactions: SpendingRecord[];
   selected: string[];
   setSelected: (selected: string[]) => void;
   onSelect: (checked: boolean, transactionId: string) => void;
   onSelectAll: (checked: boolean) => void;
   setPickCategory: (transaction: SpendingRecord | undefined) => void;
-}
+} & (
+  | {
+      account: AccountBase;
+      manual?: undefined;
+    }
+  | {
+      account?: undefined;
+      manual: true;
+    }
+);
 export const AccountTransactions: React.FunctionComponent<
   AccountTransactionProps
 > = ({
   account,
+  manual,
   transactions,
   selected,
   onSelect,
@@ -220,19 +254,23 @@ export const AccountTransactions: React.FunctionComponent<
   setSelected,
   setPickCategory,
 }) => {
-  const balance = account.balances.current;
+  const balance = manual ? null : account.balances.current;
+  const filteredTransactions = transactions.filter((t) =>
+    manual ? t.accountId === null : t.accountId === account.account_id,
+  );
+
+  if (filteredTransactions.length === 0) {
+    return null;
+  }
   return (
     <Accordion
-      key={account.account_id}
       items={[
         {
           content: (
             <>
               <TransactionTable
                 setSelected={setSelected}
-                transactions={transactions.filter(
-                  (t) => t.accountId === account.account_id,
-                )}
+                transactions={filteredTransactions}
                 selected={selected}
                 onSelect={onSelect}
                 onSelectAll={onSelectAll}
@@ -242,11 +280,12 @@ export const AccountTransactions: React.FunctionComponent<
             </>
           ),
           labelContent: (
-            <div className="flex items-center gap-4">
-              <AccountDisplay
-                account={account}
-                className="hover:bg-gray-50 rounded-md p-2"
-              />
+            <div className="flex items-center gap-4 hover:bg-gray-50 rounded-md p-2">
+              {manual ? (
+                <div>Manual Transactions</div>
+              ) : (
+                <AccountDisplay account={account} className="" />
+              )}
               <div>{balance ? formatDollarAmount(balance) : null}</div>
             </div>
           ),

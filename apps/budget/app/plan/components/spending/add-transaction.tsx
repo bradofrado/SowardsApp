@@ -18,6 +18,7 @@ import { CategoryBudget, SpendingRecord } from "model/src/budget";
 import { useChangeProperty } from "ui/src/hooks/change-property";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { api } from "next-utils/src/utils/api";
+import { useRouter } from "next/navigation";
 
 interface EditTransactionModalBaseProps {
   show: boolean;
@@ -108,6 +109,7 @@ export const UpdateTransactionModal: React.FunctionComponent<
 
   return (
     <EditTransactionModal
+      key={props.transaction.transactionId}
       label="Update Transaction"
       description="Update the transaction"
       {...props}
@@ -142,6 +144,7 @@ const EditTransactionModal: React.FunctionComponent<
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const onSave = () => {
     if (!transaction.category) {
@@ -153,6 +156,7 @@ const EditTransactionModal: React.FunctionComponent<
     onSaveProps(transaction)
       .then(() => {
         setLoading(false);
+        router.refresh();
       })
       .catch((error: string) => {
         setError(error);
@@ -167,6 +171,7 @@ const EditTransactionModal: React.FunctionComponent<
     onDelete(transaction)
       .then(() => {
         setLoading(false);
+        router.refresh();
       })
       .catch((error: string) => {
         setError(error);
