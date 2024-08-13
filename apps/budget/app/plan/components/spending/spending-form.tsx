@@ -18,7 +18,7 @@ import {
 import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 import { ExportSpendingModal } from "./export-spending";
-import { CategoryPicker } from "./category-picker";
+import { CategoryPicker, CategoryPickerModal } from "./category-picker";
 import { AddTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 
@@ -38,6 +38,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [selected, setSelected] = useState<string[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
+  const [pickCategory, setPickCategory] = useState(-1);
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
@@ -134,13 +135,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               <TableCell>{displayDate(transaction.date)}</TableCell>
               <TableCell>{transaction.description}</TableCell>
               <TableCell>
-                <CategoryPicker
-                  value={transaction.category?.id}
-                  categories={categories}
-                  onChange={(category) => {
-                    onCategoryChange(i, category);
-                  }}
-                />
+                <Button onClick={() => setPickCategory(i)} plain>
+                  {transaction.category?.name ?? "Select Category"}
+                </Button>
               </TableCell>
               <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
             </TableRow>
@@ -159,6 +156,15 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         show={showAddTransactionModal}
         onClose={() => setShowAddTransactionModal(false)}
         categories={categories}
+      />
+      <CategoryPickerModal
+        show={pickCategory > -1}
+        onClose={() => setPickCategory(-1)}
+        value={transactions[pickCategory]?.category?.id}
+        categories={categories}
+        onChange={(category) => {
+          onCategoryChange(pickCategory, category);
+        }}
       />
     </Form>
   );

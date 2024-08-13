@@ -57,7 +57,7 @@ export const Popover: React.FunctionComponent<PopoverProps> = ({
       </div>
       {isOpenActual ? (
         <ReactPopover
-          className={classNames(className, "overflow-hidden")}
+          className={classNames(className, "overflow-auto")}
           state={state}
           triggerRef={ref}
         >

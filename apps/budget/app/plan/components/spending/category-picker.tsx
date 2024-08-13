@@ -1,13 +1,19 @@
 import { CategoryBudget } from "model/src/budget";
 import { Button } from "ui/src/components/catalyst/button";
+import { Dialog } from "ui/src/components/catalyst/dialog";
 
-export const CategoryPicker: React.FunctionComponent<{
-  onChange: (name: CategoryBudget) => void;
-  value: string | undefined;
+interface CategoryPickerProps {
   categories: CategoryBudget[];
-}> = ({ onChange, value, categories }) => {
+  onChange: (category: CategoryBudget) => void;
+  value: string | undefined;
+}
+export const CategoryPicker: React.FunctionComponent<CategoryPickerProps> = ({
+  onChange,
+  value,
+  categories,
+}) => {
   return (
-    <div className="flex items-start gap-2">
+    <div className="grid gap-y-2 grid-cols-3">
       {categories.map((category) => (
         <Button
           key={category.id}
@@ -18,5 +24,19 @@ export const CategoryPicker: React.FunctionComponent<{
         </Button>
       ))}
     </div>
+  );
+};
+
+export const CategoryPickerModal: React.FunctionComponent<
+  CategoryPickerProps & { show: boolean; onClose: () => void }
+> = ({ show, onClose, onChange: onChangeProps, ...props }) => {
+  const onChange = (category: CategoryBudget) => {
+    onChangeProps(category);
+    onClose();
+  };
+  return (
+    <Dialog open={show} onClose={onClose}>
+      <CategoryPicker {...props} onChange={onChange} />
+    </Dialog>
   );
 };

@@ -54,7 +54,7 @@ export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
           ({
             id: `cat-${categories.length}`,
             name: "New Category",
-            type: "income",
+            type: "expense",
           }) as CategoryBudget
         }
         componentLineItem={CategoryItem}
