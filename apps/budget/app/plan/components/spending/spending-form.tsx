@@ -30,7 +30,6 @@ import { AccountDisplay } from "../../../settings/components/account-display";
 import { Accordion } from "ui/src/components/core/accordion";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
-import { Tooltip } from "ui/src/components/core/tooltip";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
