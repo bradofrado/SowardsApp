@@ -19,23 +19,126 @@ import { useChangeProperty } from "ui/src/hooks/change-property";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { api } from "next-utils/src/utils/api";
 
-interface AddTransactionModalProps {
+interface EditTransactionModalBaseProps {
   show: boolean;
   onClose: () => void;
   categories: CategoryBudget[];
 }
 export const AddTransactionModal: React.FunctionComponent<
-  AddTransactionModalProps
-> = ({ show, onClose, categories }) => {
-  const [transaction, setTransaction] = useState<SpendingRecord>({
-    amount: 0,
-    category: null,
-    date: new Date(),
-    transactionId: "",
-    description: "",
-  });
-  const changeProperty = useChangeProperty<SpendingRecord>(setTransaction);
+  EditTransactionModalBaseProps
+> = (props) => {
   const { mutate: saveTransaction } = api.plaid.saveTransaction.useMutation();
+
+  const onSave = async (transaction: SpendingRecord): Promise<void> => {
+    return new Promise<void>((resolve, reject) =>
+      saveTransaction(
+        { transaction },
+        {
+          onSuccess() {
+            props.onClose();
+            resolve();
+          },
+          onError(error) {
+            reject(error.message);
+          },
+        },
+      ),
+    );
+  };
+  return (
+    <EditTransactionModal
+      {...props}
+      label="Add Transaction"
+      description="Add a new transaction"
+      transaction={{
+        amount: 0,
+        category: null,
+        date: new Date(),
+        transactionId: "",
+        description: "",
+      }}
+      onSave={onSave}
+    />
+  );
+};
+
+export const UpdateTransactionModal: React.FunctionComponent<
+  EditTransactionModalBaseProps & { transaction: SpendingRecord }
+> = (props) => {
+  const { mutate: updateTransaction } =
+    api.plaid.updateTransaction.useMutation();
+
+  const { mutate: deleteTransaction } =
+    api.plaid.deleteTransaction.useMutation();
+
+  const onSave = async (transaction: SpendingRecord): Promise<void> => {
+    return new Promise<void>((resolve, reject) =>
+      updateTransaction(
+        { transaction },
+        {
+          onSuccess() {
+            props.onClose();
+            resolve();
+          },
+          onError(error) {
+            reject(error.message);
+          },
+        },
+      ),
+    );
+  };
+
+  const onDelete = async (transaction: SpendingRecord): Promise<void> => {
+    return new Promise<void>((resolve, reject) =>
+      deleteTransaction(
+        { transactionId: transaction.transactionId },
+        {
+          onSuccess() {
+            props.onClose();
+            resolve();
+          },
+          onError(error) {
+            reject(error.message);
+          },
+        },
+      ),
+    );
+  };
+
+  return (
+    <EditTransactionModal
+      label="Update Transaction"
+      description="Update the transaction"
+      {...props}
+      onSave={onSave}
+      onDelete={onDelete}
+    />
+  );
+};
+
+interface EditTransactionModalProps extends EditTransactionModalBaseProps {
+  transaction: SpendingRecord;
+  onSave: (transaction: SpendingRecord) => Promise<void>;
+  onDelete?: (transaction: SpendingRecord) => Promise<void>;
+  label: string;
+  description: string;
+}
+const EditTransactionModal: React.FunctionComponent<
+  EditTransactionModalProps
+> = ({
+  show,
+  onClose,
+  onDelete,
+  categories,
+  transaction: transactionProps,
+  onSave: onSaveProps,
+  label,
+  description,
+}) => {
+  const [transaction, setTransaction] =
+    useState<SpendingRecord>(transactionProps);
+  const changeProperty = useChangeProperty<SpendingRecord>(setTransaction);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,24 +149,34 @@ export const AddTransactionModal: React.FunctionComponent<
     }
 
     setLoading(true);
-    saveTransaction(
-      { transaction },
-      {
-        onSuccess() {
-          setLoading(false);
-          onClose();
-        },
-        onError(error) {
-          setError(error.message);
-        },
-      },
-    );
+    onSaveProps(transaction)
+      .then(() => {
+        setLoading(false);
+      })
+      .catch((error: string) => {
+        setError(error);
+        setLoading(false);
+      });
+  };
+
+  const onDeleteClick = (): void => {
+    if (!onDelete) return;
+
+    setLoading(true);
+    onDelete(transaction)
+      .then(() => {
+        setLoading(false);
+      })
+      .catch((error: string) => {
+        setError(error);
+        setLoading(false);
+      });
   };
 
   return (
     <Dialog open={show} onClose={onClose} size="2xl">
-      <DialogTitle>Add Transaction</DialogTitle>
-      <DialogDescription>Add a new transaction</DialogDescription>
+      <DialogTitle>{label}</DialogTitle>
+      <DialogDescription>{description}</DialogDescription>
       <DialogBody>
         <Form>
           <FormRow label="Amount" description="The amount of the transaction">
@@ -104,6 +217,11 @@ export const AddTransactionModal: React.FunctionComponent<
         <Button onClick={onClose} plain>
           Cancel
         </Button>
+        {onDelete ? (
+          <Button onClick={onDeleteClick} plain>
+            Delete
+          </Button>
+        ) : null}
         <Button onClick={onSave} loading={loading}>
           Save
         </Button>

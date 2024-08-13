@@ -52,6 +52,20 @@ export const updateCategory = async ({
   return prismaToBudgetCategory(updatedCategory);
 };
 
+export const deleteCategory = async ({
+  db,
+  id,
+}: {
+  db: Db;
+  id: string;
+}): Promise<void> => {
+  await db.budgetCategory.delete({
+    where: {
+      id,
+    },
+  });
+};
+
 export const prismaToBudgetCategory = (
   category: Prisma.BudgetCategoryGetPayload<true>,
 ): CategoryBudget => {

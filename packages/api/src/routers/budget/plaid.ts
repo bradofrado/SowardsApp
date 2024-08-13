@@ -12,6 +12,7 @@ import {
 import { spendingRecordSchema } from "model/src/budget";
 import {
   createSpendingRecord,
+  deleteSpendingRecord,
   updateSpendingRecord,
 } from "../../repositories/budget/spending";
 
@@ -68,6 +69,23 @@ export const plaidRouter = createTRPCRouter({
         db: ctx.prisma,
         spendingRecord: input.transaction,
         userId: ctx.session.auth.userVacation.id,
+      });
+    }),
+  updateTransaction: protectedProcedure
+    .input(z.object({ transaction: spendingRecordSchema }))
+    .mutation(async ({ input, ctx }) => {
+      await updateSpendingRecord({
+        db: ctx.prisma,
+        spendingRecord: input.transaction,
+        userId: ctx.session.auth.userVacation.id,
+      });
+    }),
+  deleteTransaction: protectedProcedure
+    .input(z.object({ transactionId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      await deleteSpendingRecord({
+        db: ctx.prisma,
+        transactionId: input.transactionId,
       });
     }),
 });

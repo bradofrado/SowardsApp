@@ -1,6 +1,6 @@
 "use client";
 import { CategoryBudget, SpendingRecord } from "model/src/budget";
-import { displayDate, formatDollarAmount } from "model/src/utils";
+import { classNames, displayDate, formatDollarAmount } from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
 import { Transaction } from "plaid";
 import { useState } from "react";
@@ -19,7 +19,7 @@ import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 import { ExportSpendingModal } from "./export-spending";
 import { CategoryPicker, CategoryPickerModal } from "./category-picker";
-import { AddTransactionModal } from "./add-transaction";
+import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 
 interface SpendingFormProps {
@@ -39,6 +39,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
   const [pickCategory, setPickCategory] = useState(-1);
+  const [updateTransaction, setUpdateTransaction] = useState<SpendingRecord>();
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
@@ -78,6 +79,13 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const onExportClick = () => {
     setShowExportModal(true);
   };
+
+  const onEdit = (): void => {
+    setUpdateTransaction(
+      transactions.find((t) => selected.includes(t.transactionId)),
+    );
+  };
+
   return (
     <Form className="mt-4">
       <Heading>Spending</Heading>
@@ -97,8 +105,11 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             </Button>
           </>
         ) : null}
+        {selected.length === 1 ? <Button onClick={onEdit}>Edit</Button> : null}
         {selected.length > 0 ? (
-          <Button onClick={onExportClick}>Export</Button>
+          <>
+            <Button onClick={onExportClick}>Export</Button>
+          </>
         ) : null}
         <Button onClick={() => setShowAddTransactionModal(true)}>
           Add Transaction
@@ -136,7 +147,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               <TableCell>{transaction.description}</TableCell>
               <TableCell>
                 <Button onClick={() => setPickCategory(i)} plain>
-                  {transaction.category?.name ?? "Select Category"}
+                  {transaction.category?.name ?? (
+                    <span className="text-red-400">Select Category</span>
+                  )}
                 </Button>
               </TableCell>
               <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
@@ -155,6 +168,12 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       <AddTransactionModal
         show={showAddTransactionModal}
         onClose={() => setShowAddTransactionModal(false)}
+        categories={categories}
+      />
+      <UpdateTransactionModal
+        show={updateTransaction !== undefined}
+        onClose={() => setUpdateTransaction(undefined)}
+        transaction={updateTransaction || transactions[0]}
         categories={categories}
       />
       <CategoryPickerModal
