@@ -38,9 +38,9 @@ import {
 } from "ui/src/components/catalyst/description-list";
 import { getTotalDependents } from "model/src/vacation-utils";
 import { SparklesIcon } from "ui/src/components/core/icons";
-import { api } from "../../../utils/api";
 import { Subheading } from "ui/src/components/catalyst/heading";
 import { Text } from "ui/src/components/catalyst/text";
+import { api } from "next-utils/src/utils/api";
 
 type EventAmount = Event["amounts"][number];
 type EventAmountType = AmountType;

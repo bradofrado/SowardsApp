@@ -2,11 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next.js: debug server-side",
+      "name": "Vacations",
       "type": "node-terminal",
       "request": "launch",
       "command": "pnpm run dev",
-      "cwd": "${workspaceFolder}/apps/vacations",
+      "cwd": "${workspaceFolder}/apps/vacations"
+    },
+    {
+      "name": "Budget",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run dev",
+      "cwd": "${workspaceFolder}/apps/budget"
     }
   ]
 }

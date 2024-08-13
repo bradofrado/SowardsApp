@@ -22,12 +22,15 @@ import { AuthedSession, Session } from "model/src/auth";
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 interface CreateContextOptions {
-  session: Session | undefined
+  session: Session | undefined;
 }
 
 export interface TRPCContext extends CreateContextOptions {
-	prisma: PrismaClient,
+  prisma: PrismaClient;
 }
+export type TRPCContextAuth = Omit<TRPCContext, "session"> & {
+  session: AuthedSession;
+};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -53,11 +56,11 @@ const createInnerTRPCContext = (opts: CreateContextOptions): TRPCContext => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (): Promise<TRPCContext> => {
-  const userId = auth().userId
+  const userId = auth().userId;
   const session = await getServerAuthSession(userId);
 
-	return createInnerTRPCContext({
-    session
+  return createInnerTRPCContext({
+    session,
   });
 };
 
@@ -93,14 +96,14 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 // check if the user is signed in, otherwise throw a UNAUTHORIZED CODE
 const isAuthed = t.middleware(({ next, ctx }) => {
   if (!ctx.session?.auth.userVacation) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' })
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
-      session: ctx.session as AuthedSession
+      session: ctx.session as AuthedSession,
     },
-  })
-})
+  });
+});
 
 /**
  * This is how you create new routers and sub-routers in your tRPC API.

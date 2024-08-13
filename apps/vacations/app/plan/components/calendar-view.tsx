@@ -4,11 +4,11 @@ import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { CalendarView as CalendarViewRaw } from "ui/src/components/core/calendar/calendar";
 import type { UserVacation, VacationEvent } from "model/src/vacation";
 import { useRouter } from "next/navigation";
-import { api } from "../../../utils/api";
 import type { Event } from "./event-form";
 import { EventFormModal } from "./event-form";
 import { useUser } from "./user-provider";
 import { useTimezoneContext } from "ui/src/components/core/calendar/timezone";
+import { api } from "next-utils/src/utils/api";
 
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];

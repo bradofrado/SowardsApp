@@ -1,3 +1,9 @@
+import {
+  Cog6ToothIcon as Cog6ToochIconRaw,
+  HomeIcon as HomeIconRaw,
+  Square2StackIcon as Square2StackIconRaw,
+} from "@heroicons/react/20/solid";
+
 export type IconComponent = (
   props: React.ComponentPropsWithoutRef<"svg">,
 ) => JSX.Element;
@@ -788,6 +794,26 @@ export const SparklesIcon: IconComponent = (props) => {
         fill="currentColor"
         d="M6.394 4.444c.188-.592 1.024-.592 1.212 0C8.4 8.9 9.1 9.6 13.556 10.394c.592.188.592 1.024 0 1.212C9.1 12.4 8.4 13.1 7.606 17.556c-.188.592-1.024.592-1.212 0C5.6 13.1 4.9 12.4.444 11.606c-.592-.188-.592-1.024 0-1.212C4.9 9.6 5.6 8.9 6.394 4.444m8.716 9.841a.41.41 0 0 1 .78 0c.51 2.865.96 3.315 3.825 3.826.38.12.38.658 0 .778-2.865.511-3.315.961-3.826 3.826a.408.408 0 0 1-.778 0c-.511-2.865-.961-3.315-3.826-3.826a.408.408 0 0 1 0-.778c2.865-.511 3.315-.961 3.826-3.826Zm2.457-12.968a.454.454 0 0 1 .866 0C19 4.5 19.5 5 22.683 5.567a.454.454 0 0 1 0 .866C19.5 7 19 7.5 18.433 10.683a.454.454 0 0 1-.866 0C17 7.5 16.5 7 13.317 6.433a.454.454 0 0 1 0-.866C16.5 5 17 4.5 17.567 1.317"
       ></path>
+    </svg>
+  );
+};
+
+export const HomeIcon: IconComponent = (props) => {
+  return <HomeIconRaw {...props} />;
+};
+
+export const Cog6ToochIcon: IconComponent = (props) => {
+  return <Cog6ToochIconRaw {...props} />;
+};
+
+export const Square2StackIcon: IconComponent = (props) => {
+  return <Square2StackIconRaw {...props} />;
+};
+
+export const BankIcon: IconComponent = (props) => {
+  return (
+    <svg aria-hidden="true" {...props} viewBox="0 0 24 24" focusable="false">
+      <path d="M3,8.32V19.17h1.8V8.32h.6V19.17h2.4V8.33h.6V19.18h1.8V8.33h.6V19.18h2.4V8.33h.6V19.19h1.8V8.34h.6V19.19h2.4V8.34h.6V19.2H21L21,8.35h.6l0,10.85h1.8a.6.6,0,0,1,.6.61v3.61a.6.6,0,0,1-.6.61L.56,24a.6.6,0,0,1-.6-.6V19.77a.6.6,0,0,1,.6-.6h1.8V8.32ZM23.36,19.81l-22.79,0v3.62l22.8,0ZM12.22.09,23.5,7.24a.6.6,0,0,1,.19.83.61.61,0,0,1-.51.28L.6,8.31a.6.6,0,0,1-.6-.6A.61.61,0,0,1,.28,7.2L11.59.09A.6.6,0,0,1,12.22.09ZM11.9.6.6,7.71l22.58,0Z" />
     </svg>
   );
 };

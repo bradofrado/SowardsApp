@@ -18,7 +18,7 @@ export interface AccordionProps {
 export const Accordion: React.FunctionComponent<AccordionProps> = ({
   items,
 }) => {
-  const [selected, setSelected] = useState<number>(-1);
+  const [selected, setSelected] = useState<number>(0);
   const onSelect = (value: boolean, i: number): void => {
     setSelected(value ? i : -1);
   };

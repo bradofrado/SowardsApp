@@ -160,8 +160,12 @@ const styles = {
 };
 
 type ButtonProps = (
-  | { color?: keyof typeof styles.colors; outline?: never; plain?: never }
-  | { color?: never; outline: true; plain?: never }
+  | {
+      color?: keyof typeof styles.colors;
+      outline?: never;
+      plain?: undefined | false;
+    }
+  | { color?: never; outline: true; plain?: undefined | false }
   | { color?: never; outline?: never; plain: true }
 ) & { className?: string; children: React.ReactNode; loading?: boolean } & (
     | Omit<Headless.ButtonProps, "className">
