@@ -209,7 +209,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       <UpdateTransactionModal
         show={updateTransaction !== undefined}
         onClose={() => setUpdateTransaction(undefined)}
-        transaction={updateTransaction || transactions[0]}
+        transaction={updateTransaction}
         categories={categories}
       />
       <CategoryPickerModal

@@ -65,7 +65,7 @@ export const AddTransactionModal: React.FunctionComponent<
 };
 
 export const UpdateTransactionModal: React.FunctionComponent<
-  EditTransactionModalBaseProps & { transaction: SpendingRecord }
+  EditTransactionModalBaseProps & { transaction: SpendingRecord | undefined }
 > = (props) => {
   const { mutate: updateTransaction } =
     api.plaid.updateTransaction.useMutation();
@@ -107,12 +107,15 @@ export const UpdateTransactionModal: React.FunctionComponent<
     );
   };
 
+  if (!props.transaction) return null;
+
   return (
     <EditTransactionModal
       key={props.transaction.transactionId}
       label="Update Transaction"
       description="Update the transaction"
       {...props}
+      transaction={props.transaction}
       onSave={onSave}
       onDelete={onDelete}
     />
