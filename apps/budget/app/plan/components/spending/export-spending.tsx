@@ -64,8 +64,10 @@ export const ExportSpendingModal: React.FunctionComponent<
           const categoryIndex = prev.findIndex(
             (item) => item.categoryId === category,
           );
+          const amount =
+            curr.category.type === "expense" ? curr.amount : -curr.amount;
           if (categoryIndex > -1) {
-            prev[categoryIndex].totalAmount += curr.amount;
+            prev[categoryIndex].totalAmount += amount;
             prev[categoryIndex].transactions.push(curr);
             return prev;
           }
@@ -74,7 +76,7 @@ export const ExportSpendingModal: React.FunctionComponent<
             {
               name: curr.category.name,
               categoryId: category,
-              totalAmount: curr.amount,
+              totalAmount: amount,
               transactions: [curr],
               id: i,
             },
