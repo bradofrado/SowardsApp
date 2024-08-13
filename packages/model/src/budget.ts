@@ -4,6 +4,7 @@ export const categoryBudgetSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.union([z.literal("income"), z.literal("expense")]),
+  order: z.number(),
 });
 export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;
 

@@ -7,7 +7,11 @@ export const getCategories = async ({
 }: {
   db: Db;
 }): Promise<CategoryBudget[]> => {
-  const categories = await db.budgetCategory.findMany();
+  const categories = await db.budgetCategory.findMany({
+    orderBy: {
+      order: "asc",
+    },
+  });
   return categories.map(prismaToBudgetCategory);
 };
 
@@ -22,6 +26,7 @@ export const createCategory = async ({
     data: {
       name: category.name,
       type: category.type === "income" ? "income" : "expense",
+      order: category.order,
     },
   });
   return prismaToBudgetCategory(newCategory);
@@ -41,6 +46,7 @@ export const updateCategory = async ({
     data: {
       name: category.name,
       type: category.type === "income" ? "income" : "expense",
+      order: category.order,
     },
   });
   return prismaToBudgetCategory(updatedCategory);
@@ -53,5 +59,6 @@ export const prismaToBudgetCategory = (
     id: category.id,
     name: category.name,
     type: category.type === "income" ? "income" : "expense",
+    order: category.order,
   };
 };

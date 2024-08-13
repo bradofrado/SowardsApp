@@ -36,6 +36,12 @@ export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
       .catch(() => setLoading(false));
   };
 
+  const onChange = (categories: CategoryBudget[]) => {
+    setTempCategories(
+      categories.map((category, i) => ({ ...category, order: i })),
+    );
+  };
+
   return (
     <Form onSubmit={onSubmit}>
       <Heading>Categories</Heading>
@@ -45,7 +51,7 @@ export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
         label="Categories"
         description="Select the categories you want to budget."
         items={tempCategories}
-        onChange={setTempCategories}
+        onChange={onChange}
         dropdownItemsMap={(category) => ({
           id: category.id,
           name: category.name,
@@ -58,7 +64,8 @@ export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
           }) as CategoryBudget
         }
         componentLineItem={CategoryItem}
-      ></FormAddRemove>
+        reorder
+      />
 
       <div className="flex justify-end gap-4 mt-4">
         <Button

@@ -22,6 +22,7 @@ import {
   DialogBody,
   DialogActions,
 } from "ui/src/components/catalyst/dialog";
+import { Alert } from "ui/src/components/core/alert";
 
 interface ExportSpendingModalProps {
   transactions: SpendingRecord[];
@@ -33,6 +34,7 @@ export const ExportSpendingModal: React.FunctionComponent<
   ExportSpendingModalProps
 > = ({ transactions, categories: origCategories, onClose, show }) => {
   const [categories, setCategories] = useState(origCategories);
+  const [copiedLabel, setCopiedLabel] = useState<string>();
 
   const onExport = () => {
     const content = totals.reduce(
@@ -41,6 +43,7 @@ export const ExportSpendingModal: React.FunctionComponent<
       "",
     );
     navigator.clipboard.writeText(content);
+    setCopiedLabel("Copied to clipboard");
   };
 
   const totals = useMemo(
@@ -132,6 +135,7 @@ export const ExportSpendingModal: React.FunctionComponent<
         </Button>
         <Button onClick={onExport}>Export</Button>
       </DialogActions>
+      <Alert label={copiedLabel} setLabel={setCopiedLabel} />
     </Dialog>
   );
 };

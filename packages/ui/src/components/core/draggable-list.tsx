@@ -136,7 +136,7 @@ type DraggableListComponentProps<T> = Replace<
   itemAs?: React.ElementType;
 };
 export const DraggableListComponent = <
-  T extends { id: number } | string,
+  T extends { id: number } | { id: string } | string,
   C extends React.ElementType,
 >({
   children,

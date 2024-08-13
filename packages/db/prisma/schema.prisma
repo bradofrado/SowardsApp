@@ -37,6 +37,7 @@ model BudgetCategory {
   id              String           @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   type            String //Income or Expense
+  order           Int
   spendingRecords SpendingRecord[]
 }
 
