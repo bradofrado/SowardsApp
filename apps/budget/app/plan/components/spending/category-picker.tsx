@@ -1,10 +1,10 @@
 import { CategoryBudget } from "model/src/budget";
 import { Button } from "ui/src/components/catalyst/button";
-import { Dialog } from "ui/src/components/catalyst/dialog";
+import { Dialog, DialogActions } from "ui/src/components/catalyst/dialog";
 
 interface CategoryPickerProps {
   categories: CategoryBudget[];
-  onChange: (category: CategoryBudget) => void;
+  onChange: (category: CategoryBudget | null) => void;
   value: string | undefined;
 }
 export const CategoryPicker: React.FunctionComponent<CategoryPickerProps> = ({
@@ -34,9 +34,18 @@ export const CategoryPickerModal: React.FunctionComponent<
     onChangeProps(category);
     onClose();
   };
+  const onRemove = (): void => {
+    onChangeProps(null);
+    onClose();
+  };
   return (
     <Dialog open={show} onClose={onClose}>
       <CategoryPicker {...props} onChange={onChange} />
+      <DialogActions>
+        <Button onClick={onRemove} plain>
+          Remove
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

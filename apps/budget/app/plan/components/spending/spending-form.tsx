@@ -30,6 +30,7 @@ import { AccountDisplay } from "../../../settings/components/account-display";
 import { Accordion } from "ui/src/components/core/accordion";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
+import { Alert } from "ui/src/components/core/alert";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -44,8 +45,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
   const [loading, setLoading] = useState(false);
-  const { mutate: saveTransactions } =
-    api.plaid.updateTransactions.useMutation();
+  const { mutate: saveTransaction } = api.plaid.updateTransaction.useMutation();
   const [selected, setSelected] = useState<string[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
@@ -56,6 +56,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     defaultValue: "all",
   });
   const prevTransactions = usePrevious(transactions);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     if (prevTransactions !== transactions) {
@@ -67,8 +68,27 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     }
   }, [transactions, prevTransactions, setSelected, selected]);
 
-  const onCategoryChange = (index: number, category: CategoryBudget) => {
-    changeProperty(transactions, index, "category", category);
+  const onCategoryChange = (index: number, category: CategoryBudget | null) => {
+    const newTransactions = changeProperty(
+      transactions,
+      index,
+      "category",
+      category,
+    );
+    saveTransaction(
+      { transaction: newTransactions[index] },
+      {
+        onError(error) {
+          changeProperty(
+            transactions,
+            index,
+            "category",
+            transactions[index].category,
+          );
+          setError(error.message);
+        },
+      },
+    );
   };
 
   const onSelect = (checked: boolean, transactionId: string) => {
@@ -85,21 +105,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     } else {
       setSelected([]);
     }
-  };
-
-  const onSubmit = () => {
-    setLoading(true);
-    saveTransactions(
-      { transactions },
-      {
-        onSuccess() {
-          setLoading(false);
-        },
-        onError() {
-          setLoading(false);
-        },
-      },
-    );
   };
 
   const onExportClick = () => {
@@ -132,20 +137,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           </Button>
         </div>
         <div className="flex gap-4">
-          {transactions !== origTransactions ? (
-            <>
-              <Button
-                onClick={() => setTransactions(origTransactions)}
-                plain
-                type="reset"
-              >
-                Reset
-              </Button>
-              <Button loading={loading} type="submit" onClick={onSubmit}>
-                Save changes
-              </Button>
-            </>
-          ) : null}
           {selected.length === 1 ? (
             <Button onClick={onEdit}>Edit</Button>
           ) : null}
@@ -226,6 +217,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           );
         }}
       />
+      <Alert label={error} setLabel={setError} type="danger" />
     </Form>
   );
 };
