@@ -14,6 +14,7 @@ export const spendingRecordSchema = z.object({
   date: z.date(),
   description: z.string(),
   category: categoryBudgetSchema.nullable(),
+  accountId: z.string().nullable(),
 });
 export type SpendingRecord = z.infer<typeof spendingRecordSchema>;
 

@@ -27,6 +27,7 @@ model SpendingRecord {
   amount        Float
   date          DateTime
   description   String
+  accountId     String?
   userId        String          @db.ObjectId
   user          UserVacation    @relation(fields: [userId], references: [id])
   categoryId    String?         @db.ObjectId

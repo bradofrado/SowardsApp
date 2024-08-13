@@ -58,6 +58,7 @@ export const createSpendingRecord = async ({
       date: spendingRecord.date,
       description: spendingRecord.description,
       categoryId: spendingRecord.category ? spendingRecord.category.id : null,
+      accountId: spendingRecord.accountId,
     },
     ...spendingRecordPayload,
   });
@@ -86,6 +87,7 @@ export const createSpendingRecords = async ({
             ? spendingRecord.category.id
             : null,
           transactionId: spendingRecord.transactionId,
+          accountId: spendingRecord.accountId,
         },
       }),
     ),
@@ -111,6 +113,7 @@ export const updateSpendingRecord = async ({
       date: spendingRecord.date,
       description: spendingRecord.description,
       categoryId: spendingRecord.category ? spendingRecord.category.id : null,
+      accountId: spendingRecord.accountId,
     },
     ...spendingRecordPayload,
   });
@@ -142,5 +145,6 @@ export const prismaToSpendingRecord = (
     category: spendingRecord.category
       ? prismaToBudgetCategory(spendingRecord.category)
       : null,
+    accountId: spendingRecord.accountId,
   };
 };

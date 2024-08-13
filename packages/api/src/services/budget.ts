@@ -45,6 +45,7 @@ export const getTransactions = async (
         date: new Date(transaction.date),
         description: transaction.name,
         category: null,
+        accountId: transaction.account_id,
       })),
     });
 
@@ -68,6 +69,7 @@ export const getTransactions = async (
             amount: transaction.amount,
             date: new Date(transaction.date),
             description: transaction.name,
+            accountId: transaction.account_id,
           },
         });
       }),

@@ -11,11 +11,13 @@ const TableContext = createContext<{
   dense: boolean;
   grid: boolean;
   striped: boolean;
+  sticky: boolean;
 }>({
   bleed: false,
   dense: false,
   grid: false,
   striped: false,
+  sticky: false,
 });
 
 export function Table({
@@ -23,6 +25,7 @@ export function Table({
   dense = false,
   grid = false,
   striped = false,
+  sticky = false,
   className,
   children,
   ...props
@@ -31,11 +34,12 @@ export function Table({
   dense?: boolean;
   grid?: boolean;
   striped?: boolean;
+  sticky?: boolean;
 } & React.ComponentPropsWithoutRef<"div">) {
   return (
     <TableContext.Provider
       value={
-        { bleed, dense, grid, striped } as React.ContextType<
+        { bleed, dense, grid, striped, sticky } as React.ContextType<
           typeof TableContext
         >
       }
@@ -52,6 +56,7 @@ export function Table({
             className={clsx(
               "inline-block min-w-full align-middle",
               !bleed && "sm:px-[--gutter]",
+              sticky ? "max-h-96 overflow-y-auto" : "",
             )}
           >
             <table className="min-w-full text-left text-sm/6 text-zinc-950 dark:text-white">
@@ -68,10 +73,15 @@ export function TableHead({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"thead">) {
+  const { sticky } = useContext(TableContext);
   return (
     <thead
       {...props}
-      className={clsx(className, "text-zinc-500 dark:text-zinc-400")}
+      className={clsx(
+        className,
+        "text-zinc-500 dark:text-zinc-400",
+        sticky ? "sticky top-0 z-10 bg-white dark:bg-zinc-900" : undefined,
+      )}
     />
   );
 }

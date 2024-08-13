@@ -47,7 +47,6 @@ export const PlaidLink: React.FunctionComponent = () => {
           onSuccess(item) {
             setLoading(false);
             setAccessToken(item.accessToken);
-            localStorage.removeItem("linkToken");
             router.refresh();
           },
         },
@@ -74,17 +73,11 @@ const usePlaidLinkToken = () => {
 
   useEffect(() => {
     if (linkToken === null) {
-      const storageLinkToken = localStorage.getItem("linkToken");
-      if (storageLinkToken) {
-        setLinkToken(storageLinkToken);
-      } else {
-        createLinkToken(undefined, {
-          onSuccess(linkToken) {
-            setLinkToken(linkToken);
-            localStorage.setItem("linkToken", linkToken);
-          },
-        });
-      }
+      createLinkToken(undefined, {
+        onSuccess(linkToken) {
+          setLinkToken(linkToken);
+        },
+      });
     }
   }, [linkToken, createLinkToken]);
 
