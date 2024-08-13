@@ -1,9 +1,14 @@
 "use client";
 import { CategoryBudget, SpendingRecord } from "model/src/budget";
-import { classNames, displayDate, formatDollarAmount } from "model/src/utils";
+import {
+  classNames,
+  displayDate,
+  formatDollarAmount,
+  trimText,
+} from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
 import { AccountBase, Transaction } from "plaid";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Form, FormDivider } from "ui/src/components/catalyst/form/form";
 import { Heading } from "ui/src/components/catalyst/heading";
@@ -25,6 +30,7 @@ import { AccountDisplay } from "../../../settings/components/account-display";
 import { Accordion } from "ui/src/components/core/accordion";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
+import { Tooltip } from "ui/src/components/core/tooltip";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -259,9 +265,29 @@ export const AccountTransactions: React.FunctionComponent<
     manual ? t.accountId === null : t.accountId === account.account_id,
   );
 
+  const currSelected = useMemo(
+    () =>
+      selected.filter((id) =>
+        filteredTransactions.find((t) => t.transactionId === id),
+      ),
+    [filteredTransactions, selected],
+  );
+
+  const totalSelected = useMemo(
+    () =>
+      currSelected
+        .map(
+          (id) =>
+            transactions.find((t) => t.transactionId === id) || transactions[0],
+        )
+        .reduce((prev, curr) => prev + curr.amount, 0),
+    [currSelected, transactions],
+  );
+
   if (filteredTransactions.length === 0) {
     return null;
   }
+
   return (
     <Accordion
       items={[
@@ -287,6 +313,9 @@ export const AccountTransactions: React.FunctionComponent<
                 <AccountDisplay account={account} className="" />
               )}
               <div>{balance ? formatDollarAmount(balance) : null}</div>
+              <div className="text-gray-500">
+                {totalSelected !== 0 ? formatDollarAmount(totalSelected) : null}
+              </div>
             </div>
           ),
         },
@@ -361,7 +390,7 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
               />
             </TableCell>
             <TableCell>{displayDate(transaction.date)}</TableCell>
-            <TableCell>{transaction.description}</TableCell>
+            <TableCell>{trimText(transaction.description)}</TableCell>
             <TableCell>
               <Button onClick={() => setPickCategory(transaction)} plain>
                 {transaction.category?.name ?? (

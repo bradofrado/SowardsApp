@@ -94,6 +94,14 @@ export const displayRelativeDate = (date: Date): string => {
   return displayDate(date);
 };
 
+export const trimText = (text: string, length = 60): string => {
+  if (text.length <= length) {
+    return text;
+  }
+
+  return text.slice(0, length - 3) + "...";
+};
+
 export const round = (value: number, digits = 0): number => {
   const places = Math.pow(10, digits);
   return Math.round(value * places) / places;
