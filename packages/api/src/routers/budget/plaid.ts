@@ -10,7 +10,10 @@ import {
   deleteExternalLogin,
 } from "../../repositories/budget/external-login";
 import { spendingRecordSchema } from "model/src/budget";
-import { updateSpendingRecord } from "../../repositories/budget/spending";
+import {
+  createSpendingRecord,
+  updateSpendingRecord,
+} from "../../repositories/budget/spending";
 
 export const plaidRouter = createTRPCRouter({
   createLinkToken: protectedProcedure.mutation(async ({ ctx }) => {
@@ -57,5 +60,14 @@ export const plaidRouter = createTRPCRouter({
           });
         }),
       );
+    }),
+  saveTransaction: protectedProcedure
+    .input(z.object({ transaction: spendingRecordSchema }))
+    .mutation(async ({ input, ctx }) => {
+      await createSpendingRecord({
+        db: ctx.prisma,
+        spendingRecord: input.transaction,
+        userId: ctx.session.auth.userVacation.id,
+      });
     }),
 });

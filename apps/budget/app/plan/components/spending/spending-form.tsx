@@ -18,6 +18,9 @@ import {
 import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 import { ExportSpendingModal } from "./export-spending";
+import { CategoryPicker } from "./category-picker";
+import { AddTransactionModal } from "./add-transaction";
+import { useStateProps } from "ui/src/hooks/state-props";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -27,13 +30,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   transactions: origTransactions,
   categories,
 }) => {
-  const [transactions, setTransactions] = useState(origTransactions);
+  const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
   const [loading, setLoading] = useState(false);
   const { mutate: saveTransactions } =
     api.plaid.updateTransactions.useMutation();
   const [selected, setSelected] = useState<string[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
@@ -95,6 +99,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         {selected.length > 0 ? (
           <Button onClick={onExportClick}>Export</Button>
         ) : null}
+        <Button onClick={() => setShowAddTransactionModal(true)}>
+          Add Transaction
+        </Button>
       </div>
       <Table>
         <TableHead>
@@ -148,26 +155,11 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         )}
         categories={categories}
       />
+      <AddTransactionModal
+        show={showAddTransactionModal}
+        onClose={() => setShowAddTransactionModal(false)}
+        categories={categories}
+      />
     </Form>
-  );
-};
-
-export const CategoryPicker: React.FunctionComponent<{
-  onChange: (name: CategoryBudget) => void;
-  value: string | undefined;
-  categories: CategoryBudget[];
-}> = ({ onChange, value, categories }) => {
-  return (
-    <div className="flex gap-2">
-      {categories.map((category) => (
-        <Button
-          key={category.id}
-          onClick={() => onChange(category)}
-          plain={(value !== category.id) as true}
-        >
-          {category.name}
-        </Button>
-      ))}
-    </div>
   );
 };

@@ -1,6 +1,7 @@
 import type { Db, Prisma } from "db/lib/prisma";
 import type { SpendingRecord } from "model/src/budget";
 import { prismaToBudgetCategory } from "./category";
+import { v4 as uuidv4 } from "uuid";
 
 const spendingRecordPayload = {
   include: {
@@ -52,7 +53,7 @@ export const createSpendingRecord = async ({
   const newRecord = await db.spendingRecord.create({
     data: {
       userId,
-      transactionId: spendingRecord.transactionId,
+      transactionId: spendingRecord.transactionId || uuidv4(),
       amount: spendingRecord.amount,
       date: spendingRecord.date,
       description: spendingRecord.description,
