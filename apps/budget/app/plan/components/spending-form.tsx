@@ -17,6 +17,7 @@ import {
 } from "ui/src/components/catalyst/table";
 import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
+import { ExportSpendingModal } from "./export-spending";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -32,6 +33,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const { mutate: saveTransactions } =
     api.plaid.updateTransactions.useMutation();
   const [selected, setSelected] = useState<string[]>([]);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const onCategoryChange = (index: number, category: CategoryBudget) => {
     changeProperty(transactions, index, "category", category);
@@ -67,24 +69,33 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       },
     );
   };
+
+  const onExportClick = () => {
+    setShowExportModal(true);
+  };
   return (
     <Form className="mt-4">
       <Heading>Spending</Heading>
       <FormDivider />
-      {transactions !== origTransactions ? (
-        <div className="flex justify-end gap-4 my-4">
-          <Button
-            onClick={() => setTransactions(origTransactions)}
-            plain
-            type="reset"
-          >
-            Reset
-          </Button>
-          <Button loading={loading} type="submit" onClick={onSubmit}>
-            Save changes
-          </Button>
-        </div>
-      ) : null}
+      <div className="flex justify-end gap-4 my-4">
+        {transactions !== origTransactions ? (
+          <>
+            <Button
+              onClick={() => setTransactions(origTransactions)}
+              plain
+              type="reset"
+            >
+              Reset
+            </Button>
+            <Button loading={loading} type="submit" onClick={onSubmit}>
+              Save changes
+            </Button>
+          </>
+        ) : null}
+        {selected.length > 0 ? (
+          <Button onClick={onExportClick}>Export</Button>
+        ) : null}
+      </div>
       <Table>
         <TableHead>
           <TableRow>
@@ -129,6 +140,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           ))}
         </TableBody>
       </Table>
+      <ExportSpendingModal
+        show={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        transactions={transactions.filter((t) =>
+          selected.includes(t.transactionId),
+        )}
+        categories={categories}
+      />
     </Form>
   );
 };
@@ -144,7 +163,7 @@ export const CategoryPicker: React.FunctionComponent<{
         <Button
           key={category.id}
           onClick={() => onChange(category)}
-          plain={value !== category.id}
+          plain={(value !== category.id) as true}
         >
           {category.name}
         </Button>

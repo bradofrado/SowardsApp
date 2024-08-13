@@ -14,38 +14,45 @@ import {
 import { CheckboxInput } from "ui/src/components/core/input";
 import { DraggableListComponent } from "ui/src/components/core/draggable-list";
 import { formatDollarAmount } from "model/src/utils";
+import { Button } from "ui/src/components/catalyst/button";
+import {
+  DialogTitle,
+  DialogDescription,
+  Dialog,
+  DialogBody,
+  DialogActions,
+} from "ui/src/components/catalyst/dialog";
 
-interface TotalsFormProps {
+interface ExportSpendingModalProps {
   transactions: SpendingRecord[];
   categories: CategoryBudget[];
+  onClose: () => void;
+  show: boolean;
 }
-export const TotalsForm: React.FunctionComponent<TotalsFormProps> = ({
-  transactions,
-  categories: origCategories,
-}) => {
-  const [selected, setSelected] = useState<string[]>([]);
+export const ExportSpendingModal: React.FunctionComponent<
+  ExportSpendingModalProps
+> = ({ transactions, categories: origCategories, onClose, show }) => {
   const [categories, setCategories] = useState(origCategories);
 
-  const onSelect = (checked: boolean, categoryId: string) => {
-    if (checked) {
-      setSelected([...selected, categoryId]);
-    } else {
-      setSelected(selected.filter((id) => id !== categoryId));
-    }
-  };
-
-  const onSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelected(totals.map((t) => t.categoryId));
-    } else {
-      setSelected([]);
-    }
+  const onExport = () => {
+    const content = totals.reduce(
+      (prev, curr) =>
+        prev + curr.transactions.map((t) => t.amount).join("\t") + "\n",
+      "",
+    );
+    navigator.clipboard.writeText(content);
   };
 
   const totals = useMemo(
     () =>
       transactions.reduce<
-        { id: number; name: string; categoryId: string; amount: number }[]
+        {
+          id: number;
+          name: string;
+          categoryId: string;
+          totalAmount: number;
+          transactions: SpendingRecord[];
+        }[]
       >(
         (prev, curr, i) => {
           if (!curr.category) return prev;
@@ -55,7 +62,8 @@ export const TotalsForm: React.FunctionComponent<TotalsFormProps> = ({
             (item) => item.categoryId === category,
           );
           if (categoryIndex > -1) {
-            prev[categoryIndex].amount += curr.amount;
+            prev[categoryIndex].totalAmount += curr.amount;
+            prev[categoryIndex].transactions.push(curr);
             return prev;
           }
           return [
@@ -63,7 +71,8 @@ export const TotalsForm: React.FunctionComponent<TotalsFormProps> = ({
             {
               name: curr.category.name,
               categoryId: category,
-              amount: curr.amount,
+              totalAmount: curr.amount,
+              transactions: [curr],
               id: i,
             },
           ];
@@ -72,24 +81,23 @@ export const TotalsForm: React.FunctionComponent<TotalsFormProps> = ({
           name: cateogory.name,
           categoryId: cateogory.id,
           id: i,
-          amount: 0,
+          transactions: [],
+          totalAmount: 0,
         })),
       ),
     [transactions, categories],
   );
   return (
-    <Form>
-      <FormSection label="Totals">
+    <Dialog open={show} onClose={onClose}>
+      <DialogTitle>Export Totals</DialogTitle>
+      <DialogDescription>
+        Exporting totals copies the transactions for each category to your
+        clipboard.
+      </DialogDescription>
+      <DialogBody>
         <Table>
           <TableHead>
             <TableRow>
-              <TableHeader>
-                <CheckboxInput
-                  className="w-fit"
-                  value={totals.length === selected.length}
-                  onChange={onSelectAll}
-                />
-              </TableHeader>
               <TableHeader>Category</TableHeader>
               <TableHeader>Total Amount</TableHeader>
             </TableRow>
@@ -111,20 +119,19 @@ export const TotalsForm: React.FunctionComponent<TotalsFormProps> = ({
           >
             {(total) => (
               <>
-                <TableCell>
-                  <CheckboxInput
-                    className="w-fit"
-                    value={selected.includes(total.categoryId)}
-                    onChange={(checked) => onSelect(checked, total.categoryId)}
-                  />
-                </TableCell>
                 <TableCell>{total.name}</TableCell>
-                <TableCell>{formatDollarAmount(total.amount)}</TableCell>
+                <TableCell>{formatDollarAmount(total.totalAmount)}</TableCell>
               </>
             )}
           </DraggableListComponent>
         </Table>
-      </FormSection>
-    </Form>
+      </DialogBody>
+      <DialogActions>
+        <Button onClick={onClose} plain>
+          Cancel
+        </Button>
+        <Button onClick={onExport}>Export</Button>
+      </DialogActions>
+    </Dialog>
   );
 };

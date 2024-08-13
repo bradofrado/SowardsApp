@@ -13,7 +13,6 @@ import { prisma } from "db/lib/prisma";
 import { getTransactions } from "api/src/services/budget";
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
 import { SpendingForm } from "./components/spending-form";
-import { TotalsForm } from "./components/totals-form";
 
 const Plan = withAuth(async ({ ctx }) => {
   const categories = await getCategories({ db: prisma });
@@ -21,7 +20,6 @@ const Plan = withAuth(async ({ ctx }) => {
   return (
     <>
       <CategoryForm categories={categories} saveCategories={saveCategories} />
-      <TotalsForm transactions={transactions} categories={categories} />
       <SpendingForm transactions={transactions} categories={categories} />
     </>
   );
