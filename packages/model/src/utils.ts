@@ -94,7 +94,7 @@ export const displayRelativeDate = (date: Date): string => {
   return displayDate(date);
 };
 
-export const trimText = (text: string, length = 60): string => {
+export const trimText = (text: string, length = 50): string => {
   if (text.length <= length) {
     return text;
   }
