@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { z } from "zod";
 
 /** Stores state as search parameter json values in the url */
 export function useQueryState<T = undefined>(props: {
@@ -35,7 +36,9 @@ export function useQueryState<T>({
       value === "" ||
       value === null ||
       (Array.isArray(value) && value.length === 0) ||
-      (typeof value === "object" && Object.keys(value).length === 0)
+      (!(value instanceof Date) &&
+        typeof value === "object" &&
+        Object.keys(value).length === 0)
     ) {
       deleteSearchParam(key);
     } else {
@@ -148,14 +151,26 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
 export const encodeState = <T,>(state: T): string => {
   if (typeof state === "string") {
     return state;
+  } else if (state instanceof Date) {
+    return JSON.stringify({ value: state.toISOString(), type: "date" });
   }
 
   return JSON.stringify(state);
 };
 
+const dateSchema = z.object({
+  value: z.string(),
+  type: z.literal("date"),
+});
 export const decodeState = <T,>(state: string): T => {
   try {
-    return JSON.parse(state) as T;
+    const parsed = JSON.parse(state) as T;
+    const dateResult = dateSchema.safeParse(parsed);
+    if (dateResult.success) {
+      return new Date(dateResult.data.value) as T;
+    }
+
+    return parsed;
   } catch {
     //If it fails to parse, then it is probably a string
     return state as T;

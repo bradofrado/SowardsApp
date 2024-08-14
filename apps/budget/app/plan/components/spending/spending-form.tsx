@@ -31,6 +31,7 @@ import { Accordion } from "ui/src/components/core/accordion";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
 import { Alert } from "ui/src/components/core/alert";
+import { FilterModal, useFilter } from "./filter";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -44,7 +45,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
 }) => {
   const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
-  const [loading, setLoading] = useState(false);
   const { mutate: saveTransaction } = api.plaid.updateTransaction.useMutation();
   const [selected, setSelected] = useState<string[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -57,6 +57,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   });
   const prevTransactions = usePrevious(transactions);
   const [error, setError] = useState<string>();
+
+  const {
+    onApplyFilter,
+    onFilterClick,
+    onFilterModalClose,
+    showFilterModal,
+    filteredTransactions,
+  } = useFilter({ transactions });
 
   useEffect(() => {
     if (prevTransactions !== transactions) {
@@ -101,7 +109,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
 
   const onSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelected(transactions.map((t) => t.transactionId));
+      setSelected(filteredTransactions.map((t) => t.transactionId));
     } else {
       setSelected([]);
     }
@@ -113,7 +121,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
 
   const onEdit = (): void => {
     setUpdateTransaction(
-      transactions.find((t) => selected[0] === t.transactionId),
+      filteredTransactions.find((t) => selected[0] === t.transactionId),
     );
   };
 
@@ -145,6 +153,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               <Button onClick={onExportClick}>Export</Button>
             </>
           ) : null}
+          <Button onClick={onFilterClick}>Filter</Button>
           <Button onClick={() => setShowAddTransactionModal(true)}>
             Add Transaction
           </Button>
@@ -152,7 +161,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       </div>
       {grouping === "all" ? (
         <TransactionTable
-          transactions={transactions}
+          transactions={filteredTransactions}
           selected={selected}
           setSelected={setSelected}
           onSelect={onSelect}
@@ -165,7 +174,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             <AccountTransactions
               key={account.account_id}
               account={account}
-              transactions={transactions}
+              transactions={filteredTransactions}
               selected={selected}
               setSelected={setSelected}
               onSelect={onSelect}
@@ -174,7 +183,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             />
           ))}
           <AccountTransactions
-            transactions={transactions}
+            transactions={filteredTransactions}
             selected={selected}
             setSelected={setSelected}
             onSelect={onSelect}
@@ -187,7 +196,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       <ExportSpendingModal
         show={showExportModal}
         onClose={() => setShowExportModal(false)}
-        transactions={transactions.filter((t) =>
+        transactions={filteredTransactions.filter((t) =>
           selected.includes(t.transactionId),
         )}
         categories={categories}
@@ -216,6 +225,11 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             category,
           );
         }}
+      />
+      <FilterModal
+        show={showFilterModal}
+        onClose={onFilterModalClose}
+        onApplyFilter={onApplyFilter}
       />
       <Alert label={error} setLabel={setError} type="danger" />
     </Form>
