@@ -5,7 +5,11 @@ import { v4 as uuidv4 } from "uuid";
 
 const spendingRecordPayload = {
   include: {
-    category: true,
+    transactionCategories: {
+      include: {
+        category: true,
+      },
+    },
   },
 } satisfies Prisma.SpendingRecordDefaultArgs;
 
@@ -50,14 +54,32 @@ export const createSpendingRecord = async ({
   db: Db;
   userId: string;
 }): Promise<SpendingRecord> => {
+  const transactionId = spendingRecord.transactionId || uuidv4();
   const newRecord = await db.spendingRecord.create({
     data: {
-      userId,
-      transactionId: spendingRecord.transactionId || uuidv4(),
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      transactionId,
       amount: spendingRecord.amount,
       date: spendingRecord.date,
       description: spendingRecord.description,
-      categoryId: spendingRecord.category ? spendingRecord.category.id : null,
+      transactionCategories:
+        spendingRecord.transactionCategories.length > 0
+          ? {
+              createMany: {
+                data: spendingRecord.transactionCategories.map(
+                  (transactionCategory) => ({
+                    amount: transactionCategory.amount,
+                    categoryId: transactionCategory.category.id,
+                    transactionId,
+                  }),
+                ),
+              },
+            }
+          : undefined,
       accountId: spendingRecord.accountId,
     },
     ...spendingRecordPayload,
@@ -76,21 +98,37 @@ export const createSpendingRecords = async ({
   userId: string;
 }): Promise<void> => {
   await Promise.all(
-    spendingRecords.map((spendingRecord) =>
-      db.spendingRecord.create({
+    spendingRecords.map((spendingRecord) => {
+      const transactionId = spendingRecord.transactionId || uuidv4();
+      return db.spendingRecord.create({
         data: {
-          userId,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          transactionId,
           amount: spendingRecord.amount,
           date: spendingRecord.date,
           description: spendingRecord.description,
-          categoryId: spendingRecord.category
-            ? spendingRecord.category.id
-            : null,
-          transactionId: spendingRecord.transactionId,
+          transactionCategories:
+            spendingRecord.transactionCategories.length > 0
+              ? {
+                  createMany: {
+                    data: spendingRecord.transactionCategories.map(
+                      (transactionCategory) => ({
+                        amount: transactionCategory.amount,
+                        categoryId: transactionCategory.category.id,
+                        transactionId,
+                      }),
+                    ),
+                  },
+                }
+              : undefined,
           accountId: spendingRecord.accountId,
         },
-      }),
-    ),
+      });
+    }),
   );
 };
 
@@ -103,16 +141,68 @@ export const updateSpendingRecord = async ({
   db: Db;
   userId: string;
 }): Promise<SpendingRecord> => {
+  const currentTransactionCategories = await db.transactionCategory.findMany({
+    where: {
+      transactionId: spendingRecord.transactionId,
+    },
+  });
+
+  //Create or update transaction categories
+  await Promise.all(
+    spendingRecord.transactionCategories.map((transactionCategory) => {
+      if (transactionCategory.id) {
+        return db.transactionCategory.update({
+          where: {
+            id: transactionCategory.id,
+          },
+          data: {
+            amount: transactionCategory.amount,
+            categoryId: transactionCategory.category.id,
+          },
+        });
+      }
+      return db.transactionCategory.create({
+        data: {
+          amount: transactionCategory.amount,
+          categoryId: transactionCategory.category.id,
+          transactionId: spendingRecord.transactionId,
+        },
+      });
+    }),
+  );
+
+  //Delete transaction categories that are not in the new list
+  await Promise.all(
+    currentTransactionCategories.map((currentTransactionCategory) => {
+      if (
+        !spendingRecord.transactionCategories.find(
+          (transactionCategory) =>
+            transactionCategory.id === currentTransactionCategory.id,
+        )
+      ) {
+        return db.transactionCategory.delete({
+          where: {
+            id: currentTransactionCategory.id,
+          },
+        });
+      }
+
+      return undefined;
+    }),
+  );
   const record = await db.spendingRecord.update({
     where: {
       transactionId: spendingRecord.transactionId,
     },
     data: {
-      userId,
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
       amount: spendingRecord.amount,
       date: spendingRecord.date,
       description: spendingRecord.description,
-      categoryId: spendingRecord.category ? spendingRecord.category.id : null,
       accountId: spendingRecord.accountId,
     },
     ...spendingRecordPayload,
@@ -142,9 +232,14 @@ export const prismaToSpendingRecord = (
     amount: spendingRecord.amount,
     date: spendingRecord.date,
     description: spendingRecord.description,
-    category: spendingRecord.category
-      ? prismaToBudgetCategory(spendingRecord.category)
-      : null,
+    transactionCategories: spendingRecord.transactionCategories.map(
+      (transactionCategory) => ({
+        id: transactionCategory.id,
+        amount: transactionCategory.amount,
+        category: prismaToBudgetCategory(transactionCategory.category),
+        transactionId: transactionCategory.transactionId,
+      }),
+    ),
     accountId: spendingRecord.accountId,
   };
 };

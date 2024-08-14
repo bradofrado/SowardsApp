@@ -53,7 +53,7 @@ export const AddTransactionModal: React.FunctionComponent<
       description="Add a new transaction"
       transaction={{
         amount: 0,
-        category: null,
+        transactionCategories: [],
         date: new Date(),
         transactionId: "",
         description: "",
@@ -150,7 +150,7 @@ const EditTransactionModal: React.FunctionComponent<
   const router = useRouter();
 
   const onSave = () => {
-    if (!transaction.category) {
+    if (transaction.transactionCategories.length === 0) {
       setError("Please select a category");
       return;
     }
@@ -207,8 +207,17 @@ const EditTransactionModal: React.FunctionComponent<
             description="The category of the transaction"
           >
             <CategoryPicker
-              value={transaction.category?.id}
-              onChange={changeProperty.formFunc("category", transaction)}
+              values={transaction.transactionCategories}
+              onChange={(category) =>
+                changeProperty(transaction, "transactionCategories", [
+                  {
+                    id: "",
+                    amount: 0,
+                    category,
+                    transactionId: transaction.transactionId,
+                  },
+                ])
+              }
               categories={categories}
             />
           </FormRow>

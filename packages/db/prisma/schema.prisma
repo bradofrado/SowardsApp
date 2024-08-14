@@ -23,23 +23,31 @@ model User {
 }
 
 model SpendingRecord {
-  transactionId String          @id @map("_id")
+  transactionId         String                @id @map("_id")
+  amount                Float
+  date                  DateTime
+  description           String
+  accountId             String?
+  userId                String                @db.ObjectId
+  user                  UserVacation          @relation(fields: [userId], references: [id])
+  transactionCategories TransactionCategory[]
+}
+
+model TransactionCategory {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  transactionId String
+  transaction   SpendingRecord @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  categoryId    String         @db.ObjectId
+  category      BudgetCategory @relation(fields: [categoryId], references: [id])
   amount        Float
-  date          DateTime
-  description   String
-  accountId     String?
-  userId        String          @db.ObjectId
-  user          UserVacation    @relation(fields: [userId], references: [id])
-  categoryId    String?         @db.ObjectId
-  category      BudgetCategory? @relation(fields: [categoryId], references: [id])
 }
 
 model BudgetCategory {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   type            String //Income or Expense
   order           Int
-  spendingRecords SpendingRecord[]
+  spendingRecords TransactionCategory[]
 }
 
 model ExternalLogin {

@@ -57,30 +57,30 @@ export const ExportSpendingModal: React.FunctionComponent<
           transactions: SpendingRecord[];
         }[]
       >(
-        (prev, curr, i) => {
-          if (!curr.category) return prev;
-
-          const category = curr.category.id;
-          const categoryIndex = prev.findIndex(
-            (item) => item.categoryId === category,
-          );
-          const amount =
-            curr.category.type === "expense" ? curr.amount : -curr.amount;
-          if (categoryIndex > -1) {
-            prev[categoryIndex].totalAmount += amount;
-            prev[categoryIndex].transactions.push(curr);
-            return prev;
-          }
-          return [
-            ...prev,
-            {
-              name: curr.category.name,
-              categoryId: category,
-              totalAmount: amount,
-              transactions: [curr],
-              id: i,
-            },
-          ];
+        (prevTrans, currTrans, i) => {
+          return currTrans.transactionCategories.reduce((prev, curr) => {
+            const category = curr.category.id;
+            const categoryIndex = prev.findIndex(
+              (item) => item.categoryId === category,
+            );
+            const amount =
+              curr.category.type === "expense" ? curr.amount : -curr.amount;
+            if (categoryIndex > -1) {
+              prev[categoryIndex].totalAmount += amount;
+              prev[categoryIndex].transactions.push(currTrans);
+              return prev;
+            }
+            return [
+              ...prev,
+              {
+                name: curr.category.name,
+                categoryId: category,
+                totalAmount: amount,
+                transactions: [currTrans],
+                id: i,
+              },
+            ];
+          }, prevTrans);
         },
         categories.map((cateogory, i) => ({
           name: cateogory.name,

@@ -1,5 +1,9 @@
 "use client";
-import { CategoryBudget, SpendingRecord } from "model/src/budget";
+import {
+  CategoryBudget,
+  SpendingRecord,
+  TransactionCategory,
+} from "model/src/budget";
 import {
   classNames,
   displayDate,
@@ -23,7 +27,11 @@ import {
 import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 import { ExportSpendingModal } from "./export-spending";
-import { CategoryPicker, CategoryPickerModal } from "./category-picker";
+import {
+  CategoryPicker,
+  CategoryPickerModal,
+  CategorySplitModal,
+} from "./category-picker";
 import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 import { AccountDisplay } from "../../../settings/components/account-display";
@@ -32,6 +40,13 @@ import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
 import { Alert } from "ui/src/components/core/alert";
 import { FilterModal, useFilter } from "./filter";
+import {
+  Dropdown,
+  DropdownButton,
+  DropdownItem,
+  DropdownMenu,
+} from "ui/src/components/catalyst/dropdown";
+import { EllipsisHorizontalIcon } from "ui/src/components/core/icons";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -50,6 +65,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
   const [pickCategory, setPickCategory] = useState<SpendingRecord>();
+  const [split, setSplit] = useState(false);
   const [updateTransaction, setUpdateTransaction] = useState<SpendingRecord>();
   const [grouping, setGrouping] = useQueryState<"all" | "account">({
     key: "grouping",
@@ -76,12 +92,15 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     }
   }, [transactions, prevTransactions, setSelected, selected]);
 
-  const onCategoryChange = (index: number, category: CategoryBudget | null) => {
+  const onCategoryChange = (
+    index: number,
+    categories: TransactionCategory[],
+  ) => {
     const newTransactions = changeProperty(
       transactions,
       index,
-      "category",
-      category,
+      "transactionCategories",
+      categories,
     );
     saveTransaction(
       { transaction: newTransactions[index] },
@@ -90,8 +109,8 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           changeProperty(
             transactions,
             index,
-            "category",
-            transactions[index].category,
+            "transactionCategories",
+            transactions[index].transactionCategories,
           );
           setError(error.message);
         },
@@ -123,6 +142,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     setUpdateTransaction(
       filteredTransactions.find((t) => selected[0] === t.transactionId),
     );
+  };
+
+  const onPickCategory = (
+    transaction: SpendingRecord | undefined,
+    split: boolean,
+  ) => {
+    setPickCategory(transaction);
+    setSplit(split);
   };
 
   return (
@@ -166,7 +193,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           setSelected={setSelected}
           onSelect={onSelect}
           onSelectAll={onSelectAll}
-          setPickCategory={setPickCategory}
+          setPickCategory={onPickCategory}
         />
       ) : (
         <>
@@ -179,7 +206,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               setSelected={setSelected}
               onSelect={onSelect}
               onSelectAll={onSelectAll}
-              setPickCategory={setPickCategory}
+              setPickCategory={onPickCategory}
             />
           ))}
           <AccountTransactions
@@ -188,7 +215,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             setSelected={setSelected}
             onSelect={onSelect}
             onSelectAll={onSelectAll}
-            setPickCategory={setPickCategory}
+            setPickCategory={onPickCategory}
             manual
           />
         </>
@@ -213,18 +240,35 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         categories={categories}
       />
       <CategoryPickerModal
-        show={pickCategory !== undefined}
+        show={pickCategory !== undefined && !split}
         onClose={() => setPickCategory(undefined)}
-        value={pickCategory?.category?.id}
+        values={pickCategory?.transactionCategories ?? []}
         categories={categories}
-        onChange={(category) => {
+        onChange={(categories) => {
           onCategoryChange(
             transactions.findIndex(
               (t) => t.transactionId === pickCategory?.transactionId,
             ),
-            category,
+            categories,
           );
         }}
+        transaction={pickCategory}
+      />
+      <CategorySplitModal
+        key={pickCategory?.transactionId}
+        show={pickCategory !== undefined && split}
+        onClose={() => setPickCategory(undefined)}
+        values={pickCategory?.transactionCategories ?? []}
+        categories={categories}
+        onChange={(transactionCategories) => {
+          onCategoryChange(
+            transactions.findIndex(
+              (t) => t.transactionId === pickCategory?.transactionId,
+            ),
+            transactionCategories,
+          );
+        }}
+        transaction={pickCategory}
       />
       <FilterModal
         show={showFilterModal}
@@ -242,7 +286,10 @@ type AccountTransactionProps = {
   setSelected: (selected: string[]) => void;
   onSelect: (checked: boolean, transactionId: string) => void;
   onSelectAll: (checked: boolean) => void;
-  setPickCategory: (transaction: SpendingRecord | undefined) => void;
+  setPickCategory: (
+    transaction: SpendingRecord | undefined,
+    split: boolean,
+  ) => void;
 } & (
   | {
       account: AccountBase;
@@ -335,7 +382,10 @@ interface TransactionTableProps {
   setSelected: (selected: string[]) => void;
   onSelect: (checked: boolean, transactionId: string) => void;
   onSelectAll: (checked: boolean) => void;
-  setPickCategory: (transaction: SpendingRecord | undefined) => void;
+  setPickCategory: (
+    transaction: SpendingRecord | undefined,
+    split: boolean,
+  ) => void;
   small?: boolean;
 }
 const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
@@ -380,6 +430,9 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
           <TableHeader>Name</TableHeader>
           <TableHeader>Category</TableHeader>
           <TableHeader>Amount</TableHeader>
+          <TableHeader className="relative w-0">
+            <span className="sr-only">Actions</span>
+          </TableHeader>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -397,13 +450,43 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
             <TableCell>{displayDate(transaction.date)}</TableCell>
             <TableCell>{trimText(transaction.description)}</TableCell>
             <TableCell>
-              <Button onClick={() => setPickCategory(transaction)} plain>
-                {transaction.category?.name ?? (
-                  <span className="text-red-400">Select Category</span>
-                )}
-              </Button>
+              {(transaction.transactionCategories.length > 0
+                ? transaction.transactionCategories
+                : [undefined]
+              ).map((transactionCategory) => (
+                <Button
+                  key={transactionCategory?.id || "none"}
+                  onClick={() =>
+                    setPickCategory(
+                      transaction,
+                      transaction.transactionCategories.length > 1,
+                    )
+                  }
+                  plain
+                >
+                  {transactionCategory?.category.name ?? (
+                    <span className="text-blue-400">Select Category</span>
+                  )}
+                </Button>
+              ))}
             </TableCell>
             <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
+            <TableCell className="pl-1">
+              <div className="-my-1.5">
+                <Dropdown>
+                  <DropdownButton plain aria-label="More options">
+                    <EllipsisHorizontalIcon className="h-4 w-4" />
+                  </DropdownButton>
+                  <DropdownMenu anchor="bottom end">
+                    <DropdownItem
+                      onClick={() => setPickCategory(transaction, true)}
+                    >
+                      Split Cost
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
