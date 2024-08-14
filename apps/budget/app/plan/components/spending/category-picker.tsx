@@ -4,11 +4,12 @@ import {
   TransactionCategory,
 } from "model/src/budget";
 import { Replace } from "model/src/core/utils";
-import { formatDollarAmount } from "model/src/utils";
+import { formatDollarAmount, groupBy } from "model/src/utils";
 import { useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Dialog, DialogActions } from "ui/src/components/catalyst/dialog";
-import { Input, InputBlur } from "ui/src/components/core/input";
+import { Heading } from "ui/src/components/catalyst/heading";
+import { InputBlur } from "ui/src/components/core/input";
 import { Label } from "ui/src/components/core/label";
 import { useChangeArray } from "ui/src/hooks/change-property";
 
@@ -22,11 +23,14 @@ export const CategoryPicker: React.FunctionComponent<CategoryPickerProps> = ({
   values,
   categories,
 }) => {
+  const groupedCategories = groupBy(categories, "type");
   return (
     <div>
+      <Heading>Expenses</Heading>
       <div className="grid gap-y-2 grid-cols-3">
-        {categories.map((category) => (
+        {groupedCategories.expense.map((category) => (
           <Button
+            className="items-start"
             key={category.id}
             onClick={() => onChange(category)}
             plain={
@@ -38,7 +42,22 @@ export const CategoryPicker: React.FunctionComponent<CategoryPickerProps> = ({
           </Button>
         ))}
       </div>
-      <Label label=""></Label>
+      <Heading>Income</Heading>
+      <div className="grid gap-y-2 grid-cols-3">
+        {groupedCategories.income.map((category) => (
+          <Button
+            className="items-start"
+            key={category.id}
+            onClick={() => onChange(category)}
+            plain={
+              (values.find((value) => value.category.id === category.id) ===
+                undefined) as true
+            }
+          >
+            {category.name}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };

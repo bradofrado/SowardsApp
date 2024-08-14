@@ -2,6 +2,7 @@ import { classNames } from "model/src/utils";
 import { Divider } from "../divider";
 import { Heading, Subheading } from "../heading";
 import { Text } from "../text";
+import clsx from "clsx";
 
 interface FormProps {
   children: React.ReactNode;
@@ -46,14 +47,18 @@ interface FormRowProps {
   label: string;
   description: string;
   children: React.ReactNode;
+  sameLine?: boolean;
 }
 export const FormRow: React.FunctionComponent<FormRowProps> = ({
   label,
   description,
   children,
+  sameLine = false,
 }) => {
   return (
-    <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+    <section
+      className={clsx("grid gap-x-8 gap-y-6", sameLine ? "" : "sm:grid-cols-2")}
+    >
       <div className="space-y-1">
         <Subheading>{label}</Subheading>
         {description ? <Text>{description}</Text> : null}

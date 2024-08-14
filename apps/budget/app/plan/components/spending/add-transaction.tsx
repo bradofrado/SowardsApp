@@ -205,6 +205,7 @@ const EditTransactionModal: React.FunctionComponent<
           <FormRow
             label="Category"
             description="The category of the transaction"
+            sameLine
           >
             <CategoryPicker
               values={transaction.transactionCategories}
