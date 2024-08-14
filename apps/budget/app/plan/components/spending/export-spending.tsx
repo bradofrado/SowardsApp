@@ -38,8 +38,7 @@ export const ExportSpendingModal: React.FunctionComponent<
 
   const onExport = () => {
     const content = totals.reduce(
-      (prev, curr) =>
-        prev + curr.transactions.map((t) => t.amount).join("\t") + "\n",
+      (prev, curr) => prev + curr.amounts.join("\t") + "\n",
       "",
     );
     navigator.clipboard.writeText(content);
@@ -52,41 +51,41 @@ export const ExportSpendingModal: React.FunctionComponent<
         {
           id: number;
           name: string;
-          categoryId: string;
+          category: CategoryBudget;
           totalAmount: number;
-          transactions: SpendingRecord[];
+          amounts: number[];
         }[]
       >(
         (prevTrans, currTrans, i) => {
           return currTrans.transactionCategories.reduce((prev, curr) => {
             const category = curr.category.id;
             const categoryIndex = prev.findIndex(
-              (item) => item.categoryId === category,
+              (item) => item.category.id === category,
             );
             const amount =
               curr.category.type === "expense" ? curr.amount : -curr.amount;
             if (categoryIndex > -1) {
               prev[categoryIndex].totalAmount += amount;
-              prev[categoryIndex].transactions.push(currTrans);
+              prev[categoryIndex].amounts.push(amount);
               return prev;
             }
             return [
               ...prev,
               {
                 name: curr.category.name,
-                categoryId: category,
+                category: curr.category,
                 totalAmount: amount,
-                transactions: [currTrans],
+                amounts: [amount],
                 id: i,
               },
             ];
           }, prevTrans);
         },
-        categories.map((cateogory, i) => ({
-          name: cateogory.name,
-          categoryId: cateogory.id,
+        categories.map((category, i) => ({
+          name: category.name,
+          category,
           id: i,
-          transactions: [],
+          amounts: [],
           totalAmount: 0,
         })),
       ),
@@ -113,13 +112,7 @@ export const ExportSpendingModal: React.FunctionComponent<
             itemAs={TableRow}
             items={totals}
             onReorder={(items) =>
-              setCategories(
-                items.map(
-                  (item) =>
-                    categories.find((c) => c.id === item.categoryId) ||
-                    categories[0],
-                ),
-              )
+              setCategories(items.map((item) => item.category))
             }
           >
             {(total) => (
