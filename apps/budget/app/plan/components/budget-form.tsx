@@ -27,7 +27,11 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
           <NewBudgetButton className="ml-auto" categories={categories} />
           <div className="grid grid-cols-3">
             {budgets.map((budget) => (
-              <BudgetCard key={budget.id} budget={budget} />
+              <BudgetCard
+                key={budget.id}
+                budget={budget}
+                categories={categories}
+              />
             ))}
           </div>
         </div>

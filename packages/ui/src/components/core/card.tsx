@@ -1,7 +1,10 @@
-'use client'
+/* eslint-disable jsx-a11y/no-static-element-interactions -- ok*/
+/* eslint-disable jsx-a11y/click-events-have-key-events -- ok*/
+"use client";
 import type { AllOrNothing } from "model/src/core/utils";
 import { DropdownIcon, type DropdownItem, type ItemAction } from "./dropdown";
 import { EllipsisHorizontalIcon } from "./icons";
+import { classNames } from "model/src/utils";
 
 interface CardDropdown {
   items: DropdownItem<string>[];
@@ -11,6 +14,7 @@ export type CardProps = React.PropsWithChildren & {
   className?: string;
   label?: string | React.ReactNode;
   items?: DropdownItem<string>[];
+  onClick?: () => void;
 } & AllOrNothing<CardDropdown>;
 export const Card: React.FunctionComponent<CardProps> = ({
   children,
@@ -18,6 +22,7 @@ export const Card: React.FunctionComponent<CardProps> = ({
   label,
   items,
   onChange,
+  onClick,
 }) => {
   const labelComponent: React.ReactNode =
     typeof label === "string" ? (
@@ -27,9 +32,12 @@ export const Card: React.FunctionComponent<CardProps> = ({
     );
   return (
     <div
-      className={`${
-        className || ""
-      } bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700`}
+      className={classNames(
+        "bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700",
+        onClick ? "hover:bg-gray-50 hover:cursor-pointer" : "",
+        className,
+      )}
+      onClick={onClick}
     >
       <div className="flex justify-between px-4 pt-4 sm:px-8 sm:pt-8 items-center">
         {labelComponent}

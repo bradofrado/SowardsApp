@@ -35,14 +35,20 @@ export const NewBudgetButton: React.FunctionComponent<{
   const { mutate: createBudget } = api.budget.createBudget.useMutation();
   const [show, setShow] = useState(false);
 
-  const onCreate = (budget: Budget) => {
-    createBudget(
-      { budget },
-      {
-        onSuccess() {
-          setShow(false);
+  const onCreate = (budget: Budget): Promise<void> => {
+    return new Promise<void>((resolve, reject) =>
+      createBudget(
+        { budget },
+        {
+          onSuccess() {
+            setShow(false);
+            resolve();
+          },
+          onError() {
+            reject();
+          },
         },
-      },
+      ),
     );
   };
 
@@ -51,34 +57,46 @@ export const NewBudgetButton: React.FunctionComponent<{
       <Button className={className} onClick={() => setShow(true)}>
         New Budget
       </Button>
-      <NewBudgetModal
+      <UpdateBudgetModal
         show={show}
         onClose={() => setShow(false)}
         categories={categories}
-        onCreate={onCreate}
+        onSave={onCreate}
+        budget={{
+          id: "",
+          name: "New Budget",
+          items: [],
+        }}
+        title="Create Budget"
+        description="Create a new budget template to plan for your future!"
       />
     </>
   );
 };
 
-interface NewBudgetModalProps {
+interface UpdateBudgetModalProps {
   show: boolean;
   onClose: () => void;
+  budget: Budget;
   categories: CategoryBudget[];
-  onCreate: (budget: Budget) => void;
+  onSave: (budget: Budget) => Promise<void>;
+  title: string;
+  description: string;
 }
-export const NewBudgetModal: React.FunctionComponent<NewBudgetModalProps> = ({
+export const UpdateBudgetModal: React.FunctionComponent<
+  UpdateBudgetModalProps
+> = ({
   show,
   onClose,
   categories,
-  onCreate,
+  onSave: onSaveProps,
+  budget: budgetProps,
+  title,
+  description,
 }) => {
-  const [budget, setBudget] = useState<Budget>({
-    id: "",
-    name: "New Budget",
-    items: [],
-  });
+  const [budget, setBudget] = useState<Budget>(budgetProps);
   const changeProperty = useChangeProperty<Budget>(setBudget);
+  const [loading, setLoading] = useState(false);
 
   const onAddItem = (item: BudgetItem) => {
     changeProperty(budget, "items", [...budget.items, item]);
@@ -100,12 +118,17 @@ export const NewBudgetModal: React.FunctionComponent<NewBudgetModalProps> = ({
     );
   };
 
+  const onSave = () => {
+    setLoading(true);
+    onSaveProps(budget).then(() => {
+      setLoading(false);
+    });
+  };
+
   return (
     <Dialog open={show} onClose={onClose}>
-      <DialogTitle>Create Budget</DialogTitle>
-      <DialogDescription>
-        Create a new budget template to plan for your future!
-      </DialogDescription>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogDescription>{description}</DialogDescription>
       <DialogBody>
         <Form>
           <FormRow label="Budget Name" description="The name of your budget">
@@ -153,7 +176,9 @@ export const NewBudgetModal: React.FunctionComponent<NewBudgetModalProps> = ({
         <Button onClick={onClose} plain>
           Cancel
         </Button>
-        <Button onClick={() => onCreate(budget)}>Create</Button>
+        <Button onClick={onSave} loading={loading}>
+          Save
+        </Button>
       </DialogActions>
     </Dialog>
   );
