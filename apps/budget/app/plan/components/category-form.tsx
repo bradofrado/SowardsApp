@@ -16,24 +16,28 @@ import { useChangeProperty } from "ui/src/hooks/change-property";
 import { Button } from "ui/src/components/catalyst/button";
 import { CategoryBudget } from "model/src/budget";
 import { Dropdown, DropdownItem } from "ui/src/components/core/dropdown";
+import { api } from "next-utils/src/utils/api";
 
 interface CategoryFormProps {
   categories: CategoryBudget[];
-  saveCategories: (categories: CategoryBudget[]) => Promise<void>;
 }
 export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
   categories,
-  saveCategories,
 }) => {
   const [tempCategories, setTempCategories] =
     useState<CategoryBudget[]>(categories);
   const [loading, setLoading] = useState(false);
+  const { mutate: saveCategories } = api.budget.createCategories.useMutation();
 
   const onSubmit = () => {
     setLoading(true);
-    saveCategories(tempCategories)
-      .then(() => setLoading(false))
-      .catch(() => setLoading(false));
+    saveCategories(
+      { categories: tempCategories },
+      {
+        onSuccess: () => setLoading(false),
+        onError: () => setLoading(false),
+      },
+    );
   };
 
   const onChange = (categories: CategoryBudget[]) => {

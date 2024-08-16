@@ -2,6 +2,7 @@ import { getUserVactions } from "api/src/repositories/user-vacation";
 import type { UserVacation } from "model/src/vacation";
 import { SignInButton } from "@clerk/nextjs";
 import {
+  AuthProps,
   requireAuth,
   withAuth,
 } from "next-utils/src/utils/protected-routes-hoc";

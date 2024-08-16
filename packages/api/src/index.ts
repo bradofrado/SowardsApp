@@ -1,3 +1,4 @@
+import { budgetRouter } from "./routers/budget/budget";
 import { plaidRouter } from "./routers/budget/plaid";
 import { vacationEventRouter } from "./routers/vacation/event";
 import { vacationGroupRouter } from "./routers/vacation/group";
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   vacationEvent: vacationEventRouter,
   vacationGroup: vacationGroupRouter,
   plaid: plaidRouter,
+  budget: budgetRouter,
 });
 
 // export type definition of API

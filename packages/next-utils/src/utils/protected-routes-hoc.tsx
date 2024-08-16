@@ -44,9 +44,7 @@ interface PageProps {
 }
 export const withAuth =
   (
-    Component:
-      | React.FunctionComponent<AuthProps>
-      | ((props: AuthProps) => Promise<JSX.Element>),
+    Component: (props: AuthProps) => Promise<JSX.Element> | JSX.Element,
   ): ((props: PageProps) => Promise<JSX.Element | null>) =>
   async () => {
     const cookie = cookies();

@@ -44,6 +44,8 @@ model TransactionCategory {
 
 model BudgetCategory {
   id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String                @db.ObjectId
+  user            UserVacation          @relation(fields: [userId], references: [id])
   name            String
   type            String //Income or Expense
   order           Int
@@ -70,6 +72,7 @@ model UserVacation {
   dependents      VacationDependent[]
   spendingRecords SpendingRecord[]
   externalLogins  ExternalLogin[]
+  categories      BudgetCategory[]
 }
 
 model VacationDependent {
