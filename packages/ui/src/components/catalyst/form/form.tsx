@@ -68,6 +68,8 @@ export const FormRow: React.FunctionComponent<FormRowProps> = ({
   );
 };
 
-export const FormDivider: React.FunctionComponent = () => {
-  return <Divider className="my-10" soft />;
+export const FormDivider: React.FunctionComponent<{ className?: string }> = ({
+  className,
+}) => {
+  return <Divider className={classNames("my-10", className)} soft />;
 };

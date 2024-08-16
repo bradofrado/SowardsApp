@@ -4,6 +4,7 @@ import { Button } from "./button";
 import { ChevronDownIcon, type IconComponent } from "./icons";
 import { CheckboxInput } from "./input";
 import { Popover } from "./popover";
+import clsx from "clsx";
 
 export type ListBoxPopoverProps<T> = {
   items: DropdownItem<T>[];
@@ -19,7 +20,11 @@ export const ListBoxPopover = <T,>({
   ...isOpenStuff
 }: ListBoxPopoverProps<T>): JSX.Element => {
   return (
-    <Popover button={children} className={className} {...isOpenStuff}>
+    <Popover
+      button={children}
+      className={clsx(className, "max-h-[200px]")}
+      {...isOpenStuff}
+    >
       {header ? <div className="p-2 bg-gray-50">{header}</div> : null}
       <div className="min-w-[11rem]">
         <ul
@@ -69,6 +74,7 @@ interface DropdownProps<T> extends PropsWithChildren {
   className?: string;
   chevron?: boolean;
   onChange?: ItemAction<T>;
+  forceChildren?: boolean;
 }
 
 export const Dropdown = <T,>({
@@ -78,6 +84,7 @@ export const Dropdown = <T,>({
   items,
   chevron = true,
   className,
+  forceChildren = false,
 }: DropdownProps<T>): JSX.Element => {
   const [value, setValue] = useState<DropdownItem<T> | undefined>(
     items.find((x) => x.id === initialValue),
@@ -117,7 +124,7 @@ export const Dropdown = <T,>({
       setIsOpen={setIsOpen}
     >
       <div className="flex w-full justify-between items-center">
-        {value === undefined ? children : value.name}{" "}
+        {value === undefined || forceChildren ? children : value.name}{" "}
         {chevron ? <ChevronDownIcon className="w-4 h-4 ml-1" /> : null}
       </div>
     </ListBox>
@@ -221,6 +228,7 @@ export const DropdownIcon = <T,>({
       }`}
       {...rest}
       chevron={false}
+      forceChildren
     >
       <Icon className="h-5 w-5" />
     </Dropdown>

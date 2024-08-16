@@ -15,6 +15,8 @@
     "@headlessui/react": "^2.1.0",
     "@heroicons/react": "^2.1.4",
     "@internationalized/date": "^3.5.2",
+    "@radix-ui/react-accordion": "^1.2.0",
+    "@radix-ui/react-popover": "^1.1.1",
     "@react-aria/calendar": "^3.5.0",
     "@react-aria/color": "^3.0.0-beta.21",
     "@react-aria/datepicker": "^3.10.1",

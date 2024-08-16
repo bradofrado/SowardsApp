@@ -33,3 +33,26 @@ export const externalLoginSchema = z.object({
   userId: z.string(),
 });
 export type ExternalLogin = z.infer<typeof externalLoginSchema>;
+
+export const budgetItemSchema = z.object({
+  id: z.string(),
+  category: categoryBudgetSchema,
+  amount: z.number(),
+  startDate: z.date(),
+  endDate: z.date(),
+});
+export type BudgetItem = z.infer<typeof budgetItemSchema>;
+
+export const budgetSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  items: z.array(budgetItemSchema),
+});
+export type Budget = z.infer<typeof budgetSchema>;
+
+export const savingsAccountSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  balance: z.number(),
+  type: z.union([z.literal("other"), z.literal("savings")]),
+});

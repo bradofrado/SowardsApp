@@ -22,6 +22,23 @@ model User {
   userVacationId String?       @db.ObjectId
 }
 
+model UserVacation {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  users           User[]
+  groupIds        String[]            @db.ObjectId
+  groups          VacationGroup[]     @relation(fields: [groupIds], references: [id])
+  eventIds        String[]            @db.ObjectId
+  events          VacationEvent[]     @relation(fields: [eventIds], references: [id])
+  created         VacationEvent[]     @relation(name: "created")
+  dependents      VacationDependent[]
+  spendingRecords SpendingRecord[]
+  externalLogins  ExternalLogin[]
+  categories      BudgetCategory[]
+  accounts        SavingsAccount[]
+  budgets         BudgetTemplate[]
+}
+
 model SpendingRecord {
   transactionId         String                @id @map("_id")
   amount                Float
@@ -50,6 +67,34 @@ model BudgetCategory {
   type            String //Income or Expense
   order           Int
   spendingRecords TransactionCategory[]
+  budgetItems     BudgetItem[]
+}
+
+model SavingsAccount {
+  id     String       @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  type   String //savings, other
+  userId String       @db.ObjectId
+  user   UserVacation @relation(fields: [userId], references: [id])
+}
+
+model BudgetTemplate {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  userId      String       @db.ObjectId
+  user        UserVacation @relation(fields: [userId], references: [id])
+  budgetItems BudgetItem[]
+}
+
+model BudgetItem {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  startDate  DateTime
+  endDate    DateTime
+  amount     Float
+  categoryId String         @db.ObjectId
+  category   BudgetCategory @relation(fields: [categoryId], references: [id])
+  budgetId   String         @db.ObjectId
+  budget     BudgetTemplate @relation(fields: [budgetId], references: [id])
 }
 
 model ExternalLogin {
@@ -58,21 +103,6 @@ model ExternalLogin {
   cursor      String?
   userId      String       @db.ObjectId
   user        UserVacation @relation(fields: [userId], references: [id])
-}
-
-model UserVacation {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  users           User[]
-  groupIds        String[]            @db.ObjectId
-  groups          VacationGroup[]     @relation(fields: [groupIds], references: [id])
-  eventIds        String[]            @db.ObjectId
-  events          VacationEvent[]     @relation(fields: [eventIds], references: [id])
-  created         VacationEvent[]     @relation(name: "created")
-  dependents      VacationDependent[]
-  spendingRecords SpendingRecord[]
-  externalLogins  ExternalLogin[]
-  categories      BudgetCategory[]
 }
 
 model VacationDependent {

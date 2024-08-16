@@ -11,13 +11,13 @@ export default {
       colors: {
         primary: {
           light: "#66b1eb33",
-          DEFAULT: "#379BDA",
-          dark: "#2B7ABF",
+          DEFAULT: "#41b8d5",
+          dark: "#39a5bf",
         },
-				gray: {
-					DEFAULT: "#f2f3f5cc"
-				},
-				black: '#04060D'
+        gray: {
+          DEFAULT: "#f2f3f5cc",
+        },
+        black: "#04060D",
       },
     },
   },
