@@ -7,7 +7,7 @@ import { Month, months } from "./types";
 
 interface SpendingTotalsProps {
   transactions: SpendingRecord[];
-  budget: Budget;
+  budget: Budget | undefined;
 }
 export const SpendingTotals: React.FunctionComponent<SpendingTotalsProps> = ({
   transactions,
@@ -30,14 +30,15 @@ export const SpendingTotals: React.FunctionComponent<SpendingTotalsProps> = ({
             : 0)
         );
       }, 0),
-      budget: budget.items.reduce<number>((prev, currItem) => {
-        return (
-          prev +
-          (isDateInBetween(date, currItem.startDate, currItem.endDate)
-            ? currItem.amount
-            : 0)
-        );
-      }, 0),
+      budget:
+        budget?.items.reduce<number>((prev, currItem) => {
+          return (
+            prev +
+            (isDateInBetween(date, currItem.startDate, currItem.endDate)
+              ? currItem.amount
+              : 0)
+          );
+        }, 0) || 0,
     };
   });
   return (

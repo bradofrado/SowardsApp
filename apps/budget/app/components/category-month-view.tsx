@@ -16,7 +16,7 @@ import { Month, months } from "./types";
 interface CategoryMonthViewProps {
   categories: CategoryBudget[];
   transactions: SpendingRecord[];
-  budget: Budget;
+  budget: Budget | undefined;
 }
 export const CategoryMonthView: React.FunctionComponent<
   CategoryMonthViewProps
@@ -35,12 +35,12 @@ export const CategoryMonthView: React.FunctionComponent<
   );
   const filteredBudgeted = useMemo(
     () =>
-      budget.items.filter((item) => {
+      budget?.items.filter((item) => {
         const date = new Date();
         date.setMonth(months.indexOf(currentMonth));
 
         return isDateInBetween(date, item.startDate, item.endDate);
-      }),
+      }) ?? [],
     [budget, currentMonth],
   );
 
