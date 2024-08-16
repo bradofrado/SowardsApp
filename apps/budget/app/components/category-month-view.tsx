@@ -25,11 +25,24 @@ export const CategoryMonthView: React.FunctionComponent<
     months[new Date().getMonth()],
   );
 
+  const filterFunction = <
+    T extends { amount: number } | { type: CategoryBudget["type"] },
+  >(
+    transaction: T,
+  ) => {
+    if ("amount" in transaction) {
+      return transaction.amount > 0;
+    }
+
+    return transaction.type === "expense";
+  };
+
   const filteredTransactions = useMemo(
     () =>
       transactions.filter(
         (transaction) =>
-          transaction.date.getMonth() === months.indexOf(currentMonth),
+          transaction.date.getMonth() === months.indexOf(currentMonth) &&
+          filterFunction(transaction),
       ),
     [transactions, currentMonth],
   );
@@ -39,18 +52,25 @@ export const CategoryMonthView: React.FunctionComponent<
         const date = new Date();
         date.setMonth(months.indexOf(currentMonth));
 
-        return isDateInBetween(date, item.startDate, item.endDate);
+        return (
+          filterFunction(item) &&
+          isDateInBetween(date, item.startDate, item.endDate)
+        );
       }) ?? [],
     [budget, currentMonth],
+  );
+  const filteredCategories = useMemo(
+    () => categories.filter((category) => filterFunction(category)),
+    [categories],
   );
 
   const totalsActual = useTransactionCategoryTotals({
     transactions: filteredTransactions,
-    categories,
+    categories: filteredCategories,
   });
   const totalsBudgeted = useCategoryTotals({
     transactions: filteredBudgeted,
-    categories,
+    categories: filteredCategories,
   });
 
   const negativeChartData = useMemo(
@@ -65,6 +85,23 @@ export const CategoryMonthView: React.FunctionComponent<
       })),
     [totalsActual, totalsBudgeted],
   );
+
+  const uncategorizedData = useMemo(() => {
+    const uncategorizedTransactions = filteredTransactions.filter(
+      (transaction) => transaction.transactionCategories.length === 0,
+    );
+
+    if (uncategorizedTransactions.length === 0) return undefined;
+
+    const totalAmount = uncategorizedTransactions.reduce(
+      (prev, curr) => prev + curr.amount,
+      0,
+    );
+    return {
+      actual: totalAmount,
+      budgeted: 0,
+    };
+  }, [filteredTransactions]);
 
   const onMonthClick = (month: Month) => {
     setCurrentMonth(month);
@@ -87,7 +124,10 @@ export const CategoryMonthView: React.FunctionComponent<
           ))}
         </div>
         <div className="h-[1000px]">
-          <CategoryNegativeChart data={negativeChartData} />
+          <CategoryNegativeChart
+            data={negativeChartData}
+            uncategorizedData={uncategorizedData}
+          />
         </div>
       </div>
     </>
