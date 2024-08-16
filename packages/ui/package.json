@@ -37,6 +37,7 @@
     "react-dom": "18.2.0",
     "react-pdf": "^7.4.0",
     "react-stately": "^3.23.0",
+    "recharts": "^2.12.7",
     "tailwind-config": "workspace:^",
     "zod": "^3.22.2"
   },

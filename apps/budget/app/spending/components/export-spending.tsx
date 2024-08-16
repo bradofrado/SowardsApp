@@ -23,6 +23,10 @@ import {
   DialogActions,
 } from "ui/src/components/catalyst/dialog";
 import { Alert } from "ui/src/components/core/alert";
+import {
+  useCategoryTotals,
+  useTransactionCategoryTotals,
+} from "../../../utils/hooks/category-totals";
 
 interface ExportSpendingModalProps {
   transactions: SpendingRecord[];
@@ -35,6 +39,7 @@ export const ExportSpendingModal: React.FunctionComponent<
 > = ({ transactions, categories: origCategories, onClose, show }) => {
   const [categories, setCategories] = useState(origCategories);
   const [copiedLabel, setCopiedLabel] = useState<string>();
+  const totals = useTransactionCategoryTotals({ transactions, categories });
 
   const onExport = () => {
     const content = totals.reduce(
@@ -45,52 +50,6 @@ export const ExportSpendingModal: React.FunctionComponent<
     setCopiedLabel("Copied to clipboard");
   };
 
-  const totals = useMemo(
-    () =>
-      transactions.reduce<
-        {
-          id: number;
-          name: string;
-          category: CategoryBudget;
-          totalAmount: number;
-          amounts: number[];
-        }[]
-      >(
-        (prevTrans, currTrans, i) => {
-          return currTrans.transactionCategories.reduce((prev, curr) => {
-            const category = curr.category.id;
-            const categoryIndex = prev.findIndex(
-              (item) => item.category.id === category,
-            );
-            const amount =
-              curr.category.type === "expense" ? curr.amount : -curr.amount;
-            if (categoryIndex > -1) {
-              prev[categoryIndex].totalAmount += amount;
-              prev[categoryIndex].amounts.push(amount);
-              return prev;
-            }
-            return [
-              ...prev,
-              {
-                name: curr.category.name,
-                category: curr.category,
-                totalAmount: amount,
-                amounts: [amount],
-                id: i,
-              },
-            ];
-          }, prevTrans);
-        },
-        categories.map((category, i) => ({
-          name: category.name,
-          category,
-          id: i,
-          amounts: [],
-          totalAmount: 0,
-        })),
-      ),
-    [transactions, categories],
-  );
   return (
     <Dialog open={show} onClose={onClose}>
       <DialogTitle>Export Totals</DialogTitle>
