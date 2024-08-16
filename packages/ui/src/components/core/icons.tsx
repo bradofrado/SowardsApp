@@ -1,5 +1,6 @@
 import {
   Cog6ToothIcon as Cog6ToochIconRaw,
+  CurrencyDollarIcon,
   HomeIcon as HomeIconRaw,
   Square2StackIcon as Square2StackIconRaw,
 } from "@heroicons/react/20/solid";
@@ -69,6 +70,10 @@ export const EditSquareIcon: IconComponent = (props) => {
       />
     </svg>
   );
+};
+
+export const MoneyIcon: IconComponent = (props) => {
+  return <CurrencyDollarIcon {...props} />;
 };
 
 export const ArchiveIcon: IconComponent = ({ className, ...props }) => {

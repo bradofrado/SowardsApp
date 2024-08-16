@@ -8,7 +8,9 @@ import {
 } from "ui/src/components/feature/application-layout";
 import {
   Cog6ToochIcon,
+  EditSquareIcon,
   HomeIcon,
+  MoneyIcon,
   Square2StackIcon,
 } from "ui/src/components/core/icons";
 
@@ -21,6 +23,11 @@ export const ApplicationLayout: React.FunctionComponent<{
       href: "/",
       label: "Home",
       icon: <HomeIcon />,
+    },
+    {
+      href: "/spending",
+      label: "Spending",
+      icon: <MoneyIcon />,
     },
     {
       href: "/plan",
