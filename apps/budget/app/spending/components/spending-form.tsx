@@ -35,7 +35,12 @@ import {
 import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 import { AccountDisplay } from "../../settings/components/account-display";
-import { Accordion } from "ui/src/components/core/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "ui/src/components/core/accordion";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
 import { Alert } from "ui/src/components/core/alert";
@@ -341,38 +346,34 @@ export const AccountTransactions: React.FunctionComponent<
   }
 
   return (
-    <Accordion
-      items={[
-        {
-          content: (
-            <>
-              <TransactionTable
-                setSelected={setSelected}
-                transactions={filteredTransactions}
-                selected={selected}
-                onSelect={onSelect}
-                onSelectAll={onSelectAll}
-                setPickCategory={setPickCategory}
-                small
-              />
-            </>
-          ),
-          labelContent: (
-            <div className="flex items-center gap-4 hover:bg-gray-50 rounded-md p-2">
-              {manual ? (
-                <div>Manual Transactions</div>
-              ) : (
-                <AccountDisplay account={account} className="" />
-              )}
-              <div>{balance ? formatDollarAmount(balance) : null}</div>
-              <div className="text-gray-500">
-                {totalSelected !== 0 ? formatDollarAmount(totalSelected) : null}
-              </div>
+    <Accordion type="multiple">
+      <AccordionItem value="item">
+        <AccordionTrigger>
+          <div className="flex items-center gap-4">
+            {manual ? (
+              <div>Manual Transactions</div>
+            ) : (
+              <AccountDisplay account={account} className="" />
+            )}
+            <div>{balance ? formatDollarAmount(balance) : null}</div>
+            <div className="text-gray-500">
+              {totalSelected !== 0 ? formatDollarAmount(totalSelected) : null}
             </div>
-          ),
-        },
-      ]}
-    ></Accordion>
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <TransactionTable
+            setSelected={setSelected}
+            transactions={filteredTransactions}
+            selected={selected}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+            setPickCategory={setPickCategory}
+            small
+          />
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
 
