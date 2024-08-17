@@ -1,18 +1,17 @@
+"use client";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Heading } from "ui/src/components/catalyst/heading";
 import { TransactionBarChart } from "./charts/bar-chart";
 import { Budget, SpendingRecord } from "model/src/budget";
 import { isDateInBetween } from "model/src/utils";
 import { Month, months } from "./types";
+import { useTransactions } from "../../utils/components/transaction-provider";
 
-interface SpendingTotalsProps {
-  transactions: SpendingRecord[];
-  budget: Budget | undefined;
-}
-export const SpendingTotals: React.FunctionComponent<SpendingTotalsProps> = ({
-  transactions,
-  budget,
-}) => {
+interface SpendingTotalsProps {}
+export const SpendingTotals: React.FunctionComponent<
+  SpendingTotalsProps
+> = () => {
+  const { transactions, budgetItems } = useTransactions();
   const data = months.map<{
     month: Month;
     actual: number;
@@ -30,15 +29,14 @@ export const SpendingTotals: React.FunctionComponent<SpendingTotalsProps> = ({
             : 0)
         );
       }, 0),
-      budget:
-        budget?.items.reduce<number>((prev, currItem) => {
-          return (
-            prev +
-            (isDateInBetween(date, currItem.startDate, currItem.endDate)
-              ? currItem.amount
-              : 0)
-          );
-        }, 0) || 0,
+      budget: budgetItems.reduce<number>((prev, currItem) => {
+        return (
+          prev +
+          (isDateInBetween(date, currItem.startDate, currItem.endDate)
+            ? currItem.amount
+            : 0)
+        );
+      }, 0),
     };
   });
   return (

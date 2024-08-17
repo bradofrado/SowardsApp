@@ -12,65 +12,43 @@ import { isDateInBetween } from "model/src/utils";
 import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
+import { useTransactions } from "../../utils/components/transaction-provider";
 
-interface CategoryMonthViewProps {
-  categories: CategoryBudget[];
-  transactions: SpendingRecord[];
-  budget: Budget | undefined;
-}
+interface CategoryMonthViewProps {}
 export const CategoryMonthView: React.FunctionComponent<
   CategoryMonthViewProps
-> = ({ categories, transactions, budget }) => {
+> = () => {
+  const { transactions, budgetItems, categories } = useTransactions();
   const [currentMonth, setCurrentMonth] = useState<Month>(
     months[new Date().getMonth()],
   );
-
-  const filterFunction = <
-    T extends { amount: number } | { type: CategoryBudget["type"] },
-  >(
-    transaction: T,
-  ) => {
-    if ("amount" in transaction) {
-      return transaction.amount > 0;
-    }
-
-    return transaction.type === "expense";
-  };
 
   const filteredTransactions = useMemo(
     () =>
       transactions.filter(
         (transaction) =>
-          transaction.date.getMonth() === months.indexOf(currentMonth) &&
-          filterFunction(transaction),
+          transaction.date.getMonth() === months.indexOf(currentMonth),
       ),
     [transactions, currentMonth],
   );
   const filteredBudgeted = useMemo(
     () =>
-      budget?.items.filter((item) => {
+      budgetItems.filter((item) => {
         const date = new Date();
         date.setMonth(months.indexOf(currentMonth));
 
-        return (
-          filterFunction(item) &&
-          isDateInBetween(date, item.startDate, item.endDate)
-        );
-      }) ?? [],
-    [budget, currentMonth],
-  );
-  const filteredCategories = useMemo(
-    () => categories.filter((category) => filterFunction(category)),
-    [categories],
+        return isDateInBetween(date, item.startDate, item.endDate);
+      }),
+    [budgetItems, currentMonth],
   );
 
   const totalsActual = useTransactionCategoryTotals({
     transactions: filteredTransactions,
-    categories: filteredCategories,
+    categories,
   });
   const totalsBudgeted = useCategoryTotals({
     transactions: filteredBudgeted,
-    categories: filteredCategories,
+    categories,
   });
 
   const negativeChartData = useMemo(
