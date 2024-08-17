@@ -18,7 +18,9 @@ interface CategoryMonthViewProps {}
 export const CategoryMonthView: React.FunctionComponent<
   CategoryMonthViewProps
 > = () => {
-  const { transactions, budgetItems, categories } = useTransactions();
+  const {
+    expenses: { transactions, budgetItems, categories },
+  } = useTransactions();
   const [currentMonth, setCurrentMonth] = useState<Month>(
     months[new Date().getMonth()],
   );

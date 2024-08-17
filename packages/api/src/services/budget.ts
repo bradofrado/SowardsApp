@@ -14,6 +14,7 @@ import {
   deleteSpendingRecord,
 } from "../repositories/budget/spending";
 import { SpendingRecord } from "model/src/budget";
+import { AccountType } from "plaid";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -88,6 +89,29 @@ export const getTransactions = async (
   const spendingRecords = await getSpendingRecords({ db: prisma });
 
   return spendingRecords;
+};
+
+export interface SpendingRecordWithAccountType extends SpendingRecord {
+  accountType: AccountType;
+}
+export const getTransactionsWithAccounts = async (
+  userId: string,
+): Promise<SpendingRecordWithAccountType[]> => {
+  const transactions = await getTransactions(userId);
+  const accounts = await getExternalLogins(userId);
+
+  return transactions.map((transaction) => {
+    const account = accounts.find(
+      (_account) => _account.account_id === transaction.accountId,
+    );
+    if (!account)
+      throw new Error(`Cannot find account with id ${transaction.accountId}`);
+
+    return {
+      ...transaction,
+      accountType: account.type,
+    };
+  });
 };
 
 const makeLoginRequest = async <T>(
