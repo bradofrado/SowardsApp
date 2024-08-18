@@ -16,10 +16,16 @@ import { Card } from "ui/src/components/core/card";
 import { AccountProvider } from "../utils/components/account-provider";
 import { AccountTotals } from "./components/account-totals";
 import { AccountLineChart } from "./components/charts/line-chart";
+import { WelcomeModal } from "./setup/welcome-modal";
+import { redirect } from "next/navigation";
+import { Confetti } from "./components/confetti";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
   const accounts = await getExternalLogins(userId);
+  if (accounts.length === 0) {
+    redirect("/setup");
+  }
   const spending = await getTransactionsWithAccounts(userId, accounts);
   const categories = await getCategories({ db: prisma, userId });
   const budgets = await getBudgets({ db: prisma, userId });
@@ -38,6 +44,7 @@ const Home = withAuth(async ({ ctx }) => {
         </div>
         <FormDivider />
         <CategoryMonthView />
+        <Confetti />
       </AccountProvider>
     </TransactionProvider>
   );
