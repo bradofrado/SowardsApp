@@ -34,7 +34,7 @@ import {
 } from "./category-picker";
 import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
-import { AccountDisplay } from "../../(dashboard)/settings/components/account-display";
+import { AccountDisplay } from "../../../(dashboard)/settings/components/account-display";
 import {
   Accordion,
   AccordionContent,

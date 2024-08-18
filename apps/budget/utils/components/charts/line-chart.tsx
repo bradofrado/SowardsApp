@@ -2,11 +2,11 @@
 // import { ChartContainer, ChartTooltip, ChartTooltipContent } from "ui/src/components/feature/reporting/rechart/chart";
 // import { CartesianGrid, Line, LineChart as LineChartPrimitize, XAxis } from "ui/src/components/feature/reporting/rechart/rechart";
 import { LineChart } from "ui/src/components/feature/reporting/graphs/line-chart";
-import { useAccounts } from "../../../utils/components/account-provider";
+import { useAccounts } from "../../../utils/components/providers/account-provider";
 import { useCallback, useMemo } from "react";
-import { months } from "../types";
+import { months } from "../../../utils/components/totals/types";
 import { datesEqual, day, displayDate } from "model/src/utils";
-import { useTransactions } from "../../../utils/components/transaction-provider";
+import { useTransactions } from "../../../utils/components/providers/transaction-provider";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 
 export type TotalGraphValue = GraphValue & { date: Date };

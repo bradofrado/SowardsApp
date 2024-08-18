@@ -1,18 +1,17 @@
 "use client";
 
-import { Budget, CategoryBudget, SpendingRecord } from "model/src/budget";
-import { CategoryNegativeChart } from "./charts/negative-chart";
 import {
   useCategoryTotals,
   useTransactionCategoryTotals,
-} from "../../utils/hooks/category-totals";
+} from "../../hooks/category-totals";
 import { Button } from "ui/src/components/catalyst/button";
 import { useMemo, useState } from "react";
 import { isDateInBetween } from "model/src/utils";
 import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
-import { useTransactions } from "../../utils/components/transaction-provider";
+import { useTransactions } from "../providers/transaction-provider";
+import { CategoryNegativeChart } from "../charts/negative-chart";
 
 interface CategoryMonthViewProps {}
 export const CategoryMonthView: React.FunctionComponent<

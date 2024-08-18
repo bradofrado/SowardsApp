@@ -1,22 +1,21 @@
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
-import { CategoryNegativeChart } from "../components/charts/negative-chart";
 import {
   getExternalLogins,
   getTransactions,
   getTransactionsWithAccounts,
 } from "api/src/services/budget";
-import { CategoryMonthView } from "../components/category-month-view";
+import { CategoryMonthView } from "../../utils/components/totals/category-month-view";
 import { getCategories } from "api/src/repositories/budget/category";
 import { prisma } from "db/lib/prisma";
 import { getBudgets } from "api/src/repositories/budget/template/budget-template";
-import { TransactionTotals } from "../components/transaction-totals";
+import { TransactionTotals } from "../../utils/components/totals/transaction-totals";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
-import { TransactionProvider } from "../../utils/components/transaction-provider";
+import { TransactionProvider } from "../../utils/components/providers/transaction-provider";
 import { Card } from "ui/src/components/core/card";
-import { AccountProvider } from "../../utils/components/account-provider";
-import { AccountTotals } from "../components/account-totals";
+import { AccountProvider } from "../../utils/components/providers/account-provider";
+import { AccountTotals } from "../../utils/components/totals/account-totals";
 import { redirect } from "next/navigation";
-import { Confetti } from "../components/confetti";
+import { Confetti } from "../../utils/components/totals/confetti";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
@@ -42,7 +41,6 @@ const Home = withAuth(async ({ ctx }) => {
         </div>
         <FormDivider />
         <CategoryMonthView />
-        <Confetti />
       </AccountProvider>
     </TransactionProvider>
   );

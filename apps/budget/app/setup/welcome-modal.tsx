@@ -11,7 +11,7 @@ import { PlaidLink } from "../(dashboard)/settings/components/plaid";
 import {
   ConnectExternalAccountForm,
   ExternalAccount,
-} from "../components/connect-external-form";
+} from "../../utils/components/totals/connect-external-form";
 import { Button } from "ui/src/components/catalyst/button";
 
 interface WelcomeModalProps {

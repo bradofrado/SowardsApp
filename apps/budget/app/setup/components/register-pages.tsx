@@ -1,5 +1,6 @@
-import { ExternalAccount } from "../../components/connect-external-form";
+import { ExternalAccount } from "../../../utils/components/totals/connect-external-form";
 import { AddAccounts } from "./pages/add-accounts";
+import { MoneyTotals } from "./pages/money-totals";
 
 export type SetupPage = React.FunctionComponent<{
   accounts: ExternalAccount[];
@@ -13,5 +14,8 @@ export const pages: SetupPageProps[] = [
   {
     component: AddAccounts,
     defaultShowNext: false,
+  },
+  {
+    component: MoneyTotals,
   },
 ];

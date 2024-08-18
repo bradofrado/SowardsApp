@@ -7,7 +7,7 @@ import {
 } from "model/src/budget";
 import { day, isDateInBetween } from "model/src/utils";
 import { createContext, useContext, useMemo } from "react";
-import { months } from "../../app/components/types";
+import { months } from "../totals/types";
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
 import { AccountType } from "plaid";
 

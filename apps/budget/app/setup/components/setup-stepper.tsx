@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pages } from "./register-pages";
-import { ExternalAccount } from "../../components/connect-external-form";
+import { ExternalAccount } from "../../../utils/components/totals/connect-external-form";
 import { Button } from "ui/src/components/catalyst/button";
 import { useRouter } from "next/navigation";
+import { useQueryState } from "ui/src/hooks/query-state";
+import { usePrevious } from "ui/src/hooks/previous";
 
 interface SetupStepperProps {
   accounts: ExternalAccount[];
@@ -12,10 +14,20 @@ interface SetupStepperProps {
 export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   accounts,
 }) => {
-  const [currPage, setCurrPage] = useState(0);
+  const [currPage, setCurrPage] = useQueryState({
+    key: "page",
+    defaultValue: 0,
+  });
+  const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
   const page = useMemo(() => pages[currPage], [currPage]);
   const router = useRouter();
+
+  useEffect(() => {
+    if (previousPage !== currPage) {
+      setShowNext(pages[currPage].defaultShowNext ?? true);
+    }
+  }, [currPage, previousPage]);
 
   const onNext = (): void => {
     if (currPage < pages.length - 1) {
@@ -35,7 +47,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
 
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-md space-y-6">
+      <div className="mx-auto w-full max-w-xl space-y-6">
         <page.component accounts={accounts} setShowNext={setShowNext} />
         <div className="flex justify-between">
           {currPage > 0 ? (
@@ -43,16 +55,18 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
               Back
             </Button>
           ) : null}
-          {showNext && currPage < pages.length - 1 ? (
-            <Button plain onClick={onNext}>
-              Next
-            </Button>
-          ) : null}
-          {currPage === pages.length - 1 && showNext ? (
-            <Button plain onClick={onDone}>
-              Done
-            </Button>
-          ) : null}
+          <div className="ml-auto">
+            {showNext && currPage < pages.length - 1 ? (
+              <Button plain onClick={onNext}>
+                Next
+              </Button>
+            ) : null}
+            {currPage === pages.length - 1 && showNext ? (
+              <Button plain onClick={onDone}>
+                Done
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

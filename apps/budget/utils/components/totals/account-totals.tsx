@@ -1,14 +1,17 @@
 "use client";
 import { Header } from "ui/src/components/core/header";
-import { useAccounts } from "../../utils/components/account-provider";
+import { useAccounts } from "../providers/account-provider";
 import { AccountBase, AccountType } from "plaid";
 import { datesEqual, day, formatDollarAmount } from "model/src/utils";
 import { Card } from "ui/src/components/core/card";
-import { AccountLineChart, TotalGraphValue } from "./charts/line-chart";
+
 import { useMemo, useState } from "react";
-import { useTransactions } from "../../utils/components/transaction-provider";
+import { useTransactions } from "../providers/transaction-provider";
 import { Button } from "ui/src/components/catalyst/button";
 import { useQueryState } from "ui/src/hooks/query-state";
+import { AccountLineChart, TotalGraphValue } from "../charts/line-chart";
+import { useAccountTotals } from "../../hooks/account-totals";
+import { useMonthlyAverage } from "./transaction-totals";
 
 const dateButtons: {
   label: string;
@@ -31,7 +34,9 @@ const dateButtons: {
     daysBack: 365,
   },
 ];
-export const AccountTotals: React.FunctionComponent = () => {
+export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
+  future = false,
+}) => {
   const [currDaysBack, setCurrDaysBack] = useQueryState({
     key: "netWorthFilter",
     defaultValue: 1,
@@ -39,6 +44,7 @@ export const AccountTotals: React.FunctionComponent = () => {
 
   const { netWorth, chartData, onValueChange } = useChartTotals(
     dateButtons[currDaysBack].daysBack,
+    future,
   );
 
   return (
@@ -78,31 +84,18 @@ const AmountHeaderLabel: React.FunctionComponent<{ amount: number }> = ({
   );
 };
 
-interface AccountTotalsState {
-  netWorth: number;
-}
-const useAccountTotals = (accounts: AccountBase[]): AccountTotalsState => {
-  const netWorth = accounts.reduce<number>((prev, curr) => {
-    return (
-      prev +
-      (curr.type === AccountType.Depository && curr.balances.current
-        ? curr.balances.current
-        : 0)
-    );
-  }, 0);
-  return { netWorth };
-};
-
-const useChartTotals = (daysBack: number) => {
+const useChartTotals = (daysBack: number, future: boolean) => {
   const { accounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
   const [datePoint, setDatePoint] = useState<TotalGraphValue | undefined>(
     undefined,
   );
   const { expenses, income } = useTransactions();
-  const incomeData: TotalGraphValue[] = useMemo(
+  const { avgMonthlyExpense, avgMonthlyIncome } = useMonthlyAverage();
+
+  const previousData: TotalGraphValue[] = useMemo(
     () =>
-      Array.from(Array(daysBack).keys()).map((month, i) => {
+      Array.from(Array(future ? 30 : daysBack).keys()).map((month, i) => {
         const date = new Date(new Date().getTime() - i * day);
         const expenseOnDate = expenses.transactions.filter((transaction) =>
           datesEqual(transaction.date, date),
@@ -125,20 +118,47 @@ const useChartTotals = (daysBack: number) => {
           fill: "#8c52ff",
         };
       }),
-    [expenses, income, daysBack],
+    [daysBack, expenses.transactions, future, income.transactions],
   );
-  const networthAccumulated = useMemo(
+
+  const futureData: TotalGraphValue[] = useMemo(
     () =>
-      incomeData.reduce<TotalGraphValue[]>((acc, curr) => {
+      Array.from(Array(daysBack).keys()).map((month, i) => {
+        const date = new Date(new Date().getTime() + i * day);
+
+        return {
+          value: avgMonthlyIncome / 30 - avgMonthlyExpense / 30,
+          date,
+          fill: "#41b8d5",
+        };
+      }),
+    [avgMonthlyExpense, avgMonthlyIncome, daysBack],
+  );
+
+  const networthPrevious = useMemo(
+    () =>
+      previousData.reduce<TotalGraphValue[]>((acc, curr) => {
         const prev = acc[acc.length - 1]?.value ?? netWorth;
         return [...acc, { ...curr, value: prev - curr.value }];
       }, []),
-    [incomeData, netWorth],
+    [previousData, netWorth],
+  );
+
+  const networthFuture = useMemo(
+    () =>
+      futureData.reduce<TotalGraphValue[]>((acc, curr) => {
+        const prev = acc[acc.length - 1]?.value ?? netWorth;
+        return [...acc, { ...curr, value: prev + curr.value }];
+      }, []),
+    [futureData, netWorth],
   );
 
   return {
     netWorth: datePoint?.value ?? netWorth,
-    chartData: networthAccumulated.slice().reverse(),
+    chartData: [
+      ...networthPrevious.slice().reverse(),
+      ...(future ? networthFuture : []),
+    ],
     onValueChange: setDatePoint,
   };
 };

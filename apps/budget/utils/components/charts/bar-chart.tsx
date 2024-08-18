@@ -13,7 +13,7 @@ import {
   XAxis,
   Bar,
 } from "ui/src/components/feature/reporting/rechart/rechart";
-import { Month, months } from "../types";
+import { Month, months } from "../../../utils/components/totals/types";
 import { Button } from "ui/src/components/catalyst/button";
 import { BudgetItem, SpendingRecord } from "model/src/budget";
 import { isDateInBetween } from "model/src/utils";
