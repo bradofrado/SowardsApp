@@ -53,7 +53,9 @@ export function ApplicationLayout({
       sidebar={
         <Sidebar>
           <SidebarHeader>
-            <SidebarLabel>{title}</SidebarLabel>
+            <div className="w-20 ml-3">
+              <img src="./plinq.png" alt="plinq" />
+            </div>
           </SidebarHeader>
 
           <SidebarBody>

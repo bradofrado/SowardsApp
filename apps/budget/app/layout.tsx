@@ -8,8 +8,8 @@ import { PlaidProvider } from "./(dashboard)/settings/components/plaid";
 import { QueryStateProvider } from "ui/src/hooks/query-state";
 
 export const metadata: Metadata = {
-  title: "Sowards Bugdets",
-  description: "Make budgeting easy",
+  title: "plinq",
+  description: "Smart Budgeting Simplified",
 };
 
 async function RootLayout({

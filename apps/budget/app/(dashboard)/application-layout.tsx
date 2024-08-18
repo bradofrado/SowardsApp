@@ -44,7 +44,7 @@ export const ApplicationLayout: React.FunctionComponent<{
     <Layout
       pathname={pathname}
       items={items}
-      title="Sowards Budgets"
+      title="plinq"
       profileItem={
         <>
           <UserButton />
