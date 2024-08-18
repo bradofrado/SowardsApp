@@ -11,15 +11,5 @@ export const AddAccounts: SetupPage = ({ accounts, setShowNext }) => {
     }
   }, [accounts, setShowNext]);
 
-  return (
-    <>
-      <div className="text-center">
-        <Header level={1}>Link Accounts</Header>
-        <p className="mt-4 text-muted-foreground text-left">
-          Connect your external accounts (bank accounts, credit carts, etc.)
-        </p>
-      </div>
-      <ConnectExternalAccountForm accounts={accounts} />
-    </>
-  );
+  return <ConnectExternalAccountForm accounts={accounts} />;
 };
