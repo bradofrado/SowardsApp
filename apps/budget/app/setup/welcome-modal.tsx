@@ -7,11 +7,11 @@ import {
   DialogDescription,
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
-import { PlaidLink } from "../settings/components/plaid";
+import { PlaidLink } from "../(dashboard)/settings/components/plaid";
 import {
   ConnectExternalAccountForm,
   ExternalAccount,
-} from "../settings/components/connect-external-form";
+} from "../components/connect-external-form";
 import { Button } from "ui/src/components/catalyst/button";
 
 interface WelcomeModalProps {

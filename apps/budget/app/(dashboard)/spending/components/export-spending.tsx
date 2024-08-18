@@ -26,7 +26,7 @@ import { Alert } from "ui/src/components/core/alert";
 import {
   useCategoryTotals,
   useTransactionCategoryTotals,
-} from "../../../utils/hooks/category-totals";
+} from "../../../../utils/hooks/category-totals";
 
 interface ExportSpendingModalProps {
   transactions: SpendingRecord[];

@@ -18,6 +18,10 @@ export default {
           DEFAULT: "#f2f3f5cc",
         },
         black: "#04060D",
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
       },
       keyframes: {
         "accordion-down": {

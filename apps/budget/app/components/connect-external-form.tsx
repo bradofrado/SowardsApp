@@ -5,13 +5,13 @@ import {
   FormDivider,
   FormSection,
 } from "ui/src/components/catalyst/form/form";
-import { PlaidLink } from "./plaid";
+import { PlaidLink } from "../(dashboard)/settings/components/plaid";
 import { Button } from "ui/src/components/catalyst/button";
 import { BankIcon } from "ui/src/components/core/icons";
 import { api } from "next-utils/src/utils/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AccountDisplay } from "./account-display";
+import { AccountDisplay } from "../(dashboard)/settings/components/account-display";
 
 export type ExternalAccount = AccountBase & { access_token: string };
 interface ConnectExternalAccountFormProps {

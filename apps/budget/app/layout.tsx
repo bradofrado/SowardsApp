@@ -1,10 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ApplicationLayout } from "./application-layout";
+import { ApplicationLayout } from "./(dashboard)/application-layout";
 import { getUserVactions } from "api/src/repositories/user-vacation";
 import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
-import { PlaidProvider } from "./settings/components/plaid";
+import { PlaidProvider } from "./(dashboard)/settings/components/plaid";
 import { QueryStateProvider } from "ui/src/hooks/query-state";
 
 export const metadata: Metadata = {
@@ -30,9 +30,7 @@ async function RootLayout({
                 <link rel="preconnect" href="https://rsms.me/" />
                 <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
               </head>
-              <body>
-                <ApplicationLayout>{children}</ApplicationLayout>
-              </body>
+              <body>{children}</body>
             </html>
           </QueryStateProvider>
         </PlaidProvider>

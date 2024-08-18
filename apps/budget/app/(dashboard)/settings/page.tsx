@@ -10,7 +10,7 @@ import { getAuthSession } from "next-utils/src/utils/auth";
 import { updateUser } from "next-utils/src/actions/settings";
 import { ConnectAccountForm } from "ui/src/components/feature/settings/connect-account-form";
 import { getExternalLogins } from "api/src/services/budget";
-import { ConnectExternalAccountForm } from "./components/connect-external-form";
+import { ConnectExternalAccountForm } from "../../components/connect-external-form";
 
 const SetupPage = withAuth(async ({ ctx }): Promise<JSX.Element> => {
   const auth = await requireAuth()();
