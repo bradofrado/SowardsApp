@@ -7,6 +7,7 @@ import {
 import type { UserVacation, VacationDependent } from "model/src/vacation";
 import { connectAccountToUserVacation, createAccount } from "api/src/auth";
 import { getAuthSession } from "../utils/auth";
+import { createUser as createUserService } from "api/src/services/account";
 
 export interface SetupUser {
   groupIds: string[];
@@ -15,26 +16,7 @@ export interface SetupUser {
 }
 export const createUser = async (user: UserVacation): Promise<void> => {
   const session = await getAuthSession();
-  if (!session?.auth.userId) return;
-
-  if (!session.auth.user.id) {
-    const newUser = await createAccount(session.auth.user, session.auth.userId);
-    session.auth.user.id = newUser.id;
-  }
-
-  await createUserVacation(
-    {
-      name: user.name,
-      groupIds: user.groupIds,
-      groups: [],
-      events: [],
-      eventIds: [],
-      id: "",
-      dependents: user.dependents,
-      createdByEvents: [],
-    },
-    session.auth.user.id,
-  );
+  return createUserService(user, session);
 };
 
 export const connectUser = async (userVacationId: string): Promise<void> => {

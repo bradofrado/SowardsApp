@@ -86,7 +86,7 @@ export const getTransactions = async (
       }),
     );
   }
-  const spendingRecords = await getSpendingRecords({ db: prisma });
+  const spendingRecords = await getSpendingRecords({ db: prisma, userId });
 
   return spendingRecords;
 };

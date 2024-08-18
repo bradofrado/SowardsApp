@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { pages } from "./register-pages";
+import { usePages } from "./register-pages";
 import { ExternalAccount } from "../../../utils/components/totals/connect-external-form";
 import { Button } from "ui/src/components/catalyst/button";
 import { useRouter } from "next/navigation";
@@ -18,21 +18,30 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
     key: "page",
     defaultValue: 0,
   });
+  const [loading, setLoading] = useState(false);
   const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
-  const page = useMemo(() => pages[currPage], [currPage]);
+  const pages = usePages();
+  const page = useMemo(() => pages[currPage], [currPage, pages]);
   const router = useRouter();
 
   useEffect(() => {
-    if (previousPage !== currPage) {
+    if (previousPage !== undefined && previousPage !== currPage) {
       setShowNext(pages[currPage].defaultShowNext ?? true);
     }
-  }, [currPage, previousPage]);
+  }, [currPage, pages, previousPage]);
 
   const onNext = (): void => {
-    if (currPage < pages.length - 1) {
-      setCurrPage(currPage + 1);
-    }
+    setLoading(true);
+    const onNextPage = pages[currPage].onNext;
+    (onNextPage?.() ?? Promise.resolve())
+      .then(() => {
+        if (currPage < pages.length - 1) {
+          setCurrPage(currPage + 1);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   };
 
   const onBack = (): void => {
@@ -55,9 +64,9 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
               Back
             </Button>
           ) : null}
-          <div className="ml-auto">
+          <div className="ml-auto h-9">
             {showNext && currPage < pages.length - 1 ? (
-              <Button plain onClick={onNext}>
+              <Button plain onClick={onNext} loading={loading}>
                 Next
               </Button>
             ) : null}

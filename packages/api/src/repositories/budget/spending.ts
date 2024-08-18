@@ -15,10 +15,15 @@ const spendingRecordPayload = {
 
 export const getSpendingRecords = async ({
   db,
+  userId,
 }: {
   db: Db;
+  userId: string;
 }): Promise<SpendingRecord[]> => {
   const records = await db.spendingRecord.findMany({
+    where: {
+      userId,
+    },
     orderBy: {
       date: "desc",
     },

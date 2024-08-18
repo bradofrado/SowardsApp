@@ -31,6 +31,9 @@ export interface TRPCContext extends CreateContextOptions {
 export type TRPCContextAuth = Omit<TRPCContext, "session"> & {
   session: AuthedSession;
 };
+export type TRPCContextSession = Omit<TRPCContext, "session"> & {
+  session: Session;
+};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -93,7 +96,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  * "/src/server/api/routers" directory.
  */
 
-// check if the user is signed in, otherwise throw a UNAUTHORIZED CODE
+// check if the user is signed in with an account, otherwise throw a UNAUTHORIZED CODE
 const isAuthed = t.middleware(({ next, ctx }) => {
   if (!ctx.session?.auth.userVacation) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -101,6 +104,18 @@ const isAuthed = t.middleware(({ next, ctx }) => {
   return next({
     ctx: {
       session: ctx.session as AuthedSession,
+    },
+  });
+});
+
+// check if the user is signed in, otherwise throw a UNAUTHORIZED CODE
+const isSession = t.middleware(({ next, ctx }) => {
+  if (!ctx.session) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      session: ctx.session,
     },
   });
 });
@@ -121,3 +136,4 @@ export const createTRPCRouter = t.router;
  */
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(isAuthed);
+export const sessionProcedure = t.procedure.use(isSession);

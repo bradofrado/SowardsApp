@@ -6,6 +6,7 @@ import { Confetti } from "../../../../utils/components/totals/confetti";
 import { AccountTotals } from "../../../../utils/components/totals/account-totals";
 import { Card } from "ui/src/components/core/card";
 import { TransactionTotals } from "../../../../utils/components/totals/transaction-totals";
+import { useCallback } from "react";
 
 export const MoneyTotals: SetupPage = ({ accounts, setShowNext }) => {
   const { netWorth } = useAccountTotals(accounts);

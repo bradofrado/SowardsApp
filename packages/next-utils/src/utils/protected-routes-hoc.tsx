@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import type { AuthedSession, Session } from "model/src/auth";
 import { getServerAuthSession } from "api/src/auth";
 import { prisma } from "db/lib/prisma";
-import type { TRPCContextAuth } from "api/src/trpc";
+import type { TRPCContextAuth, TRPCContextSession } from "api/src/trpc";
 
 interface RequireRouteProps {
   redirect: string;
@@ -29,7 +29,16 @@ export const requireRoute =
   };
 
 export const requireAuth = requireRoute({
-  redirect: "/settings",
+  redirect: "/setup",
+  check: (session) => {
+    return (
+      session?.auth === undefined || session?.auth.userVacation === undefined
+    );
+  },
+});
+
+export const requireSession = requireRoute({
+  redirect: "/setup",
   check: (session) => {
     return session?.auth === undefined;
   },
@@ -52,7 +61,26 @@ export const withAuth =
     const response = await requireAuth()(mockUserId?.value);
 
     if (response.redirect) {
-      redirect("/settings");
+      redirect("/setup");
+    }
+
+    return Component({ ctx: { prisma, session: response.session! } });
+  };
+
+export interface SessionProps {
+  ctx: TRPCContextSession;
+}
+export const withSession =
+  (
+    Component: (props: SessionProps) => Promise<JSX.Element> | JSX.Element,
+  ): ((props: PageProps) => Promise<JSX.Element | null>) =>
+  async () => {
+    const cookie = cookies();
+    const mockUserId = cookie.get("harmony-user-id");
+    const response = await requireSession()(mockUserId?.value);
+
+    if (response.redirect) {
+      redirect("/setup");
     }
 
     return Component({ ctx: { prisma, session: response.session! } });
