@@ -14,7 +14,7 @@ import {
   deleteSpendingRecord,
 } from "../repositories/budget/spending";
 import { SpendingRecord } from "model/src/budget";
-import { AccountType } from "plaid";
+import { AccountBase, AccountType } from "plaid";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -96,9 +96,10 @@ export interface SpendingRecordWithAccountType extends SpendingRecord {
 }
 export const getTransactionsWithAccounts = async (
   userId: string,
+  cachedAccounts?: AccountBase[],
 ): Promise<SpendingRecordWithAccountType[]> => {
   const transactions = await getTransactions(userId);
-  const accounts = await getExternalLogins(userId);
+  const accounts = cachedAccounts ?? (await getExternalLogins(userId));
 
   return transactions.map((transaction) => {
     const account = accounts.find(

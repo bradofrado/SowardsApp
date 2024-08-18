@@ -13,18 +13,18 @@ interface TransactionTotalsProps {
 }
 export const TransactionTotals: React.FunctionComponent<
   TransactionTotalsProps
-> = ({ type, label }) => {
+> = ({ label }) => {
   const {
-    [type === "expense" ? "expenses" : "income"]: { transactions, budgetItems },
+    expenses: { transactions: expenseTransactions },
+    income: { transactions: incomeTransactions },
   } = useTransactions();
   return (
     <>
       <Heading>{label}</Heading>
       <FormDivider />
       <TransactionBarChart
-        transactions={transactions}
-        budgetItems={budgetItems}
-        actualFill={type === "expense" ? "#41b8d5" : "#8c52ff"}
+        bar1={incomeTransactions}
+        bar2={expenseTransactions}
       />
     </>
   );

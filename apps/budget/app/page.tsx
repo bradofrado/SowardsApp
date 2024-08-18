@@ -1,6 +1,7 @@
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
 import { CategoryNegativeChart } from "./components/charts/negative-chart";
 import {
+  getExternalLogins,
   getTransactions,
   getTransactionsWithAccounts,
 } from "api/src/services/budget";
@@ -12,10 +13,14 @@ import { TransactionTotals } from "./components/transaction-totals";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { TransactionProvider } from "../utils/components/transaction-provider";
 import { Card } from "ui/src/components/core/card";
+import { AccountProvider } from "../utils/components/account-provider";
+import { AccountTotals } from "./components/account-totals";
+import { AccountLineChart } from "./components/charts/line-chart";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
-  const spending = await getTransactionsWithAccounts(userId);
+  const accounts = await getExternalLogins(userId);
+  const spending = await getTransactionsWithAccounts(userId, accounts);
   const categories = await getCategories({ db: prisma, userId });
   const budgets = await getBudgets({ db: prisma, userId });
   return (
@@ -24,16 +29,16 @@ const Home = withAuth(async ({ ctx }) => {
       budget={budgets[0]}
       categories={categories}
     >
-      <div className="flex gap-2">
-        <Card className="flex-1">
-          <TransactionTotals label="Income Totals" type="income" />
-        </Card>
-        <Card className="flex-1">
-          <TransactionTotals label="Spending Totals" type="expense" />
-        </Card>
-      </div>
-      <FormDivider />
-      <CategoryMonthView />
+      <AccountProvider accounts={accounts}>
+        <div className="flex flex-col md:flex-row gap-2">
+          <AccountTotals />
+          <Card className="flex-1" label="Totals">
+            <TransactionTotals label="" type="income" />
+          </Card>
+        </div>
+        <FormDivider />
+        <CategoryMonthView />
+      </AccountProvider>
     </TransactionProvider>
   );
 });

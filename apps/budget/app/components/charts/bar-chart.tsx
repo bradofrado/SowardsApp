@@ -2,6 +2,8 @@
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "ui/src/components/feature/reporting/rechart/chart";
@@ -17,24 +19,25 @@ import { BudgetItem, SpendingRecord } from "model/src/budget";
 import { isDateInBetween } from "model/src/utils";
 
 interface TransactionBarChartProps {
-  transactions: SpendingRecord[];
-  budgetItems: BudgetItem[];
-  actualFill?: string;
-  budgetFill?: string;
+  bar1: SpendingRecord[];
+  bar2: SpendingRecord[];
+  //budgetItems: BudgetItem[];
+  bar1Fill?: string;
+  bar2Fill?: string;
 }
 export const TransactionBarChart: React.FunctionComponent<
   TransactionBarChartProps
-> = ({ transactions, budgetItems, budgetFill, actualFill }) => {
+> = ({ bar1, bar2, bar1Fill, bar2Fill }) => {
   const data = months.map<{
     month: Month;
-    actual: number;
-    budget: number;
+    bar1: number;
+    bar2: number;
   }>((month) => {
     const date = new Date();
     date.setMonth(months.indexOf(month));
     return {
       month,
-      actual: transactions.reduce<number>((prev, curr) => {
+      bar1: bar1.reduce<number>((prev, curr) => {
         return (
           prev +
           (curr.date.getMonth() === months.indexOf(month) && curr.amount > 0
@@ -42,11 +45,19 @@ export const TransactionBarChart: React.FunctionComponent<
             : 0)
         );
       }, 0),
-      budget: budgetItems.reduce<number>((prev, currItem) => {
+      // budget: budgetItems.reduce<number>((prev, currItem) => {
+      //   return (
+      //     prev +
+      //     (isDateInBetween(date, currItem.startDate, currItem.endDate)
+      //       ? currItem.amount
+      //       : 0)
+      //   );
+      // }, 0),
+      bar2: bar2.reduce<number>((prev, curr) => {
         return (
           prev +
-          (isDateInBetween(date, currItem.startDate, currItem.endDate)
-            ? currItem.amount
+          (curr.date.getMonth() === months.indexOf(month) && curr.amount > 0
+            ? curr.amount
             : 0)
         );
       }, 0),
@@ -57,11 +68,13 @@ export const TransactionBarChart: React.FunctionComponent<
     amount: {
       label: "$",
     },
-    budget: {
-      color: budgetFill ?? "#41b8d5",
+    bar2: {
+      label: "Expenses",
+      color: bar2Fill ?? "#41b8d5",
     },
-    actual: {
-      color: actualFill ?? "#8c52ff",
+    bar1: {
+      label: "Income",
+      color: bar1Fill ?? "#8c52ff",
     },
   } satisfies ChartConfig;
   return (
@@ -78,8 +91,9 @@ export const TransactionBarChart: React.FunctionComponent<
           cursor={false}
           content={<ChartTooltipContent indicator="dashed" />}
         />
-        <Bar dataKey="actual" fill="var(--color-actual)" radius={4} />
-        <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Bar dataKey="bar1" fill="var(--color-bar1)" radius={4} />
+        <Bar dataKey="bar2" fill="var(--color-bar2)" radius={4} />
       </BarChart>
     </ChartContainer>
   );

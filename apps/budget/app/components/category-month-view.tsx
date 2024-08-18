@@ -92,7 +92,7 @@ export const CategoryMonthView: React.FunctionComponent<
       <Heading>Spending by Category</Heading>
       <FormDivider />
       <div className="flex flex-col">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-between">
           {months.map((month) => (
             <Button
               key={month}
@@ -103,7 +103,7 @@ export const CategoryMonthView: React.FunctionComponent<
             </Button>
           ))}
         </div>
-        <div className="h-[1000px]">
+        <div>
           <CategoryNegativeChart
             data={negativeChartData}
             uncategorizedData={uncategorizedData}
