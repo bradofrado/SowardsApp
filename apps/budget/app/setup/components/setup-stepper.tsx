@@ -10,13 +10,16 @@ import { usePrevious } from "ui/src/hooks/previous";
 import { ProgressStep, StepperProgress } from "./stepper-progress";
 import { Header } from "ui/src/components/core/header";
 import { UserVacation } from "model/src/vacation";
+import { CategoryBudget } from "model/src/budget";
 
 interface SetupStepperProps {
   accounts: ExternalAccount[];
+  categories: CategoryBudget[];
   user: UserVacation | undefined;
 }
 export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   accounts,
+  categories,
   user,
 }) => {
   const [currPage, setCurrPage] = useQueryState({
@@ -28,8 +31,8 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
   const pagesProps = useMemo(
-    () => ({ user, accounts, setShowNext }),
-    [user, accounts, setShowNext],
+    () => ({ user, accounts, setShowNext, categories }),
+    [user, accounts, setShowNext, categories],
   );
   const pages = usePages(pagesProps);
   const page = useMemo(() => pages[currPage], [currPage, pages]);
@@ -47,7 +50,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   );
 
   useEffect(() => {
-    if (previousPage !== undefined && previousPage !== currPage) {
+    if (previousPage !== currPage) {
       setShowNext(pages[currPage].defaultShowNext ?? true);
     }
   }, [currPage, pages, previousPage]);
@@ -83,9 +86,12 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
         steps={pageSteps}
       />
       <div className="flex flex-col items-center justify-center flex-1">
-        <div className="mx-auto w-full max-w-xl space-y-6">
+        <div
+          className="mx-auto w-full max-w-xl space-y-6"
+          style={{ maxWidth: page.maxWidth }}
+        >
           <div className="text-center">
-            <Header level={1}>{page.title}</Header>
+            <Header level={1}>{page.dynamicTitle || page.title}</Header>
             <p className="mt-4 text-muted-foreground text-left">
               {page.description}
             </p>

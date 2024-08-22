@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { DragOverlay, type UniqueIdentifier } from "@dnd-kit/core";
 import type { HexColor } from "model/src/core/colors";
 import { Header } from "../../core/header";
@@ -7,25 +7,26 @@ import {
   SortableContainer,
   SortableContainerContext,
 } from "../../core/sortable-container";
-import { ToggleButton } from "../../core/toggle-button";
-import { PieChart } from "./graphs/pie-chart";
 import { ProgressBarMultiValue } from "./graphs/progressbar-multivalue";
 import type { GraphComponent, GraphValue } from "./graphs/types";
+import { Button } from "../../catalyst/button";
 
 export interface StatusLane {
   id: UniqueIdentifier;
   fill: HexColor;
   label: string;
+  onClick?: () => void;
 }
 export type StatusLaneItem = SortableContainerItem & {
   amount: number;
 };
 export interface StatusLaneContainerProps<T extends StatusLaneItem> {
   items: T[];
-  setItems: React.Dispatch<(prevState: T[]) => T[]>;
+  setItems: React.Dispatch<SetStateAction<T[]>>;
   columns: StatusLane[];
   columnsToIncludeInProgressBar?: UniqueIdentifier[];
   children: (item: T, isDragging: boolean) => React.ReactNode;
+  defaultTotal?: number;
 }
 export const StatusLaneContainer = <T extends StatusLaneItem>({
   items,
@@ -33,10 +34,9 @@ export const StatusLaneContainer = <T extends StatusLaneItem>({
   columns,
   columnsToIncludeInProgressBar,
   children,
+  defaultTotal,
 }: StatusLaneContainerProps<T>): JSX.Element => {
-  const [graph, setGraph] = useState<GraphComponent>(
-    () => ProgressBarMultiValue,
-  );
+  const [graph] = useState<GraphComponent>(() => ProgressBarMultiValue);
   const Graph = graph;
 
   const getItemAmount = (
@@ -51,7 +51,7 @@ export const StatusLaneContainer = <T extends StatusLaneItem>({
     return filtered.reduce((prev, curr) => prev + curr.amount, 0);
   };
 
-  const totalValue = getItemAmount(items);
+  const totalValue = defaultTotal ?? getItemAmount(items);
   const values: GraphValue[] = columns
     .filter((column) =>
       columnsToIncludeInProgressBar
@@ -74,6 +74,7 @@ export const StatusLaneContainer = <T extends StatusLaneItem>({
                 key={i}
                 {...column}
                 items={sortItems.filter((item) => item.columnId === column.id)}
+                onClick={column.onClick}
               >
                 {children}
               </StatusLane>
@@ -82,16 +83,6 @@ export const StatusLaneContainer = <T extends StatusLaneItem>({
               {activeItem ? children(activeItem, false) : null}
             </DragOverlay>
           </div>
-          <ToggleButton
-            buttons={[
-              { id: ProgressBarMultiValue, label: "Progress Bar" },
-              { id: PieChart, label: "Pie" },
-            ]}
-            selected={Graph}
-            setSelected={(selected) => {
-              setGraph(() => selected);
-            }}
-          />
         </div>
       )}
     </SortableContainerContext>
@@ -102,6 +93,7 @@ export interface StatusLaneProps<T extends SortableContainerItem> {
   id: UniqueIdentifier;
   label: string;
   fill: HexColor;
+  onClick?: () => void;
   items: T[];
   children: (item: T, isDragging: boolean) => React.ReactNode;
 }
@@ -110,12 +102,16 @@ export const StatusLane = <T extends SortableContainerItem>({
   label,
   fill,
   items,
+  onClick,
   children,
 }: StatusLaneProps<T>): JSX.Element => {
   return (
     <div className="flex flex-col gap-2 w-full min-h-[500px]">
       <div className="h-[6px] rounded-lg" style={{ backgroundColor: fill }} />
-      <Header level={3}>{label}</Header>
+      <div className="flex justify-between">
+        <Header level={3}>{label}</Header>
+        {onClick ? <Button onClick={onClick}>Create</Button> : null}
+      </div>
       <div className="flex flex-col gap-2 h-full">
         <SortableContainer id={id} items={items}>
           {(item) => (isDragging) => children(item, isDragging)}

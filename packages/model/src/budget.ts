@@ -3,7 +3,11 @@ import { z } from "zod";
 export const categoryBudgetSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.union([z.literal("income"), z.literal("expense")]),
+  type: z.union([
+    z.literal("income"),
+    z.literal("expense"),
+    z.literal("transfer"),
+  ]),
   order: z.number(),
 });
 export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;

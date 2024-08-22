@@ -140,27 +140,19 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
   );
 };
 
-const BudgetItemForm: React.FunctionComponent<
+export const BudgetItemForm: React.FunctionComponent<
   Replace<
     BudgetItemProps,
     "item",
     Replace<BudgetItem, "category", CategoryBudget | undefined>
   >
-> = ({ item: itemProps, onChange, categories, onAdd, onRemove }) => {
+> = ({ item: itemProps, onChange, onAdd, onRemove }) => {
   const [itemState, setItemState] = useState(itemProps);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [categoriesState, setCategoriesState] = useState(categories);
 
   const changeProperty = useChangeProperty<typeof itemProps>(
     onAdd ? setItemState : onChange,
   );
-  const prevCategories = usePrevious(categories);
-
-  useEffect(() => {
-    if (prevCategories !== categories) {
-      setCategoriesState(categories);
-    }
-  }, [categories, prevCategories]);
 
   const item = onAdd ? itemState : itemProps;
 
@@ -198,6 +190,20 @@ const BudgetItemForm: React.FunctionComponent<
   return (
     <>
       <div className="grid gap-4">
+        <Label label="Name">
+          <Input
+            value={item.category?.name}
+            onChange={(value) =>
+              changeProperty(item, "category", {
+                id: "",
+                type: "expense",
+                order: 0,
+                ...item.category,
+                name: value,
+              })
+            }
+          />
+        </Label>
         <div className="grid grid-cols-2 gap-4 items-center">
           <Label label="Repeat">
             <Dropdown<BudgetCadence["type"]>

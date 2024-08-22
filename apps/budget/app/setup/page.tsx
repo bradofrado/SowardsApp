@@ -30,7 +30,11 @@ const SetupPage = async () => {
         categories={categories}
         budget={undefined}
       >
-        <SetupStepper accounts={accounts} user={session?.auth.userVacation} />
+        <SetupStepper
+          accounts={accounts}
+          user={session?.auth.userVacation}
+          categories={categories}
+        />
       </TransactionProvider>
     </AccountProvider>
   );
