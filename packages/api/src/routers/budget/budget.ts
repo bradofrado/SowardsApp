@@ -49,11 +49,37 @@ export const budgetRouter = createTRPCRouter({
 
   createBudget: protectedProcedure
     .input(z.object({ budget: budgetSchema }))
-    .mutation(({ input, ctx }) => {
-      return createBudget({
-        db: ctx.prisma,
-        budget: input.budget,
-        userId: ctx.session.auth.userVacation.id,
+    .mutation(async ({ input, ctx }) => {
+      const newCategories = await Promise.all(
+        input.budget.items.map((item) =>
+          item.category.id.includes("cat")
+            ? createCategory({
+                category: item.category,
+                db: ctx.prisma,
+                userId: ctx.session.auth.userVacation.id,
+              })
+            : Promise.resolve(item.category),
+        ),
+      );
+
+      return await ctx.prisma.budgetTemplate.create({
+        data: {
+          name: input.budget.name,
+          budgetItems: {
+            createMany: {
+              data: input.budget.items.map((item, index) => ({
+                amount: item.amount,
+                categoryId: newCategories[index].id,
+                cadence: item.cadence,
+              })),
+            },
+          },
+          user: {
+            connect: {
+              id: ctx.session.auth.userVacation.id,
+            },
+          },
+        },
       });
     }),
 

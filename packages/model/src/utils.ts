@@ -29,13 +29,16 @@ export const datesEqual = (d1: Date, d2: Date): boolean =>
   displayDate(d1) === displayDate(d2);
 
 export const formatDollarAmount = (amount: number): string => {
-  const digits = Math.floor(amount).toString().split("").reverse();
+  const digits = Math.floor(Math.abs(amount)).toString().split("").reverse();
   let str = "";
-  for (let i = 0; i < digits.length; i++) {
+  for (let i = str.length; i < digits.length; i++) {
     str = digits[i] + str;
     if (i % 3 === 2 && i > 0 && i < digits.length - 1) {
       str = "," + str;
     }
+  }
+  if (amount < 0) {
+    str = "-" + str;
   }
 
   // There's got to be a better way to do this

@@ -68,6 +68,8 @@ model BudgetCategory {
   order           Int
   spendingRecords TransactionCategory[]
   budgetItems     BudgetItem[]
+
+  @@unique([userId, name])
 }
 
 model SavingsAccount {

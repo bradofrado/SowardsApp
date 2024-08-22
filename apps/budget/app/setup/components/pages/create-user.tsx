@@ -38,13 +38,18 @@ export const useCreateUser = ({ user }: { user: UserVacation | undefined }) => {
     return new Promise<void>((resolve, reject) => {
       const func: (
         input: { account: { name: string } },
-        methods: { onSuccess: () => void; onError: (error: any) => void },
+        methods: {
+          onSuccess: () => void;
+          onError: (error: { message: string }) => void;
+        },
       ) => void = user ? updateUser : createUser;
       func(
         { account: { name } },
         {
           onSuccess: () => resolve(),
-          onError: (error) => reject(error),
+          onError(error) {
+            reject(error.message);
+          },
         },
       );
     });

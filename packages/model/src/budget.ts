@@ -72,7 +72,8 @@ export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
 const targetCadence = z.object({
   type: z.literal("target"),
-  amount: z.number(),
+  targetAmount: z.number(),
+  currentBalance: z.number(),
 });
 export type TargetCadence = z.infer<typeof targetCadence>;
 

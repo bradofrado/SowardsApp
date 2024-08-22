@@ -186,7 +186,7 @@ export const BudgetItemForm: React.FunctionComponent<
       case "eventually":
         return { type };
       case "target":
-        return { type, amount: 0 };
+        return { type, targetAmount: 1000, currentBalance: 0 };
     }
   };
 
@@ -225,15 +225,17 @@ export const BudgetItemForm: React.FunctionComponent<
               />
             </Label>
           ) : null}
-          <div>
-            <CadenceComponent
-              value={item.cadence}
-              onChange={changeProperty.formFunc("cadence", item)}
-            />
-          </div>
+          <CadenceComponent
+            value={item.cadence}
+            onChange={changeProperty.formFunc("cadence", item)}
+          />
         </div>
         <div className="space-y-1">
-          <Label label="Amount">
+          <Label
+            label={
+              item.cadence.type === "target" ? "Monthly Contribution" : "Amount"
+            }
+          >
             <InputBlur
               value={item.amount}
               onChange={changeProperty.formFuncNumber("amount", item)}
@@ -374,12 +376,29 @@ const TargetCadence: BudgetCadencyComponent<TargetCadence> = ({
 }) => {
   return (
     <>
+      <Label label="Current Balance">
+        <InputBlur
+          className="w-full"
+          value={value.currentBalance}
+          onChange={(currentBalance) =>
+            onChange({
+              type: "target",
+              targetAmount: value.targetAmount,
+              currentBalance: Number(currentBalance),
+            })
+          }
+        />
+      </Label>
       <Label label="Target Amount">
         <InputBlur
           className="w-full"
-          value={value.amount}
+          value={value.targetAmount}
           onChange={(amount) =>
-            onChange({ type: "target", amount: Number(amount) })
+            onChange({
+              type: "target",
+              targetAmount: Number(amount),
+              currentBalance: value.currentBalance,
+            })
           }
         />
       </Label>

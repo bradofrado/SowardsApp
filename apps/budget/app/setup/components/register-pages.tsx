@@ -3,7 +3,7 @@ import { ExternalAccount } from "../../../utils/components/totals/connect-extern
 import { AddAccounts } from "./pages/add-accounts";
 import { CreateUser, useCreateUser } from "./pages/create-user";
 import { MoneyTotals, useMoneyTotals } from "./pages/money-totals";
-import { CreateBudget } from "./pages/create-budget";
+import { CreateBudget, useCreateBudget } from "./pages/create-budget";
 import { CategoryBudget } from "model/src/budget";
 
 interface SetupPageProps {
@@ -25,6 +25,7 @@ interface SetupPageOptions {
 export const usePages = (props: SetupPageProps) => {
   const { onNext } = useCreateUser({ user: props.user });
   const { dynamicTitle } = useMoneyTotals({ accounts: props.accounts });
+  const onCreateNext = useCreateBudget();
 
   const pages: SetupPageOptions[] = [
     {
@@ -53,6 +54,7 @@ export const usePages = (props: SetupPageProps) => {
       description: "Create a budget to help you manage your money.",
       component: CreateBudget,
       maxWidth: "1200px",
+      onNext: onCreateNext,
     },
   ];
 
