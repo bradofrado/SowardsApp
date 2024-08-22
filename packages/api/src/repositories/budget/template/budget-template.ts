@@ -67,8 +67,8 @@ export const createBudget = async ({
             data: budget.items.map((item) => ({
               amount: item.amount,
               categoryId: item.category.id,
-              startDate: item.startDate,
-              endDate: item.endDate,
+              startDate: new Date(),
+              endDate: new Date(),
             })),
           },
         },
@@ -98,8 +98,8 @@ export const updateBudget = async ({
             data: budget.items.map((item) => ({
               amount: item.amount,
               categoryId: item.category.id,
-              startDate: item.startDate,
-              endDate: item.endDate,
+              startDate: new Date(),
+              endDate: new Date(),
             })),
           },
         },

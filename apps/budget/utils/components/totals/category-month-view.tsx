@@ -38,7 +38,7 @@ export const CategoryMonthView: React.FunctionComponent<
         const date = new Date();
         date.setMonth(months.indexOf(currentMonth));
 
-        return isDateInBetween(date, item.startDate, item.endDate);
+        return isDateInBetween(date, new Date(), new Date());
       }),
     [budgetItems, currentMonth],
   );

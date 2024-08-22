@@ -2,39 +2,12 @@
 
 import { api } from "next-utils/src/utils/api";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Button } from "ui/src/components/catalyst/button";
 
-interface PlaidContextState {
-  accessToken: string | null;
-  linkToken: string | null;
-  setAccessToken: (accessToken: string) => void;
-}
-const PlaidContext = createContext<PlaidContextState>({
-  accessToken: null,
-  setAccessToken: () => undefined,
-  linkToken: null,
-});
-export const usePlaid = () => {
-  return useContext(PlaidContext);
-};
-
-export const PlaidProvider: React.FunctionComponent<{
-  children: React.ReactNode;
-}> = ({ children }) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const { linkToken } = usePlaidLinkToken();
-
-  return (
-    <PlaidContext.Provider value={{ accessToken, setAccessToken, linkToken }}>
-      {children}
-    </PlaidContext.Provider>
-  );
-};
-
 export const PlaidLink: React.FunctionComponent = () => {
-  const { linkToken, setAccessToken } = usePlaid();
+  const { linkToken } = usePlaidLinkToken();
   const { mutate: updateAccessToken } = api.plaid.setAccessToken.useMutation();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -46,7 +19,6 @@ export const PlaidLink: React.FunctionComponent = () => {
         {
           onSuccess(item) {
             setLoading(false);
-            setAccessToken(item.accessToken);
             router.refresh();
           },
         },

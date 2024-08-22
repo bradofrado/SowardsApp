@@ -24,6 +24,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
     defaultValue: 0,
   });
   const [loading, setLoading] = useState(false);
+  const [loadingDone, setLoadingDone] = useState(false);
   const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
   const pagesProps = useMemo(
@@ -71,6 +72,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   };
 
   const onDone = (): void => {
+    setLoadingDone(true);
     router.push("/");
   };
 
@@ -102,7 +104,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
                 </Button>
               ) : null}
               {currPage === pages.length - 1 && showNext ? (
-                <Button plain onClick={onDone}>
+                <Button plain onClick={onDone} loading={loadingDone}>
                   Done
                 </Button>
               ) : null}

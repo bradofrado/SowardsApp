@@ -15,7 +15,6 @@ export const prismaToBudgetItem = (
     id: item.id,
     category: prismaToBudgetCategory(item.category),
     amount: item.amount,
-    startDate: item.startDate,
-    endDate: item.endDate,
+    cadence: { type: "eventually" },
   };
 };
