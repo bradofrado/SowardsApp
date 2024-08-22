@@ -229,6 +229,20 @@ export const deleteSpendingRecord = async ({
   });
 };
 
+export const deleteSpendingRecords = async ({
+  accountId,
+  db,
+}: {
+  accountId: string;
+  db: Db;
+}): Promise<void> => {
+  await db.spendingRecord.deleteMany({
+    where: {
+      accountId,
+    },
+  });
+};
+
 export const prismaToSpendingRecord = (
   spendingRecord: Prisma.SpendingRecordGetPayload<typeof spendingRecordPayload>,
 ): SpendingRecord => {

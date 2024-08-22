@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   createLinkToken,
+  getAccounts,
   removeAccount,
   setAccessToken,
 } from "../../repositories/budget/plaid";
@@ -13,6 +14,7 @@ import { spendingRecordSchema } from "model/src/budget";
 import {
   createSpendingRecord,
   deleteSpendingRecord,
+  deleteSpendingRecords,
   updateSpendingRecord,
 } from "../../repositories/budget/spending";
 
@@ -43,6 +45,19 @@ export const plaidRouter = createTRPCRouter({
   removeAccount: protectedProcedure
     .input(z.object({ accessToken: z.string() }))
     .mutation(async ({ input, ctx }) => {
+      const accounts = await getAccounts({
+        accessToken: input.accessToken,
+        cursor: null,
+      });
+      await Promise.all(
+        accounts.map((account) =>
+          deleteSpendingRecords({
+            db: ctx.prisma,
+            accountId: account.account_id,
+          }),
+        ),
+      );
+
       await deleteExternalLogin({
         db: ctx.prisma,
         accessToken: input.accessToken,
