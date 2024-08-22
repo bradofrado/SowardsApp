@@ -88,8 +88,7 @@ model BudgetTemplate {
 
 model BudgetItem {
   id         String         @id @default(auto()) @map("_id") @db.ObjectId
-  startDate  DateTime
-  endDate    DateTime
+  cadence    Json
   amount     Float
   categoryId String         @db.ObjectId
   category   BudgetCategory @relation(fields: [categoryId], references: [id])

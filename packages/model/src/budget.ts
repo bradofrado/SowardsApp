@@ -66,19 +66,19 @@ const eventuallyCadence = z.object({
 });
 export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
-const budgetCadence = z.union([
+export const budgetCadenceSchema = z.union([
   weeklyCadence,
   monthlyCadence,
   yearlyCadence,
   eventuallyCadence,
 ]);
-export type BudgetCadence = z.infer<typeof budgetCadence>;
+export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
 
 export const budgetItemSchema = z.object({
   id: z.string(),
   category: categoryBudgetSchema,
   amount: z.number(),
-  cadence: budgetCadence,
+  cadence: budgetCadenceSchema,
 });
 export type BudgetItem = z.infer<typeof budgetItemSchema>;
 

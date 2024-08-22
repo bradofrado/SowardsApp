@@ -1,6 +1,7 @@
 import type { Prisma } from "db/lib/prisma";
 import type { BudgetItem } from "model/src/budget";
 import { prismaToBudgetCategory } from "../category";
+import { budgetCadenceSchema } from "model/src/budget";
 
 export const budgetItemPayload = {
   include: {
@@ -15,6 +16,6 @@ export const prismaToBudgetItem = (
     id: item.id,
     category: prismaToBudgetCategory(item.category),
     amount: item.amount,
-    cadence: { type: "eventually" },
+    cadence: budgetCadenceSchema.parse(item.cadence),
   };
 };

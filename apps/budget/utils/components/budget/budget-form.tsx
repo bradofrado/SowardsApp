@@ -199,20 +199,6 @@ const BudgetItemForm: React.FunctionComponent<
     <>
       <div className="grid gap-4">
         <div className="grid grid-cols-2 gap-4 items-center">
-          <div className="space-y-1">
-            <Label label="Existing Category">
-              <Dropdown
-                className="w-full"
-                items={categoriesState}
-                initialValue={item.category?.id}
-                onChange={(category) =>
-                  changeProperty(item, "category", category as CategoryBudget)
-                }
-              />
-            </Label>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 items-center">
           <Label label="Repeat">
             <Dropdown<BudgetCadence["type"]>
               className="w-full"

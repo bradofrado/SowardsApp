@@ -12,6 +12,7 @@ import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
 import { useTransactions } from "../providers/transaction-provider";
 import { CategoryNegativeChart } from "../charts/negative-chart";
+import { BudgetItem } from "model/src/budget";
 
 interface CategoryMonthViewProps {}
 export const CategoryMonthView: React.FunctionComponent<
@@ -34,13 +35,35 @@ export const CategoryMonthView: React.FunctionComponent<
   );
   const filteredBudgeted = useMemo(
     () =>
-      budgetItems.filter((item) => {
-        const date = new Date();
-        date.setMonth(months.indexOf(currentMonth));
+      budgetItems.reduce<BudgetItem[]>((prev, curr) => {
+        if (curr.cadence.type === "weekly") {
+          const amount = curr.amount * 4;
+          return [...prev, { ...curr, amount }];
+        }
 
-        return isDateInBetween(date, new Date(), new Date());
-      }),
-    [budgetItems, currentMonth],
+        if (curr.cadence.type === "monthly") {
+          const amount = curr.amount;
+          return [...prev, { ...curr, amount }];
+        }
+
+        const date = new Date();
+        if (curr.cadence.type === "yearly") {
+          //7 - 3
+          const dateDiff =
+            date.getMonth() > curr.cadence.month
+              ? 12 - date.getMonth() + curr.cadence.month
+              : curr.cadence.month - date.getMonth();
+          const amount = curr.amount / dateDiff;
+
+          return [...prev, { ...curr, amount }];
+        }
+
+        const datDiff = 11 - date.getMonth();
+        const amount = curr.amount / datDiff;
+
+        return [...prev, { ...curr, amount }];
+      }, []),
+    [budgetItems],
   );
 
   const totalsActual = useTransactionCategoryTotals({
