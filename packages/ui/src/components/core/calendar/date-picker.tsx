@@ -109,7 +109,7 @@ export const DatePicker: React.FunctionComponent<DatePickerProps> = ({
         <Button
           plain
           className={clsx(
-            "w-[280px] justify-start text-left font-normal",
+            "justify-start text-left font-normal",
             !date && "text-muted-foreground",
           )}
         >

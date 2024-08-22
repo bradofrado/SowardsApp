@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { budgetSchema, categoryBudgetSchema } from "model/src/budget";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
-import { createCategories } from "../../repositories/budget/category";
+import {
+  createCategories,
+  createCategory,
+} from "../../repositories/budget/category";
 import {
   createBudget,
   deleteBudget,
@@ -15,6 +18,31 @@ export const budgetRouter = createTRPCRouter({
       await createCategories({
         db: ctx.prisma,
         categories: input.categories,
+        userId: ctx.session.auth.userVacation.id,
+      });
+    }),
+  createCategory: protectedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        type: z.union([z.literal("income"), z.literal("expense")]),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const currCategories = await ctx.prisma.budgetCategory.findMany({
+        where: {
+          userId: ctx.session.auth.userVacation.id,
+        },
+      });
+
+      return createCategory({
+        db: ctx.prisma,
+        category: {
+          id: "",
+          name: input.name,
+          type: input.type,
+          order: currCategories.length,
+        },
         userId: ctx.session.auth.userVacation.id,
       });
     }),
