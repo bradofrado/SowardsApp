@@ -219,3 +219,7 @@ export const stringUnionSchema = <T extends readonly string[]>(array: T) =>
   z.custom<T[number]>(
     (data) => typeof data === "string" && array.includes(data),
   );
+
+export function capitalizeFirstLetter(str: string): string {
+  return `${str[0].toUpperCase()}${str.slice(1)}`;
+}

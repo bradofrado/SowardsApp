@@ -15,7 +15,7 @@ import { Card } from "ui/src/components/core/card";
 import { useChangeProperty } from "ui/src/hooks/change-property";
 import { HexColor } from "model/src/core/colors";
 import { useAccountTotals } from "../../../../utils/hooks/account-totals";
-import { formatDollarAmount } from "model/src/utils";
+import { capitalizeFirstLetter, formatDollarAmount } from "model/src/utils";
 import { Button } from "ui/src/components/catalyst/button";
 import {
   Dialog,
@@ -101,6 +101,19 @@ export const CreateBudget: SetupPage = ({
       if (item.columnId === "nothing") {
         item.amount = 0;
       } else {
+        if (item.columnId === "transfer") {
+          item.cadence = {
+            type: "target",
+            amount: 1000,
+          };
+        }
+
+        if (item.category.type === "transfer" && item.columnId !== "transfer") {
+          item.cadence = {
+            type: "monthly",
+            dayOfMonth: 1,
+          };
+        }
         item.category.type = item.columnId;
         if (item.amount <= 0) {
           item.amount = 100;
@@ -252,6 +265,7 @@ const BudgetItemCard: React.FunctionComponent<{
         <div>{item.category.name}</div>
         <div className="flex gap-2 items-center">
           <div>{formatDollarAmount(item.amount)}</div>
+          <div>{capitalizeFirstLetter(item.cadence.type)}</div>
           <Button plain onPointerDown={() => setEdit(true)}>
             Edit
           </Button>

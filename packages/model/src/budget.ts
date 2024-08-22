@@ -70,11 +70,18 @@ const eventuallyCadence = z.object({
 });
 export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
+const targetCadence = z.object({
+  type: z.literal("target"),
+  amount: z.number(),
+});
+export type TargetCadence = z.infer<typeof targetCadence>;
+
 export const budgetCadenceSchema = z.union([
   weeklyCadence,
   monthlyCadence,
   yearlyCadence,
   eventuallyCadence,
+  targetCadence,
 ]);
 export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
 

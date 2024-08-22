@@ -3,6 +3,7 @@ import {
   BudgetCadence,
   BudgetItem,
   CategoryBudget,
+  type TargetCadence,
   type EventuallyCadence,
   type MonthlyCadence,
   type WeeklyCadence,
@@ -184,6 +185,8 @@ export const BudgetItemForm: React.FunctionComponent<
         return { type, month: 1, dayOfMonth: 1 };
       case "eventually":
         return { type };
+      case "target":
+        return { type, amount: 0 };
     }
   };
 
@@ -205,21 +208,23 @@ export const BudgetItemForm: React.FunctionComponent<
           />
         </Label>
         <div className="grid grid-cols-2 gap-4 items-center">
-          <Label label="Repeat">
-            <Dropdown<BudgetCadence["type"]>
-              className="w-full"
-              initialValue={item.cadence.type}
-              items={[
-                { id: "weekly", name: "Weekly" },
-                { id: "monthly", name: "Monthly" },
-                { id: "yearly", name: "Yearly" },
-                { id: "eventually", name: "Variable" },
-              ]}
-              onChange={(value) =>
-                changeProperty(item, "cadence", createCadence(value.id))
-              }
-            />
-          </Label>
+          {item.cadence.type !== "target" ? (
+            <Label label="Repeat">
+              <Dropdown<BudgetCadence["type"]>
+                className="w-full"
+                initialValue={item.cadence.type}
+                items={[
+                  { id: "weekly", name: "Weekly" },
+                  { id: "monthly", name: "Monthly" },
+                  { id: "yearly", name: "Yearly" },
+                  { id: "eventually", name: "Variable" },
+                ]}
+                onChange={(value) =>
+                  changeProperty(item, "cadence", createCadence(value.id))
+                }
+              />
+            </Label>
+          ) : null}
           <div>
             <CadenceComponent
               value={item.cadence}
@@ -264,6 +269,7 @@ const CadenceComponent: React.FunctionComponent<{
       monthly: MonthlyCadence,
       yearly: YearlyCadence,
       eventually: EventuallyCadence,
+      target: TargetCadence,
     }),
     [],
   );
@@ -360,6 +366,25 @@ const EventuallyCadence: BudgetCadencyComponent<EventuallyCadence> = ({
   }, []);
 
   return <></>;
+};
+
+const TargetCadence: BudgetCadencyComponent<TargetCadence> = ({
+  onChange,
+  value,
+}) => {
+  return (
+    <>
+      <Label label="Target Amount">
+        <InputBlur
+          className="w-full"
+          value={value.amount}
+          onChange={(amount) =>
+            onChange({ type: "target", amount: Number(amount) })
+          }
+        />
+      </Label>
+    </>
+  );
 };
 
 interface BudgetItemProps {
