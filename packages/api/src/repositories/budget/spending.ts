@@ -79,7 +79,6 @@ export const createSpendingRecord = async ({
                   (transactionCategory) => ({
                     amount: transactionCategory.amount,
                     categoryId: transactionCategory.category.id,
-                    transactionId,
                   }),
                 ),
               },
@@ -124,7 +123,6 @@ export const createSpendingRecords = async ({
                       (transactionCategory) => ({
                         amount: transactionCategory.amount,
                         categoryId: transactionCategory.category.id,
-                        transactionId,
                       }),
                     ),
                   },
