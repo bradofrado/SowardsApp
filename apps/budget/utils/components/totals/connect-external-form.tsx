@@ -12,6 +12,7 @@ import { api } from "next-utils/src/utils/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccountDisplay } from "../../../app/(dashboard)/settings/components/account-display";
+import { Alert } from "ui/src/components/core/alert";
 
 export type ExternalAccount = AccountBase & { access_token: string };
 interface ConnectExternalAccountFormProps {
@@ -40,6 +41,7 @@ const AccountItem: React.FunctionComponent<{ account: ExternalAccount }> = ({
 }) => {
   const { mutate: removeAccount } = api.plaid.removeAccount.useMutation();
   const [loading, setLoading] = useState(false);
+  const [label, setLabel] = useState<string | undefined>();
   const router = useRouter();
   const onRemove = () => {
     setLoading(true);
@@ -49,6 +51,7 @@ const AccountItem: React.FunctionComponent<{ account: ExternalAccount }> = ({
         onSuccess() {
           setLoading(false);
           router.refresh();
+          setLabel("Account removed successfully");
         },
         onError() {
           setLoading(false);
@@ -57,11 +60,14 @@ const AccountItem: React.FunctionComponent<{ account: ExternalAccount }> = ({
     );
   };
   return (
-    <div className="flex justify-between items-center">
-      <AccountDisplay account={account} />
-      <Button onClick={onRemove} loading={loading}>
-        Remove
-      </Button>
-    </div>
+    <>
+      <div className="flex justify-between items-center">
+        <AccountDisplay account={account} />
+        <Button onClick={onRemove} loading={loading}>
+          Remove
+        </Button>
+      </div>
+      <Alert label={label} setLabel={setLabel} type="info" />
+    </>
   );
 };

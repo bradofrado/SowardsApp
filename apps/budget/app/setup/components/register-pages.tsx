@@ -38,7 +38,7 @@ export const usePages = (props: SetupPageProps) => {
     {
       title: "Add Accounts",
       description:
-        "Connect your external accounts (bank accounts, credit carts, etc.)",
+        "Connect your external accounts (bank accounts, credit carts, etc.). You will need to click 'Add Account' for each separate institution you want to connect.",
       component: AddAccounts,
       defaultShowNext: false,
     },
