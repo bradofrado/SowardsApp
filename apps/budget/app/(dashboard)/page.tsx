@@ -16,6 +16,8 @@ import { AccountProvider } from "../../utils/components/providers/account-provid
 import { AccountTotals } from "../../utils/components/totals/account-totals";
 import { redirect } from "next/navigation";
 import { Confetti } from "../../utils/components/totals/confetti";
+import { BudgetItem, SpendingRecord } from "model/src/budget";
+import { SavingsAccount } from "../../utils/components/providers/types";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
@@ -32,7 +34,11 @@ const Home = withAuth(async ({ ctx }) => {
       budget={budgets[0]}
       categories={categories}
     >
-      <AccountProvider accounts={accounts}>
+      <AccountProvider
+        accounts={accounts}
+        transactions={spending}
+        budgetItems={budgets[0]?.items ?? []}
+      >
         <div className="flex flex-col md:flex-row gap-2">
           <AccountTotals />
           <Card className="flex-1" label="Totals">

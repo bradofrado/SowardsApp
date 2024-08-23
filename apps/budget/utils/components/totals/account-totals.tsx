@@ -12,6 +12,9 @@ import { useQueryState } from "ui/src/hooks/query-state";
 import { AccountLineChart, TotalGraphValue } from "../charts/line-chart";
 import { useAccountTotals } from "../../hooks/account-totals";
 import { useMonthlyAverage } from "./transaction-totals";
+import { useChartTotals } from "./chart-totals";
+import { SavingsAccount } from "../providers/types";
+import { SpendingRecord } from "model/src/budget";
 
 const dateButtons: {
   label: string;
@@ -37,19 +40,30 @@ const dateButtons: {
 export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
   future = false,
 }) => {
+  const { savingsAccounts } = useAccounts();
   const [currDaysBack, setCurrDaysBack] = useQueryState({
     key: "netWorthFilter",
     defaultValue: 1,
   });
+  const [currAccount, setCurrAccount] = useQueryState<string>({
+    key: "account",
+    defaultValue: "Net Worth",
+  });
 
-  const { netWorth, chartData, onValueChange } = useChartTotals(
-    dateButtons[currDaysBack].daysBack,
+  const daysBack = useMemo(
+    () => dateButtons[currDaysBack].daysBack,
+    [currDaysBack],
+  );
+
+  const { amount, chartData, onValueChange } = useAccountChartTotals(
+    daysBack,
     future,
+    currAccount,
   );
 
   return (
-    <Card className="flex-1" label="Net Worth">
-      <AmountHeaderLabel amount={netWorth} />
+    <Card className="flex-1" label={currAccount}>
+      <AmountHeaderLabel amount={amount} />
       <div className="mt-4">
         <AccountLineChart chartData={chartData} onValueChange={onValueChange} />
         <div className="flex gap-4">
@@ -63,6 +77,21 @@ export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
             </Button>
           ))}
         </div>
+        {savingsAccounts.length > 0 ? (
+          <div className="flex gap-4 mt-2">
+            {["Net Worth", ...savingsAccounts.map((a) => a.name)].map(
+              (name, i) => (
+                <Button
+                  key={name}
+                  plain={(currAccount !== name) as true}
+                  onClick={() => setCurrAccount(name)}
+                >
+                  {name}
+                </Button>
+              ),
+            )}
+          </div>
+        ) : null}
       </div>
     </Card>
   );
@@ -84,81 +113,97 @@ const AmountHeaderLabel: React.FunctionComponent<{ amount: number }> = ({
   );
 };
 
-const useChartTotals = (daysBack: number, future: boolean) => {
+const useAccountChartTotals = (
+  daysBack: number,
+  future: boolean,
+  account: string,
+) => {
+  const { savingsAccounts } = useAccounts();
+  const { netWorth, chartData, onValueChange } = useNetWorthChartTotals(
+    daysBack,
+    future,
+  );
+  const {
+    amount: savingsAmount,
+    chartData: savingsChartData,
+    onValueChange: onSavingsValueChange,
+  } = useSavingAccountTotals(
+    daysBack,
+    savingsAccounts.find((a) => a.name === account),
+    future,
+  );
+
+  if (account === "Net Worth") {
+    return {
+      amount: netWorth,
+      chartData,
+      onValueChange,
+    };
+  }
+
+  return {
+    amount: savingsAmount,
+    chartData: savingsChartData,
+    onValueChange: onSavingsValueChange,
+  };
+};
+
+const useNetWorthChartTotals = (daysBack: number, future: boolean) => {
   const { accounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
-  const [datePoint, setDatePoint] = useState<TotalGraphValue | undefined>(
-    undefined,
-  );
+
   const { expenses, income } = useTransactions();
   const { avgMonthlyExpense, avgMonthlyIncome } = useMonthlyAverage();
 
-  const previousData: TotalGraphValue[] = useMemo(
-    () =>
-      Array.from(Array(future ? 30 : daysBack).keys()).map((month, i) => {
-        const date = new Date(new Date().getTime() - i * day);
-        const expenseOnDate = expenses.transactions.filter((transaction) =>
-          datesEqual(transaction.date, date),
-        );
-        const incomeOnDate = income.transactions.filter((transaction) =>
-          datesEqual(transaction.date, date),
-        );
-        const expenseTotal = expenseOnDate.reduce(
-          (prev, curr) => prev + curr.amount,
-          0,
-        );
-        const incomeTotal = incomeOnDate.reduce(
-          (prev, curr) => prev + curr.amount,
-          0,
-        );
+  const options = useChartTotals({
+    presentAmount: netWorth,
+    numDays: daysBack,
+    isFuture: future,
+    amountDateCallback: (date) => {
+      const expenseOnDate = transactionsOnDate(expenses.transactions, date);
+      const incomeOnDate = transactionsOnDate(income.transactions, date);
 
-        return {
-          value: incomeTotal - expenseTotal,
-          date,
-          fill: "#8c52ff",
-        };
-      }),
-    [daysBack, expenses.transactions, future, income.transactions],
-  );
+      const expenseTotal = calculateAmount(expenseOnDate);
 
-  const futureData: TotalGraphValue[] = useMemo(
-    () =>
-      Array.from(Array(daysBack).keys()).map((month, i) => {
-        const date = new Date(new Date().getTime() + i * day);
+      const incomeTotal = calculateAmount(incomeOnDate);
 
-        return {
-          value: avgMonthlyIncome / 30 - avgMonthlyExpense / 30,
-          date,
-          fill: "#41b8d5",
-        };
-      }),
-    [avgMonthlyExpense, avgMonthlyIncome, daysBack],
-  );
-
-  const networthPrevious = useMemo(
-    () =>
-      previousData.reduce<TotalGraphValue[]>((acc, curr) => {
-        const prev = acc[acc.length - 1]?.value ?? netWorth;
-        return [...acc, { ...curr, value: prev - curr.value }];
-      }, []),
-    [previousData, netWorth],
-  );
-
-  const networthFuture = useMemo(
-    () =>
-      futureData.reduce<TotalGraphValue[]>((acc, curr) => {
-        const prev = acc[acc.length - 1]?.value ?? netWorth;
-        return [...acc, { ...curr, value: prev + curr.value }];
-      }, []),
-    [futureData, netWorth],
-  );
+      return incomeTotal - expenseTotal;
+    },
+    futureAmountDateCallback: () =>
+      avgMonthlyIncome / 30 - avgMonthlyExpense / 30,
+  });
 
   return {
-    netWorth: datePoint?.value ?? netWorth,
-    chartData: [
-      ...networthPrevious.slice().reverse(),
-      ...(future ? networthFuture : []),
-    ],
-    onValueChange: setDatePoint,
+    netWorth: options.amount,
+    chartData: options.chartData,
+    onValueChange: options.onValueChange,
   };
 };
+
+const useSavingAccountTotals = (
+  daysBack: number,
+  savingsAccount: SavingsAccount | undefined,
+  isFuture: boolean,
+) => {
+  const options = useChartTotals({
+    numDays: daysBack,
+    isFuture,
+    amountDateCallback: (date) =>
+      calculateAmount(
+        transactionsOnDate(savingsAccount?.transactions ?? [], date),
+      ),
+    futureAmountDateCallback: () =>
+      savingsAccount?.monthlyContribution ?? 0 / 30,
+  });
+  return options;
+};
+
+function transactionsOnDate(transactions: SpendingRecord[], date: Date) {
+  return transactions.filter((transaction) =>
+    datesEqual(transaction.date, date),
+  );
+}
+
+function calculateAmount<T extends { amount: number }>(transactions: T[]) {
+  return transactions.reduce((prev, curr) => prev + curr.amount, 0);
+}
