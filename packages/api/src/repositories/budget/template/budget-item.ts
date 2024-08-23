@@ -1,5 +1,5 @@
-import type { Prisma } from "db/lib/prisma";
-import type { BudgetItem } from "model/src/budget";
+import type { Db, Prisma } from "db/lib/prisma";
+import type { BudgetItem, CategoryBudget } from "model/src/budget";
 import { prismaToBudgetCategory } from "../category";
 import { budgetCadenceSchema } from "model/src/budget";
 
@@ -8,6 +8,30 @@ export const budgetItemPayload = {
     category: true,
   },
 } satisfies Prisma.BudgetItemDefaultArgs;
+
+export const getBudgetItemsOfType = async ({
+  db,
+  userId,
+  type,
+}: {
+  db: Db;
+  userId: string;
+  type: CategoryBudget["type"];
+}): Promise<BudgetItem[]> => {
+  const items = await db.budgetItem.findMany({
+    where: {
+      category: {
+        type,
+      },
+      budget: {
+        userId,
+      },
+    },
+    ...budgetItemPayload,
+  });
+
+  return items.map(prismaToBudgetItem);
+};
 
 export const prismaToBudgetItem = (
   item: Prisma.BudgetItemGetPayload<typeof budgetItemPayload>,

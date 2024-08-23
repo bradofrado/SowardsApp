@@ -3,7 +3,11 @@ import { z } from "zod";
 export const categoryBudgetSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.union([z.literal("income"), z.literal("expense")]),
+  type: z.union([
+    z.literal("income"),
+    z.literal("expense"),
+    z.literal("transfer"),
+  ]),
   order: z.number(),
 });
 export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;
@@ -66,11 +70,19 @@ const eventuallyCadence = z.object({
 });
 export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
+const targetCadence = z.object({
+  type: z.literal("target"),
+  targetAmount: z.number(),
+  currentBalance: z.number(),
+});
+export type TargetCadence = z.infer<typeof targetCadence>;
+
 export const budgetCadenceSchema = z.union([
   weeklyCadence,
   monthlyCadence,
   yearlyCadence,
   eventuallyCadence,
+  targetCadence,
 ]);
 export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
 

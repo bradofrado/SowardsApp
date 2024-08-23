@@ -42,7 +42,7 @@ export const Popover: React.FunctionComponent<PopoverProps> = ({
   return (
     <PopoverBase>
       <PopoverTrigger asChild>
-        <div>{button}</div>
+        <div className="h-fit">{button}</div>
       </PopoverTrigger>
       <PopoverContent className={className}>{children}</PopoverContent>
     </PopoverBase>

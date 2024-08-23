@@ -3,6 +3,7 @@ import {
   BudgetCadence,
   BudgetItem,
   CategoryBudget,
+  type TargetCadence,
   type EventuallyCadence,
   type MonthlyCadence,
   type WeeklyCadence,
@@ -140,27 +141,19 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
   );
 };
 
-const BudgetItemForm: React.FunctionComponent<
+export const BudgetItemForm: React.FunctionComponent<
   Replace<
     BudgetItemProps,
     "item",
     Replace<BudgetItem, "category", CategoryBudget | undefined>
   >
-> = ({ item: itemProps, onChange, categories, onAdd, onRemove }) => {
+> = ({ item: itemProps, onChange, onAdd, onRemove }) => {
   const [itemState, setItemState] = useState(itemProps);
   const [error, setError] = useState<string | undefined>(undefined);
-  const [categoriesState, setCategoriesState] = useState(categories);
 
   const changeProperty = useChangeProperty<typeof itemProps>(
     onAdd ? setItemState : onChange,
   );
-  const prevCategories = usePrevious(categories);
-
-  useEffect(() => {
-    if (prevCategories !== categories) {
-      setCategoriesState(categories);
-    }
-  }, [categories, prevCategories]);
 
   const item = onAdd ? itemState : itemProps;
 
@@ -192,55 +185,81 @@ const BudgetItemForm: React.FunctionComponent<
         return { type, month: 1, dayOfMonth: 1 };
       case "eventually":
         return { type };
+      case "target":
+        return { type, targetAmount: 1000, currentBalance: 0 };
     }
   };
 
   return (
     <>
-      <div className="grid gap-4">
-        <div className="grid grid-cols-2 gap-4 items-center">
-          <Label label="Repeat">
-            <Dropdown<BudgetCadence["type"]>
-              className="w-full"
-              initialValue={item.cadence.type}
-              items={[
-                { id: "weekly", name: "Weekly" },
-                { id: "monthly", name: "Monthly" },
-                { id: "yearly", name: "Yearly" },
-                { id: "eventually", name: "Variable" },
-              ]}
-              onChange={(value) =>
-                changeProperty(item, "cadence", createCadence(value.id))
-              }
-            />
-          </Label>
-          <div>
-            <CadenceComponent
-              value={item.cadence}
-              onChange={changeProperty.formFunc("cadence", item)}
-            />
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Label label="Amount">
-            <InputBlur
-              value={item.amount}
-              onChange={changeProperty.formFuncNumber("amount", item)}
-            />
-          </Label>
-        </div>
-        {error ? <p className="text-red-400 text-sm">{error}</p> : null}
-        {onRemove ? (
-          <Button plain className="w-full" onClick={onRemoveClick}>
-            Remove
-          </Button>
-        ) : null}
-        {onAdd ? (
-          <Button className="w-full" onClick={onAddClick}>
-            Add
-          </Button>
-        ) : null}
-      </div>
+      <FormRow label="Name" description="The name of this category">
+        <Input
+          className="h-fit"
+          value={item.category?.name}
+          onChange={(value) =>
+            changeProperty(item, "category", {
+              id: "",
+              type: "expense",
+              order: 0,
+              ...item.category,
+              name: value,
+            })
+          }
+        />
+      </FormRow>
+      <FormDivider />
+      {item.cadence.type !== "target" ? (
+        <FormRow
+          label="Type"
+          description="The category type determines how much you are putting away each month. Variable means you could spend up to the amount by the end of the year. We will estimate how much you need to put aside each month to save for this amount."
+        >
+          <Dropdown<BudgetCadence["type"]>
+            className="w-full h-fit"
+            initialValue={item.cadence.type}
+            items={[
+              //{ id: "weekly", name: "Weekly" },
+              { id: "monthly", name: "Monthly" },
+              //{ id: "yearly", name: "Yearly" },
+              { id: "eventually", name: "Variable" },
+            ]}
+            onChange={(value) =>
+              changeProperty(item, "cadence", createCadence(value.id))
+            }
+          />
+
+          {/* <CadenceComponent
+            value={item.cadence}
+            onChange={changeProperty.formFunc("cadence", item)}
+          /> */}
+        </FormRow>
+      ) : (
+        <CadenceComponent
+          value={item.cadence}
+          onChange={changeProperty.formFunc("cadence", item)}
+        />
+      )}
+      <FormDivider />
+      <FormRow
+        label="Amount"
+        description="The amount you want to budget for this category"
+      >
+        <InputBlur
+          className="h-fit"
+          value={item.amount}
+          onChange={changeProperty.formFuncNumber("amount", item)}
+        />
+      </FormRow>
+      {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+      {onRemove ? (
+        <Button plain className="w-full" onClick={onRemoveClick}>
+          Remove
+        </Button>
+      ) : null}
+      {onAdd ? (
+        <Button className="w-full" onClick={onAddClick}>
+          Add
+        </Button>
+      ) : null}
     </>
   );
 };
@@ -258,6 +277,7 @@ const CadenceComponent: React.FunctionComponent<{
       monthly: MonthlyCadence,
       yearly: YearlyCadence,
       eventually: EventuallyCadence,
+      target: TargetCadence,
     }),
     [],
   );
@@ -354,6 +374,42 @@ const EventuallyCadence: BudgetCadencyComponent<EventuallyCadence> = ({
   }, []);
 
   return <></>;
+};
+
+const TargetCadence: BudgetCadencyComponent<TargetCadence> = ({
+  onChange,
+  value,
+}) => {
+  return (
+    <>
+      <Label label="Current Balance">
+        <InputBlur
+          className="w-full"
+          value={value.currentBalance}
+          onChange={(currentBalance) =>
+            onChange({
+              type: "target",
+              targetAmount: value.targetAmount,
+              currentBalance: Number(currentBalance),
+            })
+          }
+        />
+      </Label>
+      <Label label="Target Amount">
+        <InputBlur
+          className="w-full"
+          value={value.targetAmount}
+          onChange={(amount) =>
+            onChange({
+              type: "target",
+              targetAmount: Number(amount),
+              currentBalance: value.currentBalance,
+            })
+          }
+        />
+      </Label>
+    </>
+  );
 };
 
 interface BudgetItemProps {

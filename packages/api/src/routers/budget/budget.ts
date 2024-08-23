@@ -6,10 +6,10 @@ import {
   createCategory,
 } from "../../repositories/budget/category";
 import {
-  createBudget,
   deleteBudget,
   updateBudget,
 } from "../../repositories/budget/template/budget-template";
+import { createBudget } from "../../services/budget";
 
 export const budgetRouter = createTRPCRouter({
   createCategories: protectedProcedure
@@ -49,11 +49,11 @@ export const budgetRouter = createTRPCRouter({
 
   createBudget: protectedProcedure
     .input(z.object({ budget: budgetSchema }))
-    .mutation(({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       return createBudget({
-        db: ctx.prisma,
         budget: input.budget,
         userId: ctx.session.auth.userVacation.id,
+        db: ctx.prisma,
       });
     }),
 

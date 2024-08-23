@@ -37,7 +37,7 @@ export const Card: React.FunctionComponent<CardProps> = ({
         onClick ? "hover:bg-gray-50 hover:cursor-pointer" : "",
         className,
       )}
-      onClick={onClick}
+      onMouseDown={onClick}
     >
       <div className="flex justify-between px-4 pt-4 sm:px-8 sm:pt-8 items-center">
         {labelComponent}

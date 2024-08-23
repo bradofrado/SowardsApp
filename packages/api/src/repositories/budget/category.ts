@@ -33,7 +33,7 @@ export const createCategory = async ({
     data: {
       userId,
       name: category.name,
-      type: category.type === "income" ? "income" : "expense",
+      type: category.type,
       order: category.order,
     },
   });
@@ -83,7 +83,7 @@ export const updateCategory = async ({
     },
     data: {
       name: category.name,
-      type: category.type === "income" ? "income" : "expense",
+      type: category.type,
       order: category.order,
     },
   });
@@ -110,7 +110,7 @@ export const prismaToBudgetCategory = (
   return {
     id: category.id,
     name: category.name,
-    type: category.type === "income" ? "income" : "expense",
+    type: category.type as "income" | "expense" | "transfer",
     order: category.order,
   };
 };
