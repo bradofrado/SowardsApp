@@ -47,11 +47,12 @@ export const CreateBudget: SetupPage = ({
   accounts,
   setShowNext,
   categories,
+  budget: budgetProps,
 }) => {
   const { netWorth } = useAccountTotals(accounts);
   const [budget, setBudget] = useQueryState<Budget>({
     key: budgetQueryKey,
-    defaultValue: {
+    defaultValue: budgetProps ?? {
       id: "",
       items: [],
       name: "My Budget",
@@ -89,6 +90,7 @@ export const CreateBudget: SetupPage = ({
   const statusItems = useMemo(
     () =>
       categoriesState
+        .filter((cat) => cat.type !== "income")
         .map<
           BudgetItem & {
             columnId: "expense" | "transfer" | "nothing";
@@ -409,13 +411,13 @@ const BudgetItemCard: React.FunctionComponent<{
           <div>
             {formatDollarAmount(
               item.cadence.type === "target"
-                ? item.cadence.currentBalance
+                ? item.cadenceAmount
                 : item.cadenceAmount,
             )}
           </div>
           <div>
             {item.cadence.type === "target"
-              ? "Balance"
+              ? "Monthly"
               : capitalizeFirstLetter(item.cadence.type)}
           </div>
           <Button plain onPointerDown={() => setEdit(true)}>

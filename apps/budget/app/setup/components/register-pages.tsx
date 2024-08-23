@@ -4,10 +4,11 @@ import { AddAccounts } from "./pages/add-accounts";
 import { CreateUser, useCreateUser } from "./pages/create-user";
 import { MoneyTotals, useMoneyTotals } from "./pages/money-totals";
 import { CreateBudget, useCreateBudget } from "./pages/create-budget";
-import { CategoryBudget } from "model/src/budget";
+import { Budget, BudgetItem, CategoryBudget } from "model/src/budget";
 
 interface SetupPageProps {
   accounts: ExternalAccount[];
+  budget: Budget | undefined;
   categories: CategoryBudget[];
   user: UserVacation | undefined;
   setShowNext: (value: boolean) => void;

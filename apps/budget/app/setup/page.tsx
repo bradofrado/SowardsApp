@@ -14,6 +14,7 @@ import { TransactionProvider } from "../../utils/components/providers/transactio
 import { getCategories } from "api/src/repositories/budget/category";
 import { prisma } from "db/lib/prisma";
 import { getAuthSession } from "next-utils/src/utils/auth";
+import { getBudgets } from "api/src/repositories/budget/template/budget-template";
 
 const SetupPage = async () => {
   const session = await getAuthSession();
@@ -23,18 +24,20 @@ const SetupPage = async () => {
     ? await getTransactionsWithAccounts(userId, accounts)
     : [];
   const categories = userId ? await getCategories({ db: prisma, userId }) : [];
+  const budgets = userId ? await getBudgets({ db: prisma, userId }) : [];
   return (
     <AccountProvider
       accounts={accounts}
       transactions={transactions}
-      budgetItems={[]}
+      budgetItems={budgets[0]?.items ?? []}
     >
       <TransactionProvider
         transactions={transactions}
         categories={categories}
-        budget={undefined}
+        budget={budgets[0]}
       >
         <SetupStepper
+          budget={budgets[0]}
           accounts={accounts}
           user={session?.auth.userVacation}
           categories={categories}

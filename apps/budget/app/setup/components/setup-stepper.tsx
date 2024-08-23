@@ -10,17 +10,19 @@ import { usePrevious } from "ui/src/hooks/previous";
 import { ProgressStep, StepperProgress } from "./stepper-progress";
 import { Header } from "ui/src/components/core/header";
 import { UserVacation } from "model/src/vacation";
-import { CategoryBudget } from "model/src/budget";
+import { Budget, BudgetItem, CategoryBudget } from "model/src/budget";
 import { Alert } from "ui/src/components/core/alert";
 
 interface SetupStepperProps {
   accounts: ExternalAccount[];
   categories: CategoryBudget[];
+  budget: Budget | undefined;
   user: UserVacation | undefined;
 }
 export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   accounts,
   categories,
+  budget,
   user,
 }) => {
   const [currPage, setCurrPage] = useQueryState({
@@ -33,8 +35,8 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
   const pagesProps = useMemo(
-    () => ({ user, accounts, setShowNext, categories }),
-    [user, accounts, setShowNext, categories],
+    () => ({ user, accounts, setShowNext, categories, budget }),
+    [user, accounts, setShowNext, categories, budget],
   );
   const pages = usePages(pagesProps);
   const page = useMemo(() => pages[currPage], [currPage, pages]);

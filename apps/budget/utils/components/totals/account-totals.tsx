@@ -5,7 +5,7 @@ import { AccountBase, AccountType } from "plaid";
 import { datesEqual, day, formatDollarAmount } from "model/src/utils";
 import { Card } from "ui/src/components/core/card";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTransactions } from "../providers/transaction-provider";
 import { Button } from "ui/src/components/catalyst/button";
 import { useQueryState } from "ui/src/hooks/query-state";
@@ -64,7 +64,7 @@ export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
 
   return (
     <Card className="flex-1" label={currAccount}>
-      <AmountHeaderLabel amount={amount} />
+      <AmountHeaderLabel amount={amount ?? 0} />
       <div className="mt-4">
         <AccountLineChart chartData={chartData} onValueChange={onValueChange} />
         <div className="flex gap-4">
@@ -156,11 +156,8 @@ const useNetWorthChartTotals = (daysBack: number, future: boolean) => {
   const { expenses, income } = useTransactions();
   const { avgMonthlyExpense, avgMonthlyIncome } = useMonthlyAverage();
 
-  const options = useChartTotals({
-    presentAmount: netWorth,
-    numDays: daysBack,
-    isFuture: future,
-    amountDateCallback: (date) => {
+  const amountDateCallback = useCallback(
+    (date) => {
       const expenseOnDate = transactionsOnDate(expenses.transactions, date);
       const incomeOnDate = transactionsOnDate(income.transactions, date);
 
@@ -170,8 +167,19 @@ const useNetWorthChartTotals = (daysBack: number, future: boolean) => {
 
       return incomeTotal - expenseTotal;
     },
-    futureAmountDateCallback: () =>
-      avgMonthlyIncome / 30 - avgMonthlyExpense / 30,
+    [expenses, income],
+  );
+
+  const futureAmountDateCallback = useCallback(() => {
+    return avgMonthlyIncome / 30 - avgMonthlyExpense / 30;
+  }, [avgMonthlyIncome, avgMonthlyExpense]);
+
+  const options = useChartTotals({
+    presentAmount: netWorth,
+    numDays: daysBack,
+    isFuture: future,
+    amountDateCallback,
+    futureAmountDateCallback,
   });
 
   return {
@@ -186,15 +194,26 @@ const useSavingAccountTotals = (
   savingsAccount: SavingsAccount | undefined,
   isFuture: boolean,
 ) => {
+  const amountDateCallback = useCallback(
+    (date) => {
+      return calculateAmount(
+        transactionsOnDate(savingsAccount?.transactions ?? [], date),
+      );
+    },
+    [savingsAccount],
+  );
+
+  const futureAmountDateCallback = useCallback(
+    () => savingsAccount?.monthlyContribution ?? 0 / 30,
+    [savingsAccount],
+  );
+
   const options = useChartTotals({
     numDays: daysBack,
     isFuture,
-    amountDateCallback: (date) =>
-      calculateAmount(
-        transactionsOnDate(savingsAccount?.transactions ?? [], date),
-      ),
-    futureAmountDateCallback: () =>
-      savingsAccount?.monthlyContribution ?? 0 / 30,
+    amountDateCallback,
+    futureAmountDateCallback,
   });
+
   return options;
 };

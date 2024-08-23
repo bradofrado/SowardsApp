@@ -137,6 +137,10 @@ const filterCategories = (
 const filterExpenses = <T extends SpendingRecord>(transactions: T[]) => {
   const transferedCache = transactions.slice();
   return transactions.filter((transaction) => {
+    if (transaction.transactionCategories[0]?.category.type === "transfer") {
+      return false;
+    }
+
     if (transaction.amount < 0) {
       return false;
     }
@@ -150,6 +154,10 @@ const filterIncome = (transactions: SpendingRecordWithAccountType[]) => {
   const transferedCache = transactions.slice();
   return transactions.filter((transaction) => {
     if (isTransferTransactionAndUpdateCache(transaction, transferedCache)) {
+      return false;
+    }
+
+    if (transaction.transactionCategories[0]?.category.type === "transfer") {
       return false;
     }
 
