@@ -153,8 +153,13 @@ export const createBudget = async ({
     ),
   );
 
+  const budgetItems = budget.items.map((item, index) => ({
+    ...item,
+    category: newCategories[index],
+  }));
+
   await Promise.all(
-    budget.items
+    budgetItems
       .filter((item) => item.category.type === "transfer")
       .map((item) =>
         makeSavingsTransaction({ db, userId, item, useCurrentBalance: true }),
@@ -166,9 +171,9 @@ export const createBudget = async ({
       name: budget.name,
       budgetItems: {
         createMany: {
-          data: budget.items.map((item, index) => ({
+          data: budgetItems.map((item) => ({
             amount: item.amount,
-            categoryId: newCategories[index].id,
+            categoryId: item.category.id,
             cadence: item.cadence,
           })),
         },
