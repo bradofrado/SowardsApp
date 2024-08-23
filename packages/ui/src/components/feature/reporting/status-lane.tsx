@@ -68,7 +68,7 @@ export const StatusLaneContainer = <T extends StatusLaneItem>({
       {({ activeItem, items: sortItems }) => (
         <div className="mt-5 flex flex-col gap-4">
           <Graph total={totalValue} values={values} />
-          <div className="mt-5 flex gap-4">
+          <div className="mt-5 flex gap-4 flex-col-reverse md:flex-row">
             {columns.map((column, i) => (
               <StatusLane
                 key={i}

@@ -37,7 +37,10 @@ import {
 import { usePrevious } from "ui/src/hooks/previous";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { api } from "next-utils/src/utils/api";
-import { calculateCadenceMonthlyAmount } from "../../../../utils/utils";
+import {
+  calculateAmount,
+  calculateCadenceMonthlyAmount,
+} from "../../../../utils/utils";
 
 const budgetQueryKey = "budget";
 export const CreateBudget: SetupPage = ({
@@ -115,7 +118,8 @@ export const CreateBudget: SetupPage = ({
             amount,
             cadenceAmount,
             columnId:
-              item.category.type === "income" || item.amount === 0
+              item.category.type === "income" ||
+              (item.category.type === "expense" && item.amount === 0)
                 ? "nothing"
                 : item.category.type,
           };
@@ -191,7 +195,11 @@ export const CreateBudget: SetupPage = ({
     },
     {
       id: "expense",
-      label: "Expenses",
+      label: `Expenses ${formatDollarAmount(
+        calculateAmount(
+          statusItems.filter((item) => item.columnId === "expense"),
+        ),
+      )}`,
       fill: "#14b8a6",
       onClick: () =>
         setCreateItem({
@@ -208,7 +216,11 @@ export const CreateBudget: SetupPage = ({
     },
     {
       id: "transfer",
-      label: "Savings",
+      label: `Savings ${formatDollarAmount(
+        calculateAmount(
+          statusItems.filter((item) => item.columnId === "transfer"),
+        ),
+      )}`,
       fill: "#1679d3",
       onClick: () =>
         setCreateItem({
@@ -389,7 +401,7 @@ const BudgetItemCard: React.FunctionComponent<{
           <div>{item.category.name}</div>
           {item.amount > 0 ? (
             <div className="text-red-400">
-              -{formatDollarAmount(item.amount)}/month
+              -{formatDollarAmount(item.amount)}
             </div>
           ) : null}
         </div>

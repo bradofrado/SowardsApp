@@ -15,6 +15,7 @@ import { useMonthlyAverage } from "./transaction-totals";
 import { useChartTotals } from "./chart-totals";
 import { SavingsAccount } from "../providers/types";
 import { SpendingRecord } from "model/src/budget";
+import { calculateAmount, transactionsOnDate } from "../../utils";
 
 const dateButtons: {
   label: string;
@@ -197,13 +198,3 @@ const useSavingAccountTotals = (
   });
   return options;
 };
-
-function transactionsOnDate(transactions: SpendingRecord[], date: Date) {
-  return transactions.filter((transaction) =>
-    datesEqual(transaction.date, date),
-  );
-}
-
-function calculateAmount<T extends { amount: number }>(transactions: T[]) {
-  return transactions.reduce((prev, curr) => prev + curr.amount, 0);
-}
