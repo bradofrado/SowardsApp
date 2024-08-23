@@ -51,7 +51,8 @@ export const usePages = (props: SetupPageProps) => {
     },
     {
       title: "Create Budget",
-      description: "Create a budget to help you manage your money.",
+      description:
+        "Create a budget for you money by creating either expense categories or savings goals. Each category you create pulls from the available money in your net worth. Expenses pull the amount you would spend each month, and savings pulls the current balance in this 'savings account'.",
       component: CreateBudget,
       maxWidth: "1200px",
       onNext: onCreateNext,

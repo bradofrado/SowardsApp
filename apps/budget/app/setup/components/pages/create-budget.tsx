@@ -37,6 +37,7 @@ import {
 import { usePrevious } from "ui/src/hooks/previous";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { api } from "next-utils/src/utils/api";
+import { calculateCadenceMonthlyAmount } from "../../../../utils/utils";
 
 const budgetQueryKey = "budget";
 export const CreateBudget: SetupPage = ({
@@ -108,7 +109,7 @@ export const CreateBudget: SetupPage = ({
           const amount =
             item.cadence.type === "target"
               ? item.cadence.currentBalance
-              : item.amount;
+              : calculateCadenceMonthlyAmount(item);
           return {
             ...item,
             amount,
@@ -384,7 +385,14 @@ const BudgetItemCard: React.FunctionComponent<{
   return (
     <>
       <div className="flex justify-between p-4 rounded-md bg-white border items-center">
-        <div>{item.category.name}</div>
+        <div className="flex gap-2">
+          <div>{item.category.name}</div>
+          {item.amount > 0 ? (
+            <div className="text-red-400">
+              -{formatDollarAmount(item.amount)}/month
+            </div>
+          ) : null}
+        </div>
         <div className="flex gap-2 items-center">
           <div>
             {formatDollarAmount(

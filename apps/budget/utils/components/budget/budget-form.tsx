@@ -192,68 +192,74 @@ export const BudgetItemForm: React.FunctionComponent<
 
   return (
     <>
-      <div className="grid gap-4">
-        <Label label="Name">
-          <Input
-            value={item.category?.name}
+      <FormRow label="Name" description="The name of this category">
+        <Input
+          className="h-fit"
+          value={item.category?.name}
+          onChange={(value) =>
+            changeProperty(item, "category", {
+              id: "",
+              type: "expense",
+              order: 0,
+              ...item.category,
+              name: value,
+            })
+          }
+        />
+      </FormRow>
+      <FormDivider />
+      {item.cadence.type !== "target" ? (
+        <FormRow
+          label="Type"
+          description="The category type determines how much you are putting away each month. Variable means you could spend up to the amount by the end of the year. We will estimate how much you need to put aside each month to save for this amount."
+        >
+          <Dropdown<BudgetCadence["type"]>
+            className="w-full h-fit"
+            initialValue={item.cadence.type}
+            items={[
+              //{ id: "weekly", name: "Weekly" },
+              { id: "monthly", name: "Monthly" },
+              //{ id: "yearly", name: "Yearly" },
+              { id: "eventually", name: "Variable" },
+            ]}
             onChange={(value) =>
-              changeProperty(item, "category", {
-                id: "",
-                type: "expense",
-                order: 0,
-                ...item.category,
-                name: value,
-              })
+              changeProperty(item, "cadence", createCadence(value.id))
             }
           />
-        </Label>
-        <div className="grid grid-cols-2 gap-4 items-center">
-          {item.cadence.type !== "target" ? (
-            <Label label="Repeat">
-              <Dropdown<BudgetCadence["type"]>
-                className="w-full"
-                initialValue={item.cadence.type}
-                items={[
-                  { id: "weekly", name: "Weekly" },
-                  { id: "monthly", name: "Monthly" },
-                  { id: "yearly", name: "Yearly" },
-                  { id: "eventually", name: "Variable" },
-                ]}
-                onChange={(value) =>
-                  changeProperty(item, "cadence", createCadence(value.id))
-                }
-              />
-            </Label>
-          ) : null}
-          <CadenceComponent
+
+          {/* <CadenceComponent
             value={item.cadence}
             onChange={changeProperty.formFunc("cadence", item)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label
-            label={
-              item.cadence.type === "target" ? "Monthly Contribution" : "Amount"
-            }
-          >
-            <InputBlur
-              value={item.amount}
-              onChange={changeProperty.formFuncNumber("amount", item)}
-            />
-          </Label>
-        </div>
-        {error ? <p className="text-red-400 text-sm">{error}</p> : null}
-        {onRemove ? (
-          <Button plain className="w-full" onClick={onRemoveClick}>
-            Remove
-          </Button>
-        ) : null}
-        {onAdd ? (
-          <Button className="w-full" onClick={onAddClick}>
-            Add
-          </Button>
-        ) : null}
-      </div>
+          /> */}
+        </FormRow>
+      ) : (
+        <CadenceComponent
+          value={item.cadence}
+          onChange={changeProperty.formFunc("cadence", item)}
+        />
+      )}
+      <FormDivider />
+      <FormRow
+        label="Amount"
+        description="The amount you want to budget for this category"
+      >
+        <InputBlur
+          className="h-fit"
+          value={item.amount}
+          onChange={changeProperty.formFuncNumber("amount", item)}
+        />
+      </FormRow>
+      {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+      {onRemove ? (
+        <Button plain className="w-full" onClick={onRemoveClick}>
+          Remove
+        </Button>
+      ) : null}
+      {onAdd ? (
+        <Button className="w-full" onClick={onAddClick}>
+          Add
+        </Button>
+      ) : null}
     </>
   );
 };

@@ -15,6 +15,7 @@ import { CategoryNegativeChart } from "../charts/negative-chart";
 import { BudgetItem, CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
+import { calculateCadenceMonthlyAmount } from "../../utils";
 
 interface CategoryChartData {
   category: CategoryBudget;
@@ -40,33 +41,11 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [transactions, currentMonth],
   );
+
   const filteredBudgeted = useMemo(
     () =>
       budgetItems.reduce<BudgetItem[]>((prev, curr) => {
-        if (curr.cadence.type === "weekly") {
-          const amount = curr.amount * 4;
-          return [...prev, { ...curr, amount }];
-        }
-
-        if (curr.cadence.type === "monthly") {
-          const amount = curr.amount;
-          return [...prev, { ...curr, amount }];
-        }
-
-        const date = new Date();
-        if (curr.cadence.type === "yearly") {
-          //7 - 3
-          const dateDiff =
-            date.getMonth() > curr.cadence.month
-              ? 12 - date.getMonth() + curr.cadence.month
-              : curr.cadence.month - date.getMonth();
-          const amount = curr.amount / dateDiff;
-
-          return [...prev, { ...curr, amount }];
-        }
-
-        const datDiff = 11 - date.getMonth();
-        const amount = curr.amount / datDiff;
+        const amount = calculateCadenceMonthlyAmount(curr);
 
         return [...prev, { ...curr, amount }];
       }, []),
@@ -153,7 +132,7 @@ export const CategoryMonthView: React.FunctionComponent<
               />
             ) : null}
             {negativeChartData.map((data) => (
-              <CategoryTarget data={data} />
+              <CategoryTarget key={data.category.id} data={data} />
             ))}
           </div>
         </div>
