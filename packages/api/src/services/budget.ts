@@ -101,7 +101,7 @@ export const getTransactions = async (
 };
 
 export interface SpendingRecordWithAccountType extends SpendingRecord {
-  accountType: AccountType | "Savings";
+  accountType?: AccountType | "Savings"; // | "No Account";
 }
 export const getTransactionsWithAccounts = async (
   userId: string,
@@ -119,11 +119,6 @@ export const getTransactionsWithAccounts = async (
       transaction.transactionCategories[0]?.category.type === "transfer"
         ? "Savings"
         : account?.type;
-    if (!type) {
-      throw new Error(
-        `Cannot find account type with id ${transaction.accountId}`,
-      );
-    }
 
     return {
       ...transaction,
