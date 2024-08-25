@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePages } from "./register-pages";
 import { ExternalAccount } from "../../../utils/components/totals/connect-external-form";
 import { Button } from "ui/src/components/catalyst/button";
@@ -34,8 +34,14 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   const [error, setError] = useState<string | undefined>();
   const previousPage = usePrevious(currPage);
   const [showNext, setShowNext] = useState(false);
+  const showNextRef = useRef<boolean>(false);
+  const setNext = (next: boolean): void => {
+    setShowNext(next);
+    showNextRef.current = true;
+  };
+
   const pagesProps = useMemo(
-    () => ({ user, accounts, setShowNext, categories, budget }),
+    () => ({ user, accounts, setShowNext: setNext, categories, budget }),
     [user, accounts, setShowNext, categories, budget],
   );
   const pages = usePages(pagesProps);
@@ -54,7 +60,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
   );
 
   useEffect(() => {
-    if (previousPage !== currPage) {
+    if (previousPage !== currPage && !showNextRef.current) {
       setShowNext(pages[currPage].defaultShowNext ?? true);
     }
   }, [currPage, pages, previousPage]);
@@ -67,6 +73,7 @@ export const SetupStepper: React.FunctionComponent<SetupStepperProps> = ({
         if (currPage < pages.length - 1) {
           setCurrPage(currPage + 1);
         }
+        showNextRef.current = false;
         setLoading(false);
       })
       .catch((err: string) => {

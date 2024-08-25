@@ -274,7 +274,7 @@ const makeSavingsTransaction = async ({
     accountId: null,
     amount,
     date: lastDayOfLastMonth,
-    description: "Saving Transfer",
+    description: `${item.category.name} transfer`,
     transactionId,
     transactionCategories: [
       {
