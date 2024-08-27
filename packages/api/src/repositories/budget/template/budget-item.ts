@@ -40,6 +40,9 @@ export const prismaToBudgetItem = (
     id: item.id,
     category: prismaToBudgetCategory(item.category),
     amount: item.amount,
+    targetAmount: item.targetAmount,
+    periodStart: item.periodStart,
+    periodEnd: item.periodEnd,
     cadence: budgetCadenceSchema.parse(item.cadence),
   };
 };

@@ -1,9 +1,13 @@
 /* eslint-disable no-await-in-loop -- ok*/
 import type { Db } from "db/lib/prisma";
 import { prisma } from "db/lib/prisma";
-import type { Budget, BudgetItem, SpendingRecord } from "model/src/budget";
+import type {
+  Budget,
+  SavingsGoal,
+  SavingsTransaction,
+  SpendingRecord,
+} from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
-import { v4 as uuidv4 } from "uuid";
 import {
   getLogins,
   updateExternalLoginCursor,
@@ -16,10 +20,17 @@ import {
   getSpendingRecord,
   updateSpendingRecord,
   deleteSpendingRecord,
-  createSpendingRecord,
 } from "../repositories/budget/spending";
 import { createCategory } from "../repositories/budget/category";
-import { getBudgetItemsOfType } from "../repositories/budget/template/budget-item";
+import { createSavingsTransaction } from "../repositories/budget/template/savings-transaction";
+import {
+  getSavingsGoals,
+  updateSavingsAmount,
+} from "../repositories/budget/template/savings-goal";
+import {
+  budgetPayload,
+  prismaToBudget,
+} from "../repositories/budget/template/budget-template";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -115,10 +126,7 @@ export const getTransactionsWithAccounts = async (
       (_account) => _account.account_id === transaction.accountId,
     );
 
-    const type =
-      transaction.transactionCategories[0]?.category.type === "transfer"
-        ? "Savings"
-        : account?.type;
+    const type = account?.type;
 
     return {
       ...transaction,
@@ -136,8 +144,19 @@ export const createBudget = async ({
   db: Db;
   userId: string;
 }) => {
-  const newCategories = await Promise.all(
+  const newCategoriesItems = await Promise.all(
     budget.items.map((item) =>
+      item.category.id.includes("cat")
+        ? createCategory({
+            category: item.category,
+            db,
+            userId,
+          })
+        : Promise.resolve(item.category),
+    ),
+  );
+  const newCategoriesGoals = await Promise.all(
+    budget.goals.map((item) =>
       item.category.id.includes("cat")
         ? createCategory({
             category: item.category,
@@ -150,26 +169,37 @@ export const createBudget = async ({
 
   const budgetItems = budget.items.map((item, index) => ({
     ...item,
-    category: newCategories[index],
+    category: newCategoriesItems[index],
+  }));
+  const savingsGoals = budget.goals.map((item, index) => ({
+    ...item,
+    category: newCategoriesGoals[index],
   }));
 
-  await Promise.all(
-    budgetItems
-      .filter((item) => item.category.type === "transfer")
-      .map((item) =>
-        makeSavingsTransaction({ db, userId, item, useCurrentBalance: true }),
-      ),
-  );
-
-  return db.budgetTemplate.create({
+  const newBudget = await db.budgetTemplate.create({
     data: {
       name: budget.name,
       budgetItems: {
         createMany: {
           data: budgetItems.map((item) => ({
             amount: item.amount,
+            targetAmount: item.amount,
+            periodStart: item.periodStart,
+            periodEnd: item.periodEnd,
             categoryId: item.category.id,
             cadence: item.cadence,
+          })),
+        },
+      },
+      savingsGoals: {
+        createMany: {
+          data: savingsGoals.map((item) => ({
+            amount: item.amount,
+            targetAmount: item.targetAmount,
+            //The total saved is 0 because we will make a transfer to the savings account
+            totalSaved: 0,
+            categoryId: item.category.id,
+            description: `${item.category.name} Savings Goal`,
           })),
         },
       },
@@ -179,64 +209,63 @@ export const createBudget = async ({
         },
       },
     },
+    ...budgetPayload,
   });
+
+  const modelBudget: Budget = prismaToBudget(newBudget);
+
+  await Promise.all(
+    modelBudget.goals.map((item, i) =>
+      makeSavingsTransaction({
+        db,
+        userId,
+        item,
+        amount: budget.goals[i].totalSaved,
+      }),
+    ),
+  );
+
+  return newBudget;
 };
 
 const checkAndMakeSavingsTransfer = async (userId: string): Promise<void> => {
   //Check if we need to make a savings transfer
   const today = new Date();
-  const lastDayOfLastMonth = new Date(
+  const lastDayOfThisMonth = new Date(
     today.getFullYear(),
-    today.getMonth(),
+    today.getMonth() + 1,
     -1,
   );
-  const firstDayOfLastMonth = new Date(
+  const firstDayOfThisMonth = new Date(
     today.getFullYear(),
-    today.getMonth() - 1,
+    today.getMonth(),
     1,
   );
 
-  const transferBudgetItems = await getBudgetItemsOfType({
-    db: prisma,
-    userId,
-    type: "transfer",
-  });
+  const savingsGoals = await getSavingsGoals({ db: prisma, userId });
 
   //Get all of the spending records for the last month
-  const spendingRecords = await prisma.spendingRecord.findMany({
+  const savingsTransactions = await prisma.savingsTransaction.findMany({
     where: {
       AND: [
         {
           date: {
-            lte: lastDayOfLastMonth,
+            lte: lastDayOfThisMonth,
           },
         },
         {
           date: {
-            gte: firstDayOfLastMonth,
+            gte: firstDayOfThisMonth,
           },
         },
       ],
     },
-    include: {
-      transactionCategories: {
-        include: {
-          category: true,
-        },
-      },
-    },
   });
 
   //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
-  for (const budgetItem of transferBudgetItems) {
-    const savingsTransactions = spendingRecords.filter(
-      (record) =>
-        record.transactionCategories.length > 0 &&
-        record.transactionCategories[0].category.id === budgetItem.category.id,
-    );
-
+  for (const savingsGoal of savingsGoals) {
     if (savingsTransactions.length === 0) {
-      await makeSavingsTransaction({ db: prisma, userId, item: budgetItem });
+      await makeSavingsTransaction({ db: prisma, userId, item: savingsGoal });
     }
   }
 };
@@ -245,42 +274,32 @@ const makeSavingsTransaction = async ({
   db,
   userId,
   item,
-  useCurrentBalance = false,
+  amount,
 }: {
   db: Db;
   userId: string;
-  item: BudgetItem;
-  useCurrentBalance?: boolean;
-}) => {
-  if (item.cadence.type !== "target") {
-    throw new Error("Invalid cadence type for savings transaction");
-  }
+  item: SavingsGoal;
+  amount?: number;
+}): Promise<void> => {
+  const _amount = amount ?? item.amount;
 
-  const transactionId = uuidv4();
-  const amount = useCurrentBalance ? item.cadence.currentBalance : item.amount;
-  const today = new Date();
-  const lastDayOfLastMonth = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    -1,
-  );
-
-  const savingRecord: SpendingRecord = {
-    accountId: null,
-    amount,
-    date: lastDayOfLastMonth,
-    description: `${item.category.name} transfer`,
-    transactionId,
-    transactionCategories: [
-      {
-        id: "",
-        amount,
-        category: item.category,
-        transactionId,
-      },
-    ],
+  const savingsTransaction: SavingsTransaction = {
+    id: "",
+    amount: _amount,
+    date: new Date(),
+    description: `Transfer to ${item.category.name}`,
+    savingsGoal: item,
   };
-  await createSpendingRecord({ spendingRecord: savingRecord, db, userId });
+  const newTransaction = await createSavingsTransaction({
+    input: savingsTransaction,
+    db,
+    userId,
+  });
+  await updateSavingsAmount({
+    db,
+    savingsId: item.id,
+    newAmount: item.totalSaved + _amount,
+  });
 };
 
 const makeLoginRequest = async <T>(

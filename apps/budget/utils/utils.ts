@@ -1,7 +1,13 @@
-import { BudgetItem, SpendingRecord } from "model/src/budget";
+import { BudgetItem, SavingsGoal, SpendingRecord } from "model/src/budget";
 import { datesEqual } from "model/src/utils";
 
-export const calculateCadenceMonthlyAmount = (item: BudgetItem): number => {
+export const calculateCadenceMonthlyAmount = (
+  item: BudgetItem | SavingsGoal,
+): number => {
+  if (!("cadence" in item)) {
+    return item.amount;
+  }
+
   if (item.cadence.type === "weekly") {
     const amount = item.amount * 4;
     return amount;

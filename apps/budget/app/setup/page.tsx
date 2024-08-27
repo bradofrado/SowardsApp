@@ -29,7 +29,7 @@ const SetupPage = async () => {
     <AccountProvider
       accounts={accounts}
       transactions={transactions}
-      budgetItems={budgets[0]?.items ?? []}
+      savingsGoals={budgets[0]?.goals ?? []}
     >
       <TransactionProvider
         transactions={transactions}

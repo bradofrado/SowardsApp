@@ -63,17 +63,14 @@ export const CategoryMonthView: React.FunctionComponent<
 
   const negativeChartData: CategoryChartData[] = useMemo(
     () =>
-      totalsActual
-        .map(({ category, totalAmount }) => ({
-          category,
-          actual: totalAmount,
-          budgeted:
-            totalsBudgeted.find(
-              ({ category: budgetCategory }) =>
-                budgetCategory.id === category.id,
-            )?.totalAmount || 0,
-        }))
-        .filter(({ actual }) => actual > 0),
+      totalsActual.map(({ category, totalAmount }) => ({
+        category,
+        actual: totalAmount,
+        budgeted:
+          totalsBudgeted.find(
+            ({ category: budgetCategory }) => budgetCategory.id === category.id,
+          )?.totalAmount || 0,
+      })),
     [totalsActual, totalsBudgeted],
   );
 

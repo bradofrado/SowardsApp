@@ -6,7 +6,7 @@ export const categoryBudgetSchema = z.object({
   type: z.union([
     z.literal("income"),
     z.literal("expense"),
-    z.literal("transfer"),
+    //z.literal("transfer"),
   ]),
   order: z.number(),
 });
@@ -70,19 +70,19 @@ const eventuallyCadence = z.object({
 });
 export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
-const targetCadence = z.object({
-  type: z.literal("target"),
-  targetAmount: z.number(),
-  currentBalance: z.number(),
-});
-export type TargetCadence = z.infer<typeof targetCadence>;
+// const targetCadence = z.object({
+//   type: z.literal("target"),
+//   targetAmount: z.number(),
+//   currentBalance: z.number(),
+// });
+// export type TargetCadence = z.infer<typeof targetCadence>;
 
 export const budgetCadenceSchema = z.union([
   weeklyCadence,
   monthlyCadence,
   yearlyCadence,
   eventuallyCadence,
-  targetCadence,
+  //targetCadence,
 ]);
 export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
 
@@ -90,23 +90,39 @@ export const budgetItemSchema = z.object({
   id: z.string(),
   category: categoryBudgetSchema,
   amount: z.number(),
+  targetAmount: z.number(),
+  periodStart: z.date(),
+  periodEnd: z.date(),
   cadence: budgetCadenceSchema,
 });
 export type BudgetItem = z.infer<typeof budgetItemSchema>;
+
+export const savingsGoalSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  targetAmount: z.number(),
+  totalSaved: z.number(),
+  category: categoryBudgetSchema,
+});
+export type SavingsGoal = z.infer<typeof savingsGoalSchema>;
 
 export const budgetSchema = z.object({
   id: z.string(),
   name: z.string(),
   items: z.array(budgetItemSchema),
+  goals: z.array(savingsGoalSchema),
 });
 export type Budget = z.infer<typeof budgetSchema>;
 
-export const savingsAccountSchema = z.object({
+export const savingsTransactionSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  balance: z.number(),
-  type: z.union([z.literal("other"), z.literal("savings")]),
+  description: z.string(),
+  date: z.date(),
+  amount: z.number(),
+  budgetItem: z.optional(budgetItemSchema),
+  savingsGoal: z.optional(savingsGoalSchema),
 });
+export type SavingsTransaction = z.infer<typeof savingsTransactionSchema>;
 
 /**
  * weekly - day of week

@@ -110,7 +110,7 @@ export const prismaToBudgetCategory = (
   return {
     id: category.id,
     name: category.name,
-    type: category.type as "income" | "expense" | "transfer",
+    type: category.type as "income" | "expense", // | "transfer",
     order: category.order,
   };
 };

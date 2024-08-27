@@ -37,7 +37,7 @@ const Home = withAuth(async ({ ctx }) => {
       <AccountProvider
         accounts={accounts}
         transactions={spending}
-        budgetItems={budgets[0]?.items ?? []}
+        savingsGoals={budgets[0]?.goals ?? []}
       >
         <div className="flex flex-col md:flex-row gap-2">
           <AccountTotals />

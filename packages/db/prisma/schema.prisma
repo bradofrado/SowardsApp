@@ -23,19 +23,19 @@ model User {
 }
 
 model UserVacation {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   users           User[]
-  groupIds        String[]            @db.ObjectId
-  groups          VacationGroup[]     @relation(fields: [groupIds], references: [id])
-  eventIds        String[]            @db.ObjectId
-  events          VacationEvent[]     @relation(fields: [eventIds], references: [id])
-  created         VacationEvent[]     @relation(name: "created")
+  groupIds        String[]             @db.ObjectId
+  groups          VacationGroup[]      @relation(fields: [groupIds], references: [id])
+  eventIds        String[]             @db.ObjectId
+  events          VacationEvent[]      @relation(fields: [eventIds], references: [id])
+  created         VacationEvent[]      @relation(name: "created")
   dependents      VacationDependent[]
   spendingRecords SpendingRecord[]
   externalLogins  ExternalLogin[]
   categories      BudgetCategory[]
-  accounts        SavingsAccount[]
+  savings         SavingsTransaction[]
   budgets         BudgetTemplate[]
 }
 
@@ -68,34 +68,73 @@ model BudgetCategory {
   order           Int
   spendingRecords TransactionCategory[]
   budgetItems     BudgetItem[]
+  savings         SavingsGoal[]
+  fromTransfers   TransferCategory[]    @relation(name: "from")
+  toTransfers     TransferCategory[]    @relation(name: "to")
 
   @@unique([userId, name])
 }
 
-model SavingsAccount {
-  id     String       @id @default(auto()) @map("_id") @db.ObjectId
-  name   String
-  type   String //savings, other
-  userId String       @db.ObjectId
-  user   UserVacation @relation(fields: [userId], references: [id])
+//Savings goal or variable expense
+model SavingsTransaction {
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  amount        Float
+  description   String
+  budgetId      String?      @db.ObjectId
+  budget        BudgetItem?  @relation(fields: [budgetId], references: [id])
+  savingsGoalId String?      @db.ObjectId
+  savingsGoal   SavingsGoal? @relation(fields: [savingsGoalId], references: [id])
+  userId        String       @db.ObjectId
+  user          UserVacation @relation(fields: [userId], references: [id])
+  date          DateTime
+}
+
+model SavingsGoal {
+  id           String               @id @default(auto()) @map("_id") @db.ObjectId
+  amount       Float
+  targetAmount Float
+  totalSaved   Float
+  description  String
+  categoryId   String               @db.ObjectId
+  category     BudgetCategory       @relation(fields: [categoryId], references: [id])
+  budgetId     String               @db.ObjectId
+  budget       BudgetTemplate       @relation(fields: [budgetId], references: [id])
+  transactions SavingsTransaction[]
+}
+
+//Transfer overflows from one category to another
+model TransferCategory {
+  id     String         @id @default(auto()) @map("_id") @db.ObjectId
+  amount Float
+  fromId String         @db.ObjectId
+  from   BudgetCategory @relation(name: "from", fields: [fromId], references: [id])
+  toId   String         @db.ObjectId
+  to     BudgetCategory @relation(name: "to", fields: [toId], references: [id])
+  date   DateTime
 }
 
 model BudgetTemplate {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  userId      String       @db.ObjectId
-  user        UserVacation @relation(fields: [userId], references: [id])
-  budgetItems BudgetItem[]
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  userId       String        @db.ObjectId
+  user         UserVacation  @relation(fields: [userId], references: [id])
+  budgetItems  BudgetItem[]
+  savingsGoals SavingsGoal[]
 }
 
 model BudgetItem {
-  id         String         @id @default(auto()) @map("_id") @db.ObjectId
-  cadence    Json
-  amount     Float
-  categoryId String         @db.ObjectId
-  category   BudgetCategory @relation(fields: [categoryId], references: [id])
-  budgetId   String         @db.ObjectId
-  budget     BudgetTemplate @relation(fields: [budgetId], references: [id])
+  id           String               @id @default(auto()) @map("_id") @db.ObjectId
+  cadence      Json
+  amount       Float
+  targetAmount Float
+  categoryId   String               @db.ObjectId
+  category     BudgetCategory       @relation(fields: [categoryId], references: [id])
+  periodStart  DateTime
+  periodEnd    DateTime
+  budgetId     String               @db.ObjectId
+  budget       BudgetTemplate       @relation(fields: [budgetId], references: [id])
+  transactions SavingsTransaction[]
+  createdAt    DateTime             @default(now())
 }
 
 model ExternalLogin {
