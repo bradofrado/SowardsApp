@@ -7,7 +7,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
-import { PlaidLink } from "../(dashboard)/settings/components/plaid";
 import {
   ConnectExternalAccountForm,
   ExternalAccount,

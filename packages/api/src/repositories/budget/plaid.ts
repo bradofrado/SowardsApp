@@ -31,16 +31,37 @@ const configuration = new Configuration({
 
 const plaidClient = new PlaidApi(configuration);
 
-export const createLinkToken = async (userId: string): Promise<string> => {
+const handleUpdateItemError = <
+  Params extends { accessToken: string },
+  ReturnType,
+>(
+  func: (params: Params) => Promise<ReturnType>,
+): ((params: Params) => Promise<ReturnType>) => {
+  return async (params: Params) => {
+    try {
+      const data = await func(params);
+      return data;
+    } catch (err) {
+      throw new Error(params.accessToken);
+    }
+  };
+};
+
+//Access token is passed when doing update mode for a specific item
+export const createLinkToken = async (
+  userId: string,
+  accessToken?: string,
+): Promise<string> => {
   const configs: LinkTokenCreateRequest = {
     user: {
       // This should correspond to a unique id for the current user.
       client_user_id: userId,
     },
     client_name: "Sowards Budget",
-    products: [Products.Transactions],
+    products: accessToken ? [] : [Products.Transactions],
     country_codes: [CountryCode.Us],
     language: "en",
+    access_token: accessToken,
   };
 
   const createTokenResponse = await plaidClient.linkTokenCreate(configs);
@@ -61,62 +82,68 @@ export const setAccessToken = async (
   };
 };
 
-export const removeAccount = async (accessToken: string): Promise<void> => {
-  await plaidClient.itemRemove({
-    access_token: accessToken,
-  });
-};
+export const removeAccount = handleUpdateItemError(
+  async ({ accessToken }: { accessToken: string }): Promise<void> => {
+    await plaidClient.itemRemove({
+      access_token: accessToken,
+    });
+  },
+);
 
 export const compareTxnsByDateAscending = (
   a: Transaction,
   b: Transaction,
 ): number => (a.date > b.date ? 1 : 0) - (a.date < b.date ? 1 : 0);
 
-export const getTransactionsSync = async ({
-  accessToken,
-  cursor,
-}: LoginRequest): Promise<{
-  added: Transaction[];
-  removed: RemovedTransaction[];
-  modified: Transaction[];
-  cursor: string | null;
-  accessToken: string;
-}> => {
-  const added: Transaction[] = [];
-  const removed: RemovedTransaction[] = [];
-  const modified: Transaction[] = [];
-  let hasMore = true;
-  let currCursor = cursor;
-  while (hasMore) {
-    const response = await plaidClient.transactionsSync({
-      access_token: accessToken,
-      cursor: currCursor ?? undefined,
-    });
-    added.push(...response.data.added);
-    removed.push(...response.data.removed);
-    modified.push(...response.data.modified);
-    hasMore = response.data.has_more;
-    currCursor = response.data.next_cursor;
-  }
-
-  return {
-    added: added.sort(compareTxnsByDateAscending),
-    removed,
-    modified: modified.sort(compareTxnsByDateAscending),
-    cursor: currCursor,
+export const getTransactionsSync = handleUpdateItemError(
+  async ({
     accessToken,
-  };
-};
+    cursor,
+  }: LoginRequest): Promise<{
+    added: Transaction[];
+    removed: RemovedTransaction[];
+    modified: Transaction[];
+    cursor: string | null;
+    accessToken: string;
+  }> => {
+    const added: Transaction[] = [];
+    const removed: RemovedTransaction[] = [];
+    const modified: Transaction[] = [];
+    let hasMore = true;
+    let currCursor = cursor;
+    while (hasMore) {
+      const response = await plaidClient.transactionsSync({
+        access_token: accessToken,
+        cursor: currCursor ?? undefined,
+      });
+      added.push(...response.data.added);
+      removed.push(...response.data.removed);
+      modified.push(...response.data.modified);
+      hasMore = response.data.has_more;
+      currCursor = response.data.next_cursor;
+    }
 
-export const getAccounts = async ({
-  accessToken,
-}: LoginRequest): Promise<(AccountBase & { access_token: string })[]> => {
-  const response = await plaidClient.accountsGet({
-    access_token: accessToken,
-  });
+    return {
+      added: added.sort(compareTxnsByDateAscending),
+      removed,
+      modified: modified.sort(compareTxnsByDateAscending),
+      cursor: currCursor,
+      accessToken,
+    };
+  },
+);
 
-  return response.data.accounts.map((account) => ({
-    ...account,
-    access_token: accessToken,
-  }));
-};
+export const getAccounts = handleUpdateItemError(
+  async ({
+    accessToken,
+  }: LoginRequest): Promise<(AccountBase & { access_token: string })[]> => {
+    const response = await plaidClient.accountsGet({
+      access_token: accessToken,
+    });
+
+    return response.data.accounts.map((account) => ({
+      ...account,
+      access_token: accessToken,
+    }));
+  },
+);

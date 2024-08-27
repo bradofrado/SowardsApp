@@ -120,6 +120,12 @@ const isSession = t.middleware(({ next, ctx }) => {
   });
 });
 
+const catchErrors = t.middleware(async ({ next, ctx }) => {
+  const result = await next({ ctx });
+
+  return result;
+});
+
 /**
  * This is how you create new routers and sub-routers in your tRPC API.
  *

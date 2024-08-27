@@ -19,11 +19,16 @@ import {
 } from "../../repositories/budget/spending";
 
 export const plaidRouter = createTRPCRouter({
-  createLinkToken: protectedProcedure.mutation(async ({ ctx }) => {
-    const linkToken = await createLinkToken(ctx.session.auth.userVacation.id);
+  createLinkToken: protectedProcedure
+    .input(z.object({ accessToken: z.optional(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      const linkToken = await createLinkToken(
+        ctx.session.auth.userVacation.id,
+        input.accessToken,
+      );
 
-    return linkToken;
-  }),
+      return linkToken;
+    }),
   setAccessToken: protectedProcedure
     .input(z.object({ publicToken: z.string() }))
     .mutation(async ({ input, ctx }) => {
@@ -62,7 +67,7 @@ export const plaidRouter = createTRPCRouter({
         db: ctx.prisma,
         accessToken: input.accessToken,
       });
-      await removeAccount(input.accessToken);
+      await removeAccount({ accessToken: input.accessToken });
     }),
   updateTransactions: protectedProcedure
     .input(z.object({ transactions: z.array(spendingRecordSchema) }))

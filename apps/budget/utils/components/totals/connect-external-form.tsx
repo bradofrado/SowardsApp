@@ -5,7 +5,7 @@ import {
   FormDivider,
   FormSection,
 } from "ui/src/components/catalyst/form/form";
-import { PlaidLink } from "../../../app/(dashboard)/settings/components/plaid";
+import { PlaidLink } from "../plaid";
 import { Button } from "ui/src/components/catalyst/button";
 import { BankIcon } from "ui/src/components/core/icons";
 import { api } from "next-utils/src/utils/api";

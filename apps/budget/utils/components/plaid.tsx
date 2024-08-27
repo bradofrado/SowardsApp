@@ -7,8 +7,10 @@ import { usePlaidLink } from "react-plaid-link";
 import { Button } from "ui/src/components/catalyst/button";
 import { Alert } from "ui/src/components/core/alert";
 
-export const PlaidLink: React.FunctionComponent = () => {
-  const { linkToken } = usePlaidLinkToken();
+export const PlaidLink: React.FunctionComponent<{ accessToken?: string }> = ({
+  accessToken,
+}) => {
+  const { linkToken } = usePlaidLinkToken({ accessToken });
   const { mutate: updateAccessToken } = api.plaid.setAccessToken.useMutation();
   const [loading, setLoading] = useState(false);
   const [label, setLabel] = useState<string | undefined>();
@@ -16,16 +18,21 @@ export const PlaidLink: React.FunctionComponent = () => {
 
   const { open } = usePlaidLink({
     onSuccess: (publicToken) => {
-      updateAccessToken(
-        { publicToken },
-        {
-          onSuccess(item) {
-            setLoading(false);
-            router.refresh();
-            setLabel("Account added successfully");
+      //Only do public token exchange if we don't already have an access token
+      if (!accessToken) {
+        updateAccessToken(
+          { publicToken },
+          {
+            onSuccess(item) {
+              setLoading(false);
+              router.refresh();
+              setLabel("Account added successfully");
+            },
           },
-        },
-      );
+        );
+      } else {
+        router.refresh();
+      }
     },
     token: linkToken,
   });
@@ -45,19 +52,22 @@ export const PlaidLink: React.FunctionComponent = () => {
   );
 };
 
-const usePlaidLinkToken = () => {
+const usePlaidLinkToken = ({ accessToken }: { accessToken?: string }) => {
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const { mutate: createLinkToken } = api.plaid.createLinkToken.useMutation();
 
   useEffect(() => {
     if (linkToken === null) {
-      createLinkToken(undefined, {
-        onSuccess(linkToken) {
-          setLinkToken(linkToken);
+      createLinkToken(
+        { accessToken },
+        {
+          onSuccess(linkToken) {
+            setLinkToken(linkToken);
+          },
         },
-      });
+      );
     }
-  }, [linkToken, createLinkToken]);
+  }, [linkToken, createLinkToken, accessToken]);
 
   return { linkToken };
 };
