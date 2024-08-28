@@ -45,7 +45,7 @@ export const CategoryMonthView: React.FunctionComponent<
   const filteredBudgeted = useMemo(
     () =>
       budgetItems.reduce<BudgetItem[]>((prev, curr) => {
-        const amount = calculateCadenceMonthlyAmount(curr);
+        const amount = curr.amount;
 
         return [...prev, { ...curr, amount }];
       }, []),

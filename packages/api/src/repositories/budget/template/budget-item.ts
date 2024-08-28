@@ -46,3 +46,22 @@ export const prismaToBudgetItem = (
     cadence: budgetCadenceSchema.parse(item.cadence),
   };
 };
+
+export const updateBudgetItemAmount = async ({
+  db,
+  itemId,
+  amount,
+}: {
+  db: Db;
+  itemId: string;
+  amount: number;
+}) => {
+  await db.budgetItem.update({
+    where: {
+      id: itemId,
+    },
+    data: {
+      amount,
+    },
+  });
+};

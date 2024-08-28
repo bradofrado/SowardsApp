@@ -3,6 +3,7 @@ import type { Db } from "db/lib/prisma";
 import { prisma } from "db/lib/prisma";
 import type {
   Budget,
+  BudgetItem,
   SavingsGoal,
   SavingsTransaction,
   SpendingRecord,
@@ -31,6 +32,10 @@ import {
   budgetPayload,
   prismaToBudget,
 } from "../repositories/budget/template/budget-template";
+import {
+  getBudgetItemsOfType,
+  updateBudgetItemAmount,
+} from "../repositories/budget/template/budget-item";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -102,9 +107,6 @@ export const getTransactions = async (
       }),
     );
   }
-
-  //Every month we need to make a transfer to any savings accounts
-  await checkAndMakeSavingsTransfer(userId);
 
   const spendingRecords = await getSpendingRecords({ db: prisma, userId });
 
@@ -182,8 +184,8 @@ export const createBudget = async ({
       budgetItems: {
         createMany: {
           data: budgetItems.map((item) => ({
-            amount: item.amount,
-            targetAmount: item.amount,
+            amount: 0,
+            targetAmount: item.targetAmount,
             periodStart: item.periodStart,
             periodEnd: item.periodEnd,
             categoryId: item.category.id,
@@ -221,6 +223,17 @@ export const createBudget = async ({
         userId,
         item,
         amount: budget.goals[i].totalSaved,
+      }),
+    ),
+  );
+
+  await Promise.all(
+    modelBudget.items.map((item, i) =>
+      makeExpenseTransaction({
+        db,
+        userId,
+        item,
+        amount: budget.items[i].amount,
       }),
     ),
   );
@@ -264,10 +277,121 @@ const checkAndMakeSavingsTransfer = async (userId: string): Promise<void> => {
 
   //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
   for (const savingsGoal of savingsGoals) {
-    if (savingsTransactions.length === 0) {
+    if (
+      savingsTransactions.filter(
+        (transaction) => transaction.savingsGoalId === savingsGoal.id,
+      ).length === 0
+    ) {
       await makeSavingsTransaction({ db: prisma, userId, item: savingsGoal });
     }
   }
+};
+
+const checkAndMakeVariableExpenseTransaction = async (
+  userId: string,
+): Promise<void> => {
+  //Check if we need to make a savings transfer
+  const today = new Date();
+  const lastDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    -1,
+  );
+  const firstDayOfThisMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1,
+  );
+
+  const budgetItems = await getBudgetItemsOfType({
+    db: prisma,
+    userId,
+    type: "expense",
+  });
+
+  //Get all of the spending records for the last month
+  const savingsTransactions = await prisma.savingsTransaction.findMany({
+    where: {
+      AND: [
+        {
+          date: {
+            lte: lastDayOfThisMonth,
+          },
+        },
+        {
+          date: {
+            gte: firstDayOfThisMonth,
+          },
+        },
+      ],
+    },
+  });
+
+  //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
+  for (const budgetItem of budgetItems) {
+    if (
+      savingsTransactions.filter(
+        (transaction) => transaction.budgetId === budgetItem.id,
+      ).length === 0
+    ) {
+      await makeVariableExpenseTransaction({
+        db: prisma,
+        userId,
+        item: budgetItem,
+      });
+    }
+  }
+};
+
+const makeVariableExpenseTransaction = async ({
+  db,
+  userId,
+  item,
+}: {
+  db: Db;
+  userId: string;
+  item: BudgetItem;
+}): Promise<void> => {
+  //The amount is what is left until the target averaged among how many months are left in the year
+  const _amount =
+    (item.targetAmount - item.amount) / (12 - new Date().getMonth());
+  if (_amount <= 0) {
+    return;
+  }
+
+  await makeExpenseTransaction({ db, userId, item, amount: _amount });
+};
+
+const makeExpenseTransaction = async ({
+  db,
+  userId,
+  item,
+  amount,
+}: {
+  db: Db;
+  userId: string;
+  item: BudgetItem;
+  amount?: number;
+}): Promise<void> => {
+  const _amount = amount ?? item.amount;
+
+  const savingsTransaction: SavingsTransaction = {
+    id: "",
+    amount: _amount,
+    date: new Date(),
+    description: `Transfer to ${item.category.name}`,
+    budgetItem: item,
+  };
+  await createSavingsTransaction({
+    input: savingsTransaction,
+    db,
+    userId,
+  });
+  await updateBudgetItemAmount({
+    db,
+    itemId: item.id,
+    amount: item.amount + _amount,
+  });
 };
 
 const makeSavingsTransaction = async ({
@@ -290,7 +414,7 @@ const makeSavingsTransaction = async ({
     description: `Transfer to ${item.category.name}`,
     savingsGoal: item,
   };
-  const newTransaction = await createSavingsTransaction({
+  await createSavingsTransaction({
     input: savingsTransaction,
     db,
     userId,
