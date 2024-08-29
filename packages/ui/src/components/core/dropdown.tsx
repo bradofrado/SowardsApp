@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState, type PropsWithChildren } from "react";
 import type { AllOrNothing } from "model/src/core/utils";
 import { Button } from "./button";

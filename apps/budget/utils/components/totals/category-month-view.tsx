@@ -11,11 +11,9 @@ import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
 import { useTransactions } from "../providers/transaction-provider";
-import { CategoryNegativeChart } from "../charts/negative-chart";
 import { BudgetItem, CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
-import { calculateCadenceMonthlyAmount } from "../../utils";
 
 interface CategoryChartData {
   category: CategoryBudget;

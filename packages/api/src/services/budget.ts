@@ -1,12 +1,13 @@
 /* eslint-disable no-await-in-loop -- ok*/
 import type { Db } from "db/lib/prisma";
 import { prisma } from "db/lib/prisma";
-import type {
-  Budget,
-  BudgetItem,
-  SavingsGoal,
-  SavingsTransaction,
-  SpendingRecord,
+import {
+  calculateCadenceMonthlyAmount,
+  type Budget,
+  type BudgetItem,
+  type SavingsGoal,
+  type SavingsTransaction,
+  type SpendingRecord,
 } from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
 import {
@@ -241,7 +242,7 @@ export const createBudget = async ({
   return newBudget;
 };
 
-const checkAndMakeSavingsTransfer = async (userId: string): Promise<void> => {
+const checkSavingsTransfer = async (userId: string): Promise<SavingsGoal[]> => {
   //Check if we need to make a savings transfer
   const today = new Date();
   const lastDayOfThisMonth = new Date(
@@ -275,6 +276,7 @@ const checkAndMakeSavingsTransfer = async (userId: string): Promise<void> => {
     },
   });
 
+  const outdatedSavingsGoals: SavingsGoal[] = [];
   //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
   for (const savingsGoal of savingsGoals) {
     if (
@@ -282,14 +284,14 @@ const checkAndMakeSavingsTransfer = async (userId: string): Promise<void> => {
         (transaction) => transaction.savingsGoalId === savingsGoal.id,
       ).length === 0
     ) {
-      await makeSavingsTransaction({ db: prisma, userId, item: savingsGoal });
+      outdatedSavingsGoals.push(savingsGoal);
     }
   }
+
+  return outdatedSavingsGoals;
 };
 
-const checkAndMakeVariableExpenseTransaction = async (
-  userId: string,
-): Promise<void> => {
+const checkExpenseTransfer = async (userId: string): Promise<BudgetItem[]> => {
   //Check if we need to make a savings transfer
   const today = new Date();
   const lastDayOfThisMonth = new Date(
@@ -327,6 +329,7 @@ const checkAndMakeVariableExpenseTransaction = async (
     },
   });
 
+  const outdatedBudgetItems: BudgetItem[] = [];
   //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
   for (const budgetItem of budgetItems) {
     if (
@@ -334,16 +337,46 @@ const checkAndMakeVariableExpenseTransaction = async (
         (transaction) => transaction.budgetId === budgetItem.id,
       ).length === 0
     ) {
-      await makeVariableExpenseTransaction({
-        db: prisma,
-        userId,
-        item: budgetItem,
-      });
+      outdatedBudgetItems.push(budgetItem);
     }
   }
+
+  return outdatedBudgetItems;
 };
 
-const makeVariableExpenseTransaction = async ({
+export interface ActionItem {
+  id: string;
+  title: string;
+  description: string;
+  action: {
+    type: "transfer";
+    items: BudgetItem[];
+    goals: SavingsGoal[];
+  };
+}
+export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
+  const savingsGoals = await checkSavingsTransfer(userId);
+  const budgetItems = await checkExpenseTransfer(userId);
+
+  const actionItems: ActionItem[] = [];
+  if (savingsGoals.length > 0 || budgetItems.length > 0) {
+    actionItems.push({
+      id: "0",
+      title: "Make Transfers",
+      description:
+        "Some of your categories have not been funded this month. Click to make transfers.",
+      action: {
+        type: "transfer",
+        items: budgetItems,
+        goals: savingsGoals,
+      },
+    });
+  }
+
+  return actionItems;
+};
+
+export const makeVariableExpenseTransaction = async ({
   db,
   userId,
   item,
@@ -353,8 +386,7 @@ const makeVariableExpenseTransaction = async ({
   item: BudgetItem;
 }): Promise<void> => {
   //The amount is what is left until the target averaged among how many months are left in the year
-  const _amount =
-    (item.targetAmount - item.amount) / (12 - new Date().getMonth());
+  const _amount = calculateCadenceMonthlyAmount(item);
   if (_amount <= 0) {
     return;
   }
@@ -362,7 +394,7 @@ const makeVariableExpenseTransaction = async ({
   await makeExpenseTransaction({ db, userId, item, amount: _amount });
 };
 
-const makeExpenseTransaction = async ({
+export const makeExpenseTransaction = async ({
   db,
   userId,
   item,
@@ -394,7 +426,7 @@ const makeExpenseTransaction = async ({
   });
 };
 
-const makeSavingsTransaction = async ({
+export const makeSavingsTransaction = async ({
   db,
   userId,
   item,

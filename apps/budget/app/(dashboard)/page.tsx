@@ -15,10 +15,8 @@ import { Card } from "ui/src/components/core/card";
 import { AccountProvider } from "../../utils/components/providers/account-provider";
 import { AccountTotals } from "../../utils/components/totals/account-totals";
 import { redirect } from "next/navigation";
-import { Confetti } from "../../utils/components/totals/confetti";
-import { BudgetItem, SpendingRecord } from "model/src/budget";
-import { SavingsAccount } from "../../utils/components/providers/types";
 import { UpdateItemModal } from "../../utils/components/update-item-modal";
+import { ActionList } from "../../utils/components/actions/action-list";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
@@ -47,6 +45,8 @@ const Home = withAuth(async ({ ctx }) => {
               <TransactionTotals label="" type="income" />
             </Card>
           </div>
+          <FormDivider />
+          <ActionList userId={userId} />
           <FormDivider />
           <CategoryMonthView />
         </AccountProvider>

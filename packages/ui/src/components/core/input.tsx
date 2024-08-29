@@ -14,6 +14,7 @@ interface InputProps {
   label?: string;
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 export const Input: React.FunctionComponent<InputProps> = ({
   onChange,
@@ -24,11 +25,12 @@ export const Input: React.FunctionComponent<InputProps> = ({
   type = "input",
   placeholder,
   required,
+  disabled,
 }) => {
   const props = {
     className: `${
       className || ""
-    } bg-white border shadow-sm rounded-md px-3  py-1.5 text-sm text-gray-900 focus:ring-primary focus:ring-1 transition-[box-shadow] focus-visible:outline-none `,
+    } bg-white border shadow-sm rounded-md px-3  py-1.5 text-sm text-gray-900 focus:ring-primary focus:ring-1 transition-[box-shadow] focus-visible:outline-none disabled:bg-gray-100`,
     onChange: (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -42,9 +44,9 @@ export const Input: React.FunctionComponent<InputProps> = ({
   };
   const input =
     type === "textarea" ? (
-      <textarea {...props} value={value} />
+      <textarea {...props} value={value} disabled={disabled} />
     ) : (
-      <input {...props} type={type} value={value} />
+      <input {...props} type={type} value={value} disabled={disabled} />
     );
   if (label) {
     return <Label label={label}>{input}</Label>;

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { budgetSchema, categoryBudgetSchema } from "model/src/budget";
+import {
+  budgetItemSchema,
+  budgetSchema,
+  categoryBudgetSchema,
+  savingsGoalSchema,
+} from "model/src/budget";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
 import {
   createCategories,
@@ -9,7 +14,11 @@ import {
   deleteBudget,
   updateBudget,
 } from "../../repositories/budget/template/budget-template";
-import { createBudget } from "../../services/budget";
+import {
+  createBudget,
+  makeExpenseTransaction,
+  makeSavingsTransaction,
+} from "../../services/budget";
 
 export const budgetRouter = createTRPCRouter({
   createCategories: protectedProcedure
@@ -72,5 +81,32 @@ export const budgetRouter = createTRPCRouter({
         db: ctx.prisma,
         budgetId: input.budgetId,
       });
+    }),
+  transferFunds: protectedProcedure
+    .input(
+      z.object({
+        items: z.array(budgetItemSchema),
+        goals: z.array(savingsGoalSchema),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      await Promise.all(
+        input.items.map((item) =>
+          makeExpenseTransaction({
+            db: ctx.prisma,
+            item,
+            userId: ctx.session.auth.userVacation.id,
+          }),
+        ),
+      );
+      await Promise.all(
+        input.goals.map((goal) =>
+          makeSavingsTransaction({
+            db: ctx.prisma,
+            item: goal,
+            userId: ctx.session.auth.userVacation.id,
+          }),
+        ),
+      );
     }),
 });

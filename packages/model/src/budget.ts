@@ -124,33 +124,37 @@ export const savingsTransactionSchema = z.object({
 });
 export type SavingsTransaction = z.infer<typeof savingsTransactionSchema>;
 
-/**
- * weekly - day of week
- * monthly - day of month
- * yearly - month and day
- * eventually (throughout the year)
- *
- *
- * First pull from checkings
- * Then pull from savings
- *
- * $10,000
- * Weekly $100 Food - 4 weeks to go, so $400
- *
- * $9,600
- * Monthly $1000 Rent
- *
- * $8,600
- * Yearly $425 ROC pass - 8 months to go, so $53.13
- *
- * $8,546.87
- * Eventually $1000 Vacation - until end of the year?
- *
- * 8,046.87
- * Monthly tithing - %10 of income
- *
- * Goal - $100,000 for house
- * Current amount - $0
- * Target date - 2025
- * Amount each month - $1,666.67
- */
+export const calculateCadenceMonthlyAmount = (
+  item: BudgetItem | SavingsGoal,
+): number => {
+  if (!("cadence" in item)) {
+    return item.amount;
+  }
+
+  if (item.cadence.type === "weekly") {
+    const amount = item.amount * 4;
+    return amount;
+  }
+
+  if (item.cadence.type === "monthly") {
+    const amount = item.amount;
+    return amount;
+  }
+
+  const date = new Date();
+  if (item.cadence.type === "yearly") {
+    //7 - 3
+    const dateDiff =
+      date.getMonth() > item.cadence.month
+        ? 12 - date.getMonth() + item.cadence.month
+        : item.cadence.month - date.getMonth();
+    const amount = item.amount / dateDiff;
+
+    return amount;
+  }
+
+  const datDiff = 11 - date.getMonth();
+  const amount = (item.targetAmount - item.amount) / datDiff;
+
+  return amount;
+};

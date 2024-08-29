@@ -21,6 +21,7 @@ import { StatusLaneContainer } from "ui/src/components/feature/reporting/status-
 import {
   Budget,
   BudgetItem,
+  calculateCadenceMonthlyAmount,
   CategoryBudget,
   SavingsGoal,
 } from "model/src/budget";
@@ -43,10 +44,7 @@ import {
 import { usePrevious } from "ui/src/hooks/previous";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { api } from "next-utils/src/utils/api";
-import {
-  calculateAmount,
-  calculateCadenceMonthlyAmount,
-} from "../../../../utils/utils";
+import { calculateAmount } from "../../../../utils/utils";
 
 const budgetQueryKey = "budget";
 export const CreateBudget: SetupPage = ({
