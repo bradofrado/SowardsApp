@@ -14,6 +14,7 @@ import { useTransactions } from "../providers/transaction-provider";
 import { BudgetItem, CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
+import { useQueryState } from "ui/src/hooks/query-state";
 
 interface CategoryChartData {
   category: CategoryBudget;
@@ -27,9 +28,10 @@ export const CategoryMonthView: React.FunctionComponent<
   const {
     expenses: { transactions, budgetItems, categories },
   } = useTransactions();
-  const [currentMonth, setCurrentMonth] = useState<Month>(
-    months[new Date().getMonth()],
-  );
+  const [currentMonth, setCurrentMonth] = useQueryState<Month>({
+    defaultValue: months[new Date().getMonth()],
+    key: "month",
+  });
 
   const filteredTransactions = useMemo(
     () =>

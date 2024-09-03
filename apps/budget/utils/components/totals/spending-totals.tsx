@@ -12,6 +12,7 @@ import { ChartLegend } from "ui/src/components/feature/reporting/graphs/chart-le
 import { SavingsAccount } from "../providers/types";
 import { HexColor } from "model/src/core/colors";
 import { Header } from "ui/src/components/core/header";
+import { AccountType } from "plaid";
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { income, expenses } = useTransactions();
@@ -20,9 +21,15 @@ export const SpendingTotals: React.FunctionComponent = () => {
 
   const longTermExpenses = useMemo(
     () =>
-      expenses.budgetItems.filter(
-        (expense) => expense.cadence.type === "eventually",
-      ),
+      expenses.budgetItems
+        .filter((expense) => expense.cadence.type === "eventually")
+        .map((expense) => ({
+          ...expense,
+          transactions: expenses.transactions.filter(
+            (t) =>
+              t.transactionCategories[0]?.category.id === expense.category.id,
+          ),
+        })),
     [expenses],
   );
   const shortTermExpenses = useMemo(
@@ -32,10 +39,20 @@ export const SpendingTotals: React.FunctionComponent = () => {
       ),
     [expenses],
   );
+  const debt = useMemo(
+    () => accounts.filter((account) => account.type === AccountType.Credit),
+    [accounts],
+  );
   const barValues: GraphValue[] = useMemo(
     () => [
       {
-        value: calculateAmount(longTermExpenses),
+        value:
+          calculateAmount(longTermExpenses) -
+          calculateAmount(
+            longTermExpenses.map((expense) => ({
+              amount: calculateAmount(expense.transactions),
+            })),
+          ),
         fill: "#000",
         label: "Long Term Expenses",
       },
@@ -46,13 +63,20 @@ export const SpendingTotals: React.FunctionComponent = () => {
       },
       {
         value: calculateAmount(
+          debt.map((account) => ({ amount: account.balances.current || 0 })),
+        ),
+        fill: "#8c52ff",
+        label: "Debt",
+      },
+      {
+        value: calculateAmount(
           savingsAccounts.map((account) => ({ amount: account.totalSaved })),
         ),
         fill: "#41b8d5",
         label: "Savings Goals",
       },
     ],
-    [longTermExpenses, shortTermExpenses, savingsAccounts],
+    [longTermExpenses, shortTermExpenses, savingsAccounts, debt],
   );
 
   return (
