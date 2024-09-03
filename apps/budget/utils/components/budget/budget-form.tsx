@@ -240,18 +240,19 @@ export const BudgetItemForm: React.FunctionComponent<
       </FormRow>
       <FormDivider />
       <FormRow
-        label="Target Amount"
-        description="The amount you want to budget/save for this category"
+        label="Renewing Allotment"
+        description="The amount you will budget for this category each month"
       >
         <InputBlur
           className="h-fit"
           value={item.targetAmount}
           onChange={changeProperty.formFuncNumber("targetAmount", item)}
         />
+        {/* TODO: Put 'per month' gray text */}
       </FormRow>
       <FormDivider />
       <FormRow
-        label="Current Amount"
+        label="Current Allotment"
         description="The amount of money you want to put into this category right now. It can be less than the target amount if you do not have the funds currently."
       >
         <InputBlur

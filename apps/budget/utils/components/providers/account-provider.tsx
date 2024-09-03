@@ -45,6 +45,8 @@ const getSavingsAccounts = (
         account.category.id,
     ),
     monthlyContribution: account.amount,
+    totalSaved: account.totalSaved,
+    targetAmount: account.targetAmount,
   }));
 };
 

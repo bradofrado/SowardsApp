@@ -1,17 +1,34 @@
+import { useMemo } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../core/tooltip";
 import { type GraphComponent, type GraphComponentProps } from "./types";
+import { classNames } from "model/src/utils";
 
 export type ProgressBarMultiValueProps = GraphComponentProps;
 export const ProgressBarMultiValue: GraphComponent = ({
   values,
   total,
+  noSort,
+  totalLabel,
+  className,
 }: ProgressBarMultiValueProps) => {
-  const sortedValues = values.sort((a, b) => a.value - b.value);
+  const sortedValues = useMemo(() => {
+    const temp = noSort
+      ? values.slice()
+      : values.sort((a, b) => a.value - b.value);
+    return temp;
+  }, [noSort, values]);
+
   let lastValue = 0;
-  return (
-    <div className="h-3 rounded-lg overflow-hidden bg-slate-200 relative">
-      {sortedValues.map(({ value: absoluteValue, fill }, i) => {
+  const ret = (
+    <div
+      className={classNames(
+        "h-3 rounded-lg overflow-hidden bg-slate-200 relative",
+        className,
+      )}
+    >
+      {sortedValues.map(({ value: absoluteValue, fill, label }, i) => {
         const value = absoluteValue / total;
-        const ret = (
+        const _ret = (
           <div
             className="bg-primary h-full w-full absolute transition-transform duration-1000 origin-left"
             key={i}
@@ -24,8 +41,29 @@ export const ProgressBarMultiValue: GraphComponent = ({
           />
         );
         lastValue = value;
-        return ret;
+
+        if (label) {
+          return (
+            <Tooltip key={value}>
+              <TooltipTrigger asChild>{_ret}</TooltipTrigger>
+              <TooltipContent>{label}</TooltipContent>
+            </Tooltip>
+          );
+        }
+
+        return _ret;
       })}
     </div>
   );
+
+  if (totalLabel) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{ret}</TooltipTrigger>
+        <TooltipContent>{totalLabel}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return ret;
 };

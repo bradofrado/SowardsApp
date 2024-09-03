@@ -17,6 +17,7 @@ import { AccountTotals } from "../../utils/components/totals/account-totals";
 import { redirect } from "next/navigation";
 import { UpdateItemModal } from "../../utils/components/update-item-modal";
 import { ActionList } from "../../utils/components/actions/action-list";
+import { SpendingTotals } from "../../utils/components/totals/spending-totals";
 
 const Home = withAuth(async ({ ctx }) => {
   const userId = ctx.session.auth.userVacation.id;
@@ -45,6 +46,8 @@ const Home = withAuth(async ({ ctx }) => {
               <TransactionTotals label="" type="income" />
             </Card>
           </div>
+          <FormDivider />
+          <SpendingTotals />
           <FormDivider />
           <ActionList userId={userId} />
           <FormDivider />

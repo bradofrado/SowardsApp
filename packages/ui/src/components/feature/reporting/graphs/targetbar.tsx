@@ -1,5 +1,5 @@
-import { classNames, formatDollarAmount } from "model/src/utils";
-import { type GraphComponent, type GraphComponentProps } from "./types";
+import { classNames } from "model/src/utils";
+import { type GraphComponentProps } from "./types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../core/tooltip";
 
 export type TargetBarProps = GraphComponentProps & {
@@ -29,7 +29,7 @@ export const TargetBar: React.FunctionComponent<TargetBarProps> = ({
   return (
     <div
       className={classNames(
-        "h-6 rounded-lg overflow-hidden bg-slate-200 relative",
+        "h-3 rounded-lg overflow-hidden bg-slate-200 relative",
         className,
       )}
     >
@@ -51,7 +51,7 @@ export const TargetBar: React.FunctionComponent<TargetBarProps> = ({
 
         if (label) {
           return (
-            <Tooltip>
+            <Tooltip key={i}>
               <TooltipTrigger asChild>{ret}</TooltipTrigger>
               <TooltipContent>{label}</TooltipContent>
             </Tooltip>

@@ -7,7 +7,10 @@ export interface GraphValue {
 }
 
 export interface GraphComponentProps {
+  className?: string;
   values: GraphValue[];
   total: number;
+  totalLabel?: string;
+  noSort?: boolean;
 }
 export type GraphComponent = (props: GraphComponentProps) => JSX.Element;
