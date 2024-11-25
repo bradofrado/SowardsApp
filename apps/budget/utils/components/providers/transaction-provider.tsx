@@ -46,15 +46,22 @@ interface TransactionProviderProps {
 export const TransactionProvider: React.FunctionComponent<
   TransactionProviderProps
 > = ({ transactions, budget, categories, children }) => {
+  const nonTransferTransactions = useMemo(() => {
+    const transferCache = transactions.slice();
+    return transactions.filter(
+      (transaction) =>
+        !isTransferTransactionAndUpdateCache(transaction, transferCache),
+    );
+  }, [transactions]);
   const spendingFilter = useExpenseOrIncome({
     type: "expense",
-    transactions,
+    transactions: nonTransferTransactions,
     categories,
     budgetItems: budget?.items || [],
   });
   const incomeFilter = useExpenseOrIncome({
     type: "income",
-    transactions,
+    transactions: nonTransferTransactions,
     categories,
     budgetItems: budget?.items || [],
   });
@@ -83,7 +90,7 @@ const useExpenseOrIncome = ({
         ? filterExpenses(transactions)
         : filterIncome(transactions)
       ).map((transaction) =>
-        transaction.amount < 0
+        type === "income"
           ? { ...transaction, amount: -transaction.amount }
           : transaction,
       ),
@@ -117,7 +124,8 @@ const isTransferTransactionAndUpdateCache = (
   const transferTransactionIndex = transferedCache.findIndex(
     (a) =>
       Math.abs(a.date.getTime() - transaction.date.getTime()) <= 3 * day &&
-      a.amount === -transaction.amount,
+      a.amount === -transaction.amount &&
+      a.accountId !== transaction.accountId,
   );
   if (transferTransactionIndex > -1) {
     transferedCache.splice(transferTransactionIndex, 1);
@@ -135,33 +143,27 @@ const filterCategories = (
 };
 
 const filterExpenses = <T extends SpendingRecord>(transactions: T[]) => {
-  const transferedCache = transactions.slice();
   return transactions.filter((transaction) => {
-    if (transaction.amount < 0) {
-      return false;
-    }
-
-    return !isTransferTransactionAndUpdateCache(transaction, transferedCache);
+    return !isIncome(transaction);
   });
+};
+
+const isIncome = (transaction: SpendingRecordWithAccountType) => {
+  if (transaction.amount >= 0) {
+    return false;
+  }
+
+  if (transaction.accountType !== AccountType.Depository) {
+    return false;
+  }
+
+  return true;
 };
 
 // A transaction is considered income if it is not a transfer, is a negative amount, and is coming from a depository account
 const filterIncome = (transactions: SpendingRecordWithAccountType[]) => {
-  const transferedCache = transactions.slice();
   return transactions.filter((transaction) => {
-    if (isTransferTransactionAndUpdateCache(transaction, transferedCache)) {
-      return false;
-    }
-
-    if (transaction.amount >= 0) {
-      return false;
-    }
-
-    if (transaction.accountType !== AccountType.Depository) {
-      return false;
-    }
-
-    return true;
+    return isIncome(transaction);
   });
 };
 
