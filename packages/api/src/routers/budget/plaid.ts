@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { spendingRecordSchema } from "model/src/budget";
 import {
   createLinkToken,
   getAccounts,
@@ -10,7 +11,6 @@ import {
   addExternalLogin,
   deleteExternalLogin,
 } from "../../repositories/budget/external-login";
-import { spendingRecordSchema } from "model/src/budget";
 import {
   createSpendingRecord,
   deleteSpendingRecord,

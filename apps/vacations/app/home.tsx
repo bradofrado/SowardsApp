@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "ui/src/components/catalyst/table";
-import { getAmountForEvent, StatsView } from "./plan/components/stats-view";
-import { UserVacation, VacationEvent } from "model/src/vacation";
+import type { UserVacation, VacationEvent } from "model/src/vacation";
 import { displayDateAndTime, formatDollarAmount } from "model/src/utils";
-import { useUser } from "./plan/components/user-provider";
 import { useMemo } from "react";
+import { useUser } from "./plan/components/user-provider";
+import { getAmountForEvent, StatsView } from "./plan/components/stats-view";
 
 export const Home: React.FunctionComponent<{
   events: VacationEvent[];

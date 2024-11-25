@@ -4,11 +4,11 @@ import type { CalendarEvent } from "ui/src/components/core/calendar/calendar";
 import { CalendarView as CalendarViewRaw } from "ui/src/components/core/calendar/calendar";
 import type { UserVacation, VacationEvent } from "model/src/vacation";
 import { useRouter } from "next/navigation";
+import { useTimezoneContext } from "ui/src/components/core/calendar/timezone";
+import { api } from "next-utils/src/utils/api";
 import type { Event } from "./event-form";
 import { EventFormModal } from "./event-form";
 import { useUser } from "./user-provider";
-import { useTimezoneContext } from "ui/src/components/core/calendar/timezone";
-import { api } from "next-utils/src/utils/api";
 
 export const CalendarView: React.FunctionComponent<{
   events: VacationEvent[];
@@ -131,9 +131,6 @@ export const CalendarView: React.FunctionComponent<{
         onEventClick={onEditEvent}
       />
       <EventFormModal
-        existingEvent={edit}
-        users={users}
-        roles={roles}
         canEdit={user !== undefined}
         event={
           edit && events[currEvent]
@@ -156,6 +153,7 @@ export const CalendarView: React.FunctionComponent<{
                 personLimit: undefined,
               }
         }
+        existingEvent={edit}
         inGroup={inGroup}
         joined={joined}
         onClose={() => {
@@ -165,7 +163,9 @@ export const CalendarView: React.FunctionComponent<{
         onLeave={onLeave}
         onRemove={onRemove}
         onSave={onSave}
+        roles={roles}
         show={show}
+        users={users}
       />
     </>
   );

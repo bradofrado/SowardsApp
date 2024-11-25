@@ -1,7 +1,7 @@
 import type { Db, Prisma } from "db/lib/prisma";
 import type { SpendingRecord } from "model/src/budget";
-import { prismaToBudgetCategory } from "./category";
 import { v4 as uuidv4 } from "uuid";
+import { prismaToBudgetCategory } from "./category";
 
 const spendingRecordPayload = {
   include: {

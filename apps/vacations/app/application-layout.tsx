@@ -1,12 +1,9 @@
 "use client";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { UserVacation } from "model/src/vacation";
+import type { UserVacation } from "model/src/vacation";
 import { usePathname } from "next/navigation";
-import {
-  ApplicationLayout as Layout,
-  SidebarItem,
-} from "ui/src/components/feature/application-layout";
-import { useUser } from "./plan/components/user-provider";
+import type { SidebarItem } from "ui/src/components/feature/application-layout";
+import { ApplicationLayout as Layout } from "ui/src/components/feature/application-layout";
 import {
   SidebarHeading,
   SidebarSection,
@@ -17,6 +14,7 @@ import {
   HomeIcon,
   Square2StackIcon,
 } from "ui/src/components/core/icons";
+import { useUser } from "./plan/components/user-provider";
 
 export const ApplicationLayout: React.FunctionComponent<{
   children: React.ReactNode;
@@ -43,7 +41,7 @@ export const ApplicationLayout: React.FunctionComponent<{
   ];
   return (
     <Layout
-      title="Sowards Vacations"
+      items={items}
       pathname={pathname}
       profileItem={
         <>
@@ -55,7 +53,6 @@ export const ApplicationLayout: React.FunctionComponent<{
           </SignedOut>
         </>
       }
-      items={items}
       sideBarContent={
         <>
           {isAdmin && user ? (
@@ -64,8 +61,8 @@ export const ApplicationLayout: React.FunctionComponent<{
 
               <Dropdown
                 className="w-full"
-                items={users}
                 initialValue={user.id}
+                items={users}
                 onChange={(item) => {
                   setUser(item as UserVacation);
                 }}
@@ -74,6 +71,7 @@ export const ApplicationLayout: React.FunctionComponent<{
           ) : null}
         </>
       }
+      title="Sowards Vacations"
     >
       {children}
     </Layout>

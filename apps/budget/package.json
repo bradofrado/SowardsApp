@@ -48,5 +48,6 @@
     "prettier-config": "workspace:*",
     "tailwindcss": "^3.4.1",
     "typescript": "5.7.0-dev.20240821"
-  }
+  },
+  "prettier": "prettier-config"
 }

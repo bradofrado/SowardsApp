@@ -5,8 +5,8 @@ import { Header } from "ui/src/components/core/header";
 import { useState } from "react";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { useRouter } from "next/navigation";
-import { CreateGroupModal } from "./create-group";
 import { api } from "next-utils/src/utils/api";
+import { CreateGroupModal } from "./create-group";
 
 export const GroupList: React.FunctionComponent<{
   groups: VacationGroup[];
@@ -65,12 +65,10 @@ export const GroupList: React.FunctionComponent<{
       {groups.map((_group) => (
         <GroupCard
           group={_group}
+          isJoined={myGroups}
           key={_group.id}
           onDelete={() => {
             onDelete(_group.id);
-          }}
-          onUpdate={() => {
-            setGroup(_group);
           }}
           onJoin={() => {
             onJoin(_group.id);
@@ -78,7 +76,9 @@ export const GroupList: React.FunctionComponent<{
           onLeave={() => {
             onLeave(_group.id);
           }}
-          isJoined={myGroups}
+          onUpdate={() => {
+            setGroup(_group);
+          }}
         />
       ))}
       {group ? (

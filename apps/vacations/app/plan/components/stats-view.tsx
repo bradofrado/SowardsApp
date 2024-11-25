@@ -5,12 +5,12 @@ import type {
   VacationEvent,
   VacationGroup,
 } from "model/src/vacation";
-import type { Stat } from "ui/src/components/core/stats";
-import { useUser } from "./user-provider";
+import { Stat } from "ui/src/components/core/stats";
 import { formatDollarAmount } from "model/src/utils";
 import { Divider } from "ui/src/components/catalyst/divider";
 import { Badge } from "ui/src/components/catalyst/badge";
 import { getAmountOfPeople } from "model/src/vacation-utils";
+import { useUser } from "./user-provider";
 
 export function Stat({
   title,

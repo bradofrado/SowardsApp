@@ -12,8 +12,8 @@ import { prisma } from "db/lib/prisma";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@clerk/nextjs";
+import type { AuthedSession, Session } from "model/src/auth";
 import { getServerAuthSession } from "./auth";
-import { AuthedSession, Session } from "model/src/auth";
 /**
  * 1. CONTEXT
  *
@@ -120,11 +120,11 @@ const isSession = t.middleware(({ next, ctx }) => {
   });
 });
 
-const catchErrors = t.middleware(async ({ next, ctx }) => {
-  const result = await next({ ctx });
+// const catchErrors = t.middleware(async ({ next, ctx }) => {
+//   const result = await next({ ctx });
 
-  return result;
-});
+//   return result;
+// });
 
 /**
  * This is how you create new routers and sub-routers in your tRPC API.

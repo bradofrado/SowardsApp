@@ -1,11 +1,11 @@
 import { z } from "zod";
+import type { UserVacation } from "model/src/vacation";
 import {
   createTRPCRouter,
   protectedProcedure,
   sessionProcedure,
 } from "../trpc";
 import { createUser } from "../services/account";
-import { UserVacation } from "model/src/vacation";
 import { updateUserVacation } from "../repositories/user-vacation";
 
 export const accountRouter = createTRPCRouter({

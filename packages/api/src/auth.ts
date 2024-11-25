@@ -1,8 +1,8 @@
 import { clerkClient } from "@clerk/nextjs";
-import { Prisma, prisma } from "db/lib/prisma";
+import type { Prisma } from "db/lib/prisma";
+import { prisma } from "db/lib/prisma";
 import type { AuthContext, Session, User } from "model/src/auth";
 import { amountTypesSchema } from "model/src/vacation";
-
 import {
   payload as userVacationPayload,
   prismaToUserVacation,

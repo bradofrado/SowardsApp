@@ -1,5 +1,5 @@
-import { Db, Prisma } from "db/lib/prisma";
-import { SavingsTransaction } from "model/src/budget";
+import type { Db, Prisma } from "db/lib/prisma";
+import type { SavingsTransaction } from "model/src/budget";
 import { budgetItemPayload, prismaToBudgetItem } from "./budget-item";
 import { prismaToSavingsGoal, savingsGoalPayload } from "./savings-goal";
 

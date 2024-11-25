@@ -31,10 +31,10 @@ export const ItineraryButton: React.FunctionComponent<ItineraryButtonProps> = ({
   };
   return (
     <>
-      <Button onClick={onGenerate} loading={loading}>
+      <Button loading={loading} onClick={onGenerate}>
         Itinerary
       </Button>
-      <Dialog open={Boolean(itinerary)} onClose={onClose}>
+      <Dialog onClose={onClose} open={Boolean(itinerary)}>
         <div className="flex flex-col">
           <DialogTitle>Itinerary</DialogTitle>
           <DialogDescription>

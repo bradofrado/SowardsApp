@@ -1,5 +1,5 @@
-import { Session } from "model/src/auth";
-import { UserVacation } from "model/src/vacation";
+import type { Session } from "model/src/auth";
+import type { UserVacation } from "model/src/vacation";
 import { createAccount } from "../auth";
 import { createUserVacation } from "../repositories/user-vacation";
 

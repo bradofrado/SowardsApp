@@ -1,5 +1,5 @@
-import { Db, Prisma } from "db/lib/prisma";
-import { SavingsGoal } from "model/src/budget";
+import type { Db, Prisma } from "db/lib/prisma";
+import type { SavingsGoal } from "model/src/budget";
 import { prismaToBudgetCategory } from "../category";
 
 export const savingsGoalPayload = {

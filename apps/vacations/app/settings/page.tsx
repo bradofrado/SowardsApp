@@ -20,8 +20,8 @@ const SetupPage = async (): Promise<JSX.Element> => {
   return (
     <ConnectAccountForm
       onUpdate={onSubmit}
-      userVacation={userVacation}
       user={session?.auth.user}
+      userVacation={userVacation}
       users={users}
     />
   );

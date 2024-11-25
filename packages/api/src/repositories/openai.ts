@@ -1,5 +1,5 @@
 import { displayTime, isDateInBetween, minute } from "model/src/utils";
-import { UserVacation, VacationEvent } from "model/src/vacation";
+import type { UserVacation, VacationEvent } from "model/src/vacation";
 import { getAmountOfPeople } from "model/src/vacation-utils";
 import Openai from "openai";
 import { z } from "zod";

@@ -20,8 +20,6 @@ import type {
 } from "model/src/vacation";
 import type { DropdownItem } from "ui/src/components/core/dropdown";
 import { Dropdown } from "ui/src/components/core/dropdown";
-import { useUser } from "./user-provider";
-import { isUserAmount } from "./stats-view";
 import { displayDate, displayTime, formatDollarAmount } from "model/src/utils";
 import {
   DialogTitle,
@@ -41,6 +39,8 @@ import { SparklesIcon } from "ui/src/components/core/icons";
 import { Subheading } from "ui/src/components/catalyst/heading";
 import { Text } from "ui/src/components/catalyst/text";
 import { api } from "next-utils/src/utils/api";
+import { isUserAmount } from "./stats-view";
+import { useUser } from "./user-provider";
 
 type EventAmount = Event["amounts"][number];
 type EventAmountType = AmountType;
@@ -101,11 +101,11 @@ export const EventFormModal: React.FunctionComponent<EventFormModalProps> = ({
       ) : (
         <EventDetails
           canEdit={canEdit}
-          onJoin={closeIt(onJoin)}
-          onLeave={closeIt(onLeave)}
           onEdit={() => {
             onEdit(!edit);
           }}
+          onJoin={closeIt(onJoin)}
+          onLeave={closeIt(onLeave)}
           {...rest}
         />
       )}
@@ -160,8 +160,8 @@ export const EventDetails: React.FunctionComponent<EventDetailsProps> = ({
       <DialogBody className="space-y-4">
         <EventDetail
           event={event}
-          users={users}
           user={user}
+          users={users}
           usersInEvent={usersInEvent}
         />
         {error ? <div className="text-red-500">{error}</div> : null}
@@ -229,10 +229,10 @@ const EventDetail: React.FunctionComponent<EventDetailProps> = ({
             ? event.links.map((link) => (
                 <a
                   className="text-blue-500"
-                  target="_blank"
-                  key={link}
                   href={link}
+                  key={link}
                   rel="noopener"
+                  target="_blank"
                 >
                   {link}
                 </a>
@@ -248,8 +248,8 @@ const EventDetail: React.FunctionComponent<EventDetailProps> = ({
             .filter((amount) => isUserAmount(amount, user?.id))
             .map((amount) => (
               <div
-                key={`${amount.amount}-${amount.type}`}
                 className="flex gap-2"
+                key={`${amount.amount}-${amount.type}`}
               >
                 <div>{formatDollarAmount(amount.amount)}</div>
                 <span>-</span>
@@ -392,16 +392,16 @@ export const EventForm: React.FunctionComponent<
         ) : null}
         {process.env.NEXT_PUBLIC_GENERATE_EVENTS === "true" ||
         roles.includes("admin") ? (
-          <Button onClick={onGenerate} loading={loading}>
+          <Button loading={loading} onClick={onGenerate}>
             <SparklesIcon className="h-4 w-4" /> Generate
           </Button>
         ) : null}
         {existingEvent ? <Button onClick={onView}>View Details</Button> : null}
       </DialogActions>
       <GenerateModal
+        events={generatedEvents}
         isOpen={openGenerate}
         onClose={() => setOpenGenerate(false)}
-        events={generatedEvents}
         onSelect={(_event) => {
           setEvent({ ...event, ..._event, id: event.id });
           setOpenGenerate(false);
@@ -419,7 +419,7 @@ const GenerateModal: React.FunctionComponent<{
 }> = ({ isOpen, onClose, events, onSelect }) => {
   const { user } = useUser();
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog onClose={onClose} open={isOpen}>
       <DialogTitle>Generated Event</DialogTitle>
       <DialogBody>
         <div className="flex flex-col gap-4">
@@ -428,10 +428,10 @@ const GenerateModal: React.FunctionComponent<{
               <Subheading>{event.name}</Subheading>
               <Text>{event.notes}</Text>
               <EventDetail
-                key={event.id}
                 event={event}
-                users={[]}
+                key={event.id}
                 user={user}
+                users={[]}
               />
               <Button onClick={() => onSelect(event)}>Select</Button>
             </>

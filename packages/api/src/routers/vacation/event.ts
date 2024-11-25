@@ -1,5 +1,6 @@
 import { vacationEventSchema } from "model/src/vacation";
 import { z } from "zod";
+import { getTotalDependents } from "model/src/vacation-utils";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -11,7 +12,6 @@ import {
   prismaToVacationEvent,
 } from "../../repositories/event";
 import { getUserVactions } from "../../repositories/user-vacation";
-import { getTotalDependents } from "model/src/vacation-utils";
 import { generateEvents } from "../../repositories/openai";
 
 export const vacationEventRouter = createTRPCRouter({
@@ -127,11 +127,11 @@ export const vacationEventRouter = createTRPCRouter({
       const users = await getUserVactions();
       const user = users.find((_user) => _user.id === userId);
       if (!user) {
-        throw new Error("User not found with id " + userId);
+        throw new Error(`User not found with id ${userId}`);
       }
       const event = await getVacationEvent({ db: ctx.prisma, id: input.id });
       if (!event) {
-        throw new Error("Event not found with id " + input.id);
+        throw new Error(`Event not found with id ${input.id}`);
       }
       const userEvents = users.filter((_user) =>
         _user.eventIds.includes(input.id),
