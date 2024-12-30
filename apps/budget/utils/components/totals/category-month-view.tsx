@@ -44,16 +44,6 @@ export const CategoryMonthView: React.FunctionComponent<
     [transactions, currentMonth],
   );
 
-  const filteredBudgeted = useMemo(
-    () =>
-      budgetItems.reduce<BudgetItem[]>((prev, curr) => {
-        const amount = curr.amount;
-
-        return [...prev, { ...curr, amount }];
-      }, []),
-    [budgetItems],
-  );
-
   const longTermExpenses = useMemo(
     () =>
       budgetItems

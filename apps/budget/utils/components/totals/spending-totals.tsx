@@ -15,7 +15,7 @@ import { Header } from "ui/src/components/core/header";
 import { AccountType } from "plaid";
 
 export const SpendingTotals: React.FunctionComponent = () => {
-  const { income, expenses } = useTransactions();
+  const { expenses } = useTransactions();
   const { accounts, savingsAccounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
 
@@ -27,6 +27,7 @@ export const SpendingTotals: React.FunctionComponent = () => {
           ...expense,
           transactions: expenses.transactions.filter(
             (t) =>
+              t.date.getMonth() === new Date().getMonth() &&
               t.transactionCategories[0]?.category.id === expense.category.id,
           ),
         })),
@@ -95,10 +96,6 @@ export const SpendingTotals: React.FunctionComponent = () => {
             label: formatDollarAmount(value.value),
           }))}
           total={netWorth}
-          // totalLabel={formatDollarAmount(
-          //   netWorth -
-          //     calculateAmount(barValues.map((i) => ({ amount: i.value }))),
-          // )}
         />
         <div className="mt-2">
           <ChartLegend values={barValues} total={netWorth} noSort />
