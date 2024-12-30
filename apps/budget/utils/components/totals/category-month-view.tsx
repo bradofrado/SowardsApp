@@ -15,6 +15,8 @@ import { BudgetItem, CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { useQueryState } from "ui/src/hooks/query-state";
+import { Header } from "ui/src/components/core/header";
+import { calculateAmount } from "../../utils";
 
 interface CategoryChartData {
   category: CategoryBudget;
@@ -52,26 +54,74 @@ export const CategoryMonthView: React.FunctionComponent<
     [budgetItems],
   );
 
-  const totalsActual = useTransactionCategoryTotals({
-    transactions: filteredTransactions,
-    categories,
-  });
-  const totalsBudgeted = useCategoryTotals({
-    transactions: filteredBudgeted,
-    categories,
-  });
-
-  const negativeChartData: CategoryChartData[] = useMemo(
+  const longTermExpenses = useMemo(
     () =>
-      totalsActual.map(({ category, totalAmount }) => ({
+      budgetItems
+        .filter((expense) => expense.cadence.type === "eventually")
+        .map((expense) => ({
+          ...expense,
+          transactions: filteredTransactions.filter(
+            (t) =>
+              t.transactionCategories[0]?.category.id === expense.category.id,
+          ),
+        })),
+    [budgetItems, filteredTransactions],
+  );
+  const longTermBudgeted = useMemo(
+    () => calculateAmount(longTermExpenses),
+    [longTermExpenses],
+  );
+  const longTermActual = useMemo(
+    () =>
+      longTermExpenses.reduce(
+        (prev, curr) => prev + calculateAmount(curr.transactions),
+        0,
+      ),
+    [longTermExpenses],
+  );
+  const shortTermExpenses = useMemo(
+    () =>
+      budgetItems
+        .filter((expense) => expense.cadence.type === "monthly")
+        .map((expense) => ({
+          ...expense,
+          transactions: filteredTransactions.filter(
+            (t) =>
+              t.transactionCategories[0]?.category.id === expense.category.id,
+          ),
+        })),
+    [budgetItems, filteredTransactions],
+  );
+  const shortTermBudgeted = useMemo(
+    () => calculateAmount(shortTermExpenses),
+    [shortTermExpenses],
+  );
+  const shortTermActual = useMemo(
+    () =>
+      shortTermExpenses.reduce(
+        (prev, curr) => prev + calculateAmount(curr.transactions),
+        0,
+      ),
+    [shortTermExpenses],
+  );
+
+  const shortTermChartData: CategoryChartData[] = useMemo(
+    () =>
+      shortTermExpenses.map(({ category, targetAmount, transactions }) => ({
         category,
-        actual: totalAmount,
-        budgeted:
-          totalsBudgeted.find(
-            ({ category: budgetCategory }) => budgetCategory.id === category.id,
-          )?.totalAmount || 0,
+        actual: calculateAmount(transactions),
+        budgeted: targetAmount,
       })),
-    [totalsActual, totalsBudgeted],
+    [shortTermExpenses],
+  );
+  const longTermChartData: CategoryChartData[] = useMemo(
+    () =>
+      longTermExpenses.map(({ category, targetAmount, transactions }) => ({
+        category,
+        actual: calculateAmount(transactions),
+        budgeted: targetAmount,
+      })),
+    [longTermExpenses],
   );
 
   const uncategorizedData = useMemo(() => {
@@ -81,10 +131,7 @@ export const CategoryMonthView: React.FunctionComponent<
 
     if (uncategorizedTransactions.length === 0) return undefined;
 
-    const totalAmount = uncategorizedTransactions.reduce(
-      (prev, curr) => prev + curr.amount,
-      0,
-    );
+    const totalAmount = calculateAmount(uncategorizedTransactions);
     return {
       actual: totalAmount,
       budgeted: 0,
@@ -111,7 +158,7 @@ export const CategoryMonthView: React.FunctionComponent<
             </Button>
           ))}
         </div>
-        <div>
+        <div className="space-y-2">
           <div className="flex flex-col gap-2">
             {uncategorizedData ? (
               <CategoryTarget
@@ -128,7 +175,40 @@ export const CategoryMonthView: React.FunctionComponent<
                 defaultLabel={formatDollarAmount(uncategorizedData.actual)}
               />
             ) : null}
-            {negativeChartData.map((data) => (
+          </div>
+          <Header level={4}>Monthly</Header>
+          <div className="flex flex-col gap-2">
+            <CategoryTarget
+              data={{
+                category: {
+                  id: "shortTerm",
+                  name: "Total Monthly Expenses",
+                  type: "expense",
+                  order: -2,
+                },
+                actual: shortTermActual,
+                budgeted: shortTermBudgeted,
+              }}
+            />
+            {shortTermChartData.map((data) => (
+              <CategoryTarget key={data.category.id} data={data} />
+            ))}
+          </div>
+          <Header level={4}>Long Term</Header>
+          <div className="flex flex-col gap-2">
+            <CategoryTarget
+              data={{
+                category: {
+                  id: "longTerm",
+                  name: "Total Long Term Expenses",
+                  type: "expense",
+                  order: -2,
+                },
+                actual: longTermActual,
+                budgeted: longTermBudgeted,
+              }}
+            />
+            {longTermChartData.map((data) => (
               <CategoryTarget key={data.category.id} data={data} />
             ))}
           </div>
