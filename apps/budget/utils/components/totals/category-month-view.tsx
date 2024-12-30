@@ -107,19 +107,19 @@ export const CategoryMonthView: React.FunctionComponent<
 
   const shortTermChartData: CategoryChartData[] = useMemo(
     () =>
-      shortTermExpenses.map(({ category, targetAmount, transactions }) => ({
+      shortTermExpenses.map(({ category, amount, transactions }) => ({
         category,
         actual: calculateAmount(transactions),
-        budgeted: targetAmount,
+        budgeted: amount,
       })),
     [shortTermExpenses],
   );
   const longTermChartData: CategoryChartData[] = useMemo(
     () =>
-      longTermExpenses.map(({ category, targetAmount, transactions }) => ({
+      longTermExpenses.map(({ category, amount, transactions }) => ({
         category,
         actual: calculateAmount(transactions),
-        budgeted: targetAmount,
+        budgeted: amount,
       })),
     [longTermExpenses],
   );

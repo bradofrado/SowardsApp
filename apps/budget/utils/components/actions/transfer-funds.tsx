@@ -14,6 +14,11 @@ import {
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
 import { FormDivider, FormSection } from "ui/src/components/catalyst/form/form";
+import {
+  DropdownLineItem,
+  ListBox,
+  ListBoxPopover,
+} from "ui/src/components/core/dropdown";
 import { InputBlur } from "ui/src/components/core/input";
 import { Label } from "ui/src/components/core/label";
 import { useChangeArray } from "ui/src/hooks/change-property";
@@ -27,8 +32,12 @@ interface TransferFundsModalProps {
 export const TransferFundsModal: React.FunctionComponent<
   TransferFundsModalProps
 > = ({ show, onClose, items: itemsProps, goals: goalsProps }) => {
-  const [items, setItems] = useState(itemsProps);
-  const [goals, setGoals] = useState(goalsProps);
+  const [items, setItems] = useState<{ item: BudgetItem; amount: number }[]>(
+    [],
+  );
+  const [goals, setGoals] = useState<{ item: SavingsGoal; amount: number }[]>(
+    [],
+  );
   const changeItems = useChangeArray(setItems);
   const changeGoals = useChangeArray(setGoals);
   const [loading, setLoading] = useState(false);
@@ -50,6 +59,19 @@ export const TransferFundsModal: React.FunctionComponent<
       },
     );
   };
+
+  const onAddTransfer = (item: BudgetItem | SavingsGoal): void => {
+    if (itemsProps.includes(item as BudgetItem))
+      setItems((prev) => [...prev, { item: item as BudgetItem, amount: 0 }]);
+    else
+      setGoals((prev) => [
+        ...prev,
+        {
+          item: item as SavingsGoal,
+          amount: calculateCadenceMonthlyAmount(item),
+        },
+      ]);
+  };
   return (
     <Dialog open={show} onClose={onClose}>
       <DialogTitle>Transfer Funds</DialogTitle>
@@ -58,9 +80,22 @@ export const TransferFundsModal: React.FunctionComponent<
         savings goals and variable expenses.
       </DialogDescription>
       <DialogBody>
+        <ListBox
+          items={[...itemsProps, ...goalsProps].map((item) => ({
+            id: item.id,
+            name: (
+              <DropdownLineItem onClick={() => onAddTransfer(item)}>
+                {item.category.name}
+              </DropdownLineItem>
+            ),
+          }))}
+        >
+          Add Transfer
+        </ListBox>
+
         {items.length > 0 ? (
           <FormSection label="Expenses">
-            {items.map((item, i) => (
+            {items.map(({ item, amount }, i) => (
               <Label
                 className="justify-between"
                 key={item.id}
@@ -68,11 +103,10 @@ export const TransferFundsModal: React.FunctionComponent<
                 sameLine
               >
                 <InputBlur
-                  value={calculateCadenceMonthlyAmount(item)}
+                  value={amount}
                   onChange={(value) =>
                     changeItems(items, i, "amount", parseFloat(value))
                   }
-                  disabled
                 />
               </Label>
             ))}
@@ -82,7 +116,7 @@ export const TransferFundsModal: React.FunctionComponent<
           <>
             <FormDivider />
             <FormSection label="Goals">
-              {goals.map((item, i) => (
+              {goals.map(({ item, amount }, i) => (
                 <Label
                   className="justify-between"
                   key={item.id}
@@ -90,7 +124,7 @@ export const TransferFundsModal: React.FunctionComponent<
                   sameLine
                 >
                   <InputBlur
-                    value={calculateCadenceMonthlyAmount(item)}
+                    value={amount}
                     onChange={(value) =>
                       changeGoals(goals, i, "amount", parseFloat(value))
                     }

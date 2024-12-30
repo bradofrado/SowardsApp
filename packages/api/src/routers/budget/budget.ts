@@ -85,25 +85,37 @@ export const budgetRouter = createTRPCRouter({
   transferFunds: protectedProcedure
     .input(
       z.object({
-        items: z.array(budgetItemSchema),
-        goals: z.array(savingsGoalSchema),
+        items: z.array(
+          z.object({
+            item: budgetItemSchema,
+            amount: z.number(),
+          }),
+        ),
+        goals: z.array(
+          z.object({
+            item: savingsGoalSchema,
+            amount: z.number(),
+          }),
+        ),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       await Promise.all(
-        input.items.map((item) =>
+        input.items.map(({ item, amount }) =>
           makeExpenseTransaction({
             db: ctx.prisma,
             item,
+            amount,
             userId: ctx.session.auth.userVacation.id,
           }),
         ),
       );
       await Promise.all(
-        input.goals.map((goal) =>
+        input.goals.map(({ item, amount }) =>
           makeSavingsTransaction({
             db: ctx.prisma,
-            item: goal,
+            item,
+            amount,
             userId: ctx.session.auth.userVacation.id,
           }),
         ),

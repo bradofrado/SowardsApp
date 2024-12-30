@@ -355,12 +355,18 @@ export interface ActionItem {
   };
 }
 export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
-  const savingsGoals = await checkSavingsTransfer(userId);
-  const budgetItems = await checkExpenseTransfer(userId);
+  // const savingsGoals = await checkSavingsTransfer(userId);
+  // const budgetItems = await checkExpenseTransfer(userId);
 
-  const actionItems: ActionItem[] = [];
-  if (savingsGoals.length > 0 || budgetItems.length > 0) {
-    actionItems.push({
+  const savingsGoals = await getSavingsGoals({ db: prisma, userId });
+  const budgetItems = await getBudgetItemsOfType({
+    db: prisma,
+    userId,
+    type: "expense",
+  });
+
+  const actionItems: ActionItem[] = [
+    {
       id: "0",
       title: "Make Transfers",
       description:
@@ -370,8 +376,21 @@ export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
         items: budgetItems,
         goals: savingsGoals,
       },
-    });
-  }
+    },
+  ];
+  // if (savingsGoals.length > 0 || budgetItems.length > 0) {
+  //   actionItems.push({
+  //     id: "0",
+  //     title: "Make Transfers",
+  //     description:
+  //       "Some of your categories have not been funded this month. Click to make transfers.",
+  //     action: {
+  //       type: "transfer",
+  //       items: budgetItems,
+  //       goals: savingsGoals,
+  //     },
+  //   });
+  // }
 
   return actionItems;
 };
