@@ -3,7 +3,6 @@ import {
   budgetItemSchema,
   budgetSchema,
   categoryBudgetSchema,
-  savingsGoalSchema,
 } from "model/src/budget";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
 import {
@@ -14,11 +13,7 @@ import {
   deleteBudget,
   updateBudget,
 } from "../../repositories/budget/template/budget-template";
-import {
-  createBudget,
-  makeExpenseTransaction,
-  makeSavingsTransaction,
-} from "../../services/budget";
+import { createBudget, makeExpenseTransaction } from "../../services/budget";
 
 export const budgetRouter = createTRPCRouter({
   createCategories: protectedProcedure
@@ -85,15 +80,10 @@ export const budgetRouter = createTRPCRouter({
   transferFunds: protectedProcedure
     .input(
       z.object({
-        items: z.array(
+        transfers: z.array(
           z.object({
-            item: budgetItemSchema,
-            amount: z.number(),
-          }),
-        ),
-        goals: z.array(
-          z.object({
-            item: savingsGoalSchema,
+            from: z.optional(budgetItemSchema),
+            to: budgetItemSchema,
             amount: z.number(),
           }),
         ),
@@ -101,22 +91,12 @@ export const budgetRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       await Promise.all(
-        input.items.map(({ item, amount }) =>
+        input.transfers.map(({ from, to, amount }) =>
           makeExpenseTransaction({
             db: ctx.prisma,
-            item,
+            from,
+            to,
             amount,
-            userId: ctx.session.auth.userVacation.id,
-          }),
-        ),
-      );
-      await Promise.all(
-        input.goals.map(({ item, amount }) =>
-          makeSavingsTransaction({
-            db: ctx.prisma,
-            item,
-            amount,
-            userId: ctx.session.auth.userVacation.id,
           }),
         ),
       );

@@ -1,4 +1,4 @@
-import { BudgetItem, SavingsGoal, SpendingRecord } from "model/src/budget";
+import { SpendingRecord } from "model/src/budget";
 import { datesEqual } from "model/src/utils";
 
 export function transactionsOnDate(transactions: SpendingRecord[], date: Date) {

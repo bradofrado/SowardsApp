@@ -3,7 +3,7 @@ import { ActionItem } from "api/src/services/budget";
 import { Project, ProjectList } from "ui/src/components/core/project-list";
 import { TransferFundsModal } from "./transfer-funds";
 import { useState } from "react";
-import { BudgetItem, SavingsGoal } from "model/src/budget";
+import { BudgetItem } from "model/src/budget";
 
 interface RegisterActionsProps {
   actionItems: ActionItem[];
@@ -13,7 +13,6 @@ export const RegisterActions: React.FunctionComponent<RegisterActionsProps> = ({
 }) => {
   const [transferItems, setTransferItems] = useState<{
     items: BudgetItem[];
-    goals: SavingsGoal[];
   } | null>(null);
   const projects: Project[] = actionItems.map<Project>((item, i) => ({
     id: i,
@@ -24,7 +23,6 @@ export const RegisterActions: React.FunctionComponent<RegisterActionsProps> = ({
     onButtonClick: () => {
       setTransferItems({
         items: item.action.items,
-        goals: item.action.goals,
       });
     },
   }));
@@ -34,13 +32,10 @@ export const RegisterActions: React.FunctionComponent<RegisterActionsProps> = ({
       <ProjectList items={projects} />
       {transferItems ? (
         <TransferFundsModal
-          key={[...transferItems.items, ...transferItems.goals]
-            .map((i) => i.id)
-            .join()}
+          key={[...transferItems.items].map((i) => i.id).join()}
           show={transferItems !== null}
           onClose={() => setTransferItems(null)}
           items={transferItems.items}
-          goals={transferItems.goals}
         />
       ) : null}
     </>

@@ -1,15 +1,11 @@
 import type { Db, Prisma } from "db/lib/prisma";
-import type { Budget, SavingsGoal } from "model/src/budget";
+import type { Budget } from "model/src/budget";
 import { budgetItemPayload, prismaToBudgetItem } from "./budget-item";
-import { prismaToSavingsGoal, savingsGoalPayload } from "./savings-goal";
 
 export const budgetPayload = {
   include: {
     budgetItems: {
       ...budgetItemPayload,
-    },
-    savingsGoals: {
-      ...savingsGoalPayload,
     },
   },
 } satisfies Prisma.BudgetTemplateDefaultArgs;
@@ -71,6 +67,7 @@ export const createBudget = async ({
             data: budget.items.map((item) => ({
               targetAmount: item.amount,
               amount: item.amount,
+              cadenceAmount: item.cadenceAmount,
               categoryId: item.category.id,
               cadence: item.cadence,
               periodStart: item.periodStart,
@@ -104,6 +101,7 @@ export const updateBudget = async ({
             data: budget.items.map((item) => ({
               targetAmount: item.amount,
               amount: item.amount,
+              cadenceAmount: item.cadenceAmount,
               categoryId: item.category.id,
               cadence: item.cadence,
               periodStart: item.periodStart,
@@ -134,11 +132,9 @@ export const deleteBudget = async ({
 export const prismaToBudget = (
   budget: Prisma.BudgetTemplateGetPayload<typeof budgetPayload>,
 ): Budget => {
-  const goals: SavingsGoal[] = budget.savingsGoals.map(prismaToSavingsGoal);
   return {
     id: budget.id,
     name: budget.name,
     items: budget.budgetItems.map(prismaToBudgetItem),
-    goals,
   };
 };

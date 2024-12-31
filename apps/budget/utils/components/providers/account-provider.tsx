@@ -1,5 +1,5 @@
 "use client";
-import { BudgetItem, SavingsGoal, SpendingRecord } from "model/src/budget";
+import { BudgetItem, SpendingRecord } from "model/src/budget";
 import { AccountBase } from "plaid";
 import { createContext, useContext } from "react";
 import { SavingsAccount } from "./types";
@@ -17,15 +17,13 @@ interface AccountProviderProps {
   children: React.ReactNode;
   accounts: AccountBase[];
   transactions: SpendingRecord[];
-  savingsGoals: SavingsGoal[];
 }
 export const AccountProvider: React.FunctionComponent<AccountProviderProps> = ({
   children,
   accounts,
   transactions,
-  savingsGoals,
 }) => {
-  const savingsAccounts = getSavingsAccounts(transactions, savingsGoals);
+  const savingsAccounts = getSavingsAccounts(transactions);
   return (
     <AccountContext.Provider value={{ accounts, savingsAccounts }}>
       {children}
@@ -35,19 +33,8 @@ export const AccountProvider: React.FunctionComponent<AccountProviderProps> = ({
 
 const getSavingsAccounts = (
   transactions: SpendingRecord[],
-  savingsGoals: SavingsGoal[],
 ): SavingsAccount[] => {
-  return savingsGoals.map((account) => ({
-    name: account.category.name,
-    transactions: transactions.filter(
-      (transaction) =>
-        transaction.transactionCategories[0]?.category.id ===
-        account.category.id,
-    ),
-    monthlyContribution: account.amount,
-    totalSaved: account.totalSaved,
-    targetAmount: account.targetAmount,
-  }));
+  return [];
 };
 
 export const useAccounts = () => {

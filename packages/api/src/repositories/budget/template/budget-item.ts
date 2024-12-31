@@ -33,6 +33,40 @@ export const getBudgetItemsOfType = async ({
   return items.map(prismaToBudgetItem);
 };
 
+export const createBudgetItem = async ({
+  db,
+  item,
+  budgetId,
+}: {
+  db: Db;
+  item: BudgetItem;
+  budgetId: string;
+}): Promise<BudgetItem> => {
+  const newItem = await db.budgetItem.create({
+    data: {
+      amount: item.amount,
+      targetAmount: item.targetAmount,
+      periodStart: item.periodStart,
+      periodEnd: item.periodEnd,
+      cadence: item.cadence,
+      cadenceAmount: item.cadenceAmount,
+      category: {
+        connect: {
+          id: item.category.id,
+        },
+      },
+      budget: {
+        connect: {
+          id: budgetId,
+        },
+      },
+    },
+    ...budgetItemPayload,
+  });
+
+  return prismaToBudgetItem(newItem);
+};
+
 export const prismaToBudgetItem = (
   item: Prisma.BudgetItemGetPayload<typeof budgetItemPayload>,
 ): BudgetItem => {
@@ -44,6 +78,7 @@ export const prismaToBudgetItem = (
     periodStart: item.periodStart,
     periodEnd: item.periodEnd,
     cadence: budgetCadenceSchema.parse(item.cadence),
+    cadenceAmount: item.cadenceAmount,
   };
 };
 

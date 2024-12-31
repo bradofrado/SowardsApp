@@ -51,7 +51,6 @@ export const NewBudgetButton: React.FunctionComponent<{
           id: "",
           name: "New Budget",
           items: [],
-          goals: [],
         }}
         title="Create Budget"
         description="Create a new budget template to plan for your future!"

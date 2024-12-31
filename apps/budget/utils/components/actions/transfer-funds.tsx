@@ -1,8 +1,4 @@
-import {
-  BudgetItem,
-  calculateCadenceMonthlyAmount,
-  SavingsGoal,
-} from "model/src/budget";
+import { BudgetItem, calculateCadenceMonthlyAmount } from "model/src/budget";
 import { api } from "next-utils/src/utils/api";
 import { useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
@@ -27,19 +23,14 @@ interface TransferFundsModalProps {
   show: boolean;
   onClose: () => void;
   items: BudgetItem[];
-  goals: SavingsGoal[];
 }
 export const TransferFundsModal: React.FunctionComponent<
   TransferFundsModalProps
-> = ({ show, onClose, items: itemsProps, goals: goalsProps }) => {
+> = ({ show, onClose, items: itemsProps }) => {
   const [items, setItems] = useState<{ item: BudgetItem; amount: number }[]>(
     [],
   );
-  const [goals, setGoals] = useState<{ item: SavingsGoal; amount: number }[]>(
-    [],
-  );
   const changeItems = useChangeArray(setItems);
-  const changeGoals = useChangeArray(setGoals);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { mutate: transferFunds } = api.budget.transferFunds.useMutation();
@@ -47,7 +38,7 @@ export const TransferFundsModal: React.FunctionComponent<
   const onTransfer = (): void => {
     setLoading(true);
     transferFunds(
-      { items, goals },
+      { transfers: [] },
       {
         onSuccess() {
           onClose();
@@ -60,17 +51,8 @@ export const TransferFundsModal: React.FunctionComponent<
     );
   };
 
-  const onAddTransfer = (item: BudgetItem | SavingsGoal): void => {
-    if (itemsProps.includes(item as BudgetItem))
-      setItems((prev) => [...prev, { item: item as BudgetItem, amount: 0 }]);
-    else
-      setGoals((prev) => [
-        ...prev,
-        {
-          item: item as SavingsGoal,
-          amount: calculateCadenceMonthlyAmount(item),
-        },
-      ]);
+  const onAddTransfer = (item: BudgetItem): void => {
+    setItems((prev) => [...prev, { item: item as BudgetItem, amount: 0 }]);
   };
   return (
     <Dialog open={show} onClose={onClose}>
@@ -81,7 +63,7 @@ export const TransferFundsModal: React.FunctionComponent<
       </DialogDescription>
       <DialogBody>
         <ListBox
-          items={[...itemsProps, ...goalsProps].map((item) => ({
+          items={[...itemsProps].map((item) => ({
             id: item.id,
             name: (
               <DropdownLineItem onClick={() => onAddTransfer(item)}>
@@ -111,29 +93,6 @@ export const TransferFundsModal: React.FunctionComponent<
               </Label>
             ))}
           </FormSection>
-        ) : null}
-        {goals.length > 0 ? (
-          <>
-            <FormDivider />
-            <FormSection label="Goals">
-              {goals.map(({ item, amount }, i) => (
-                <Label
-                  className="justify-between"
-                  key={item.id}
-                  label={item.category.name}
-                  sameLine
-                >
-                  <InputBlur
-                    value={amount}
-                    onChange={(value) =>
-                      changeGoals(goals, i, "amount", parseFloat(value))
-                    }
-                    disabled
-                  />
-                </Label>
-              ))}
-            </FormSection>
-          </>
         ) : null}
         {error ? <p className="text-red-400 text-sm mt-2">{error}</p> : null}
       </DialogBody>

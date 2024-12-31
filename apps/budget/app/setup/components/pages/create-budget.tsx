@@ -14,7 +14,6 @@ import { FormSection } from "ui/src/components/catalyst/form/form";
 import {
   BudgetForm,
   BudgetItemForm,
-  SavingsGoalForm,
 } from "../../../../utils/components/budget/budget-form";
 import { ProgressBarMultiValue } from "ui/src/components/feature/reporting/graphs/progressbar-multivalue";
 import { StatusLaneContainer } from "ui/src/components/feature/reporting/status-lane";
@@ -23,7 +22,7 @@ import {
   BudgetItem,
   calculateCadenceMonthlyAmount,
   CategoryBudget,
-  SavingsGoal,
+  getCadenceStartAndEnd,
 } from "model/src/budget";
 import { Card } from "ui/src/components/core/card";
 import { useChangeProperty } from "ui/src/hooks/change-property";
@@ -59,34 +58,20 @@ export const CreateBudget: SetupPage = ({
     defaultValue: budgetProps ?? {
       id: "",
       items: [],
-      goals: [],
       name: "My Budget",
     },
   });
   const changeProperty = useChangeProperty<Budget>(setBudget);
   const [editItem, setEditItem] = useState<BudgetItem | null>(null);
-  const [savingsEditItem, setSavingsEditItem] = useState<SavingsGoal | null>(
-    null,
-  );
   const [createItem, setCreateItem] = useState<BudgetItem | null>(null);
-  const [savingsCreateItem, setSavingsCreateItem] =
-    useState<SavingsGoal | null>(null);
   const [categoriesState, setCategoriesState] = useState([
     ...categories,
     ...budget.items
       .filter((item) => !categories.find((cat) => cat.id === item.category.id))
       .map((item) => item.category),
-    ...budget.goals
-      .filter((item) => !categories.find((cat) => cat.id === item.category.id))
-      .map((item) => item.category),
   ]);
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  const monthEnd = new Date();
-  monthEnd.setMonth(monthEnd.getMonth() + 1);
-  monthEnd.setDate(0);
 
-  const onChange = (value: BudgetItem | SavingsGoal) => {
+  const onChange = (value: BudgetItem) => {
     if (budget.items.find((item) => item.id === value.id)) {
       changeProperty(
         budget,
@@ -96,22 +81,9 @@ export const CreateBudget: SetupPage = ({
         ),
       );
       return;
-    } else if (budget.goals.find((item) => item.id === value.id)) {
-      changeProperty(
-        budget,
-        "goals",
-        budget.goals.map<SavingsGoal>((item) =>
-          item.id === value.id ? (value as SavingsGoal) : item,
-        ),
-      );
-      return;
     }
 
-    if ("cadence" in value) {
-      changeProperty(budget, "items", [...budget.items, value]);
-    } else {
-      changeProperty(budget, "goals", [...budget.goals, value]);
-    }
+    changeProperty(budget, "items", [...budget.items, value]);
   };
 
   const statusItems = useMemo(
@@ -119,25 +91,26 @@ export const CreateBudget: SetupPage = ({
       categoriesState
         .filter((cat) => cat.type !== "income")
         .map<
-          (BudgetItem | SavingsGoal) & {
+          BudgetItem & {
             columnId: "expense" | "transfer";
             type: "expense" | "transfer";
             cadenceAmount: number;
           }
         >((category) => {
           let type: "expense" | "transfer" = "expense";
-          let item: BudgetItem | SavingsGoal | undefined = budget.items.find(
+          let item: BudgetItem | undefined = budget.items.find(
             (item) => item.category.id === category.id,
           );
 
           if (!item) {
-            item = budget.goals.find(
-              (item) => item.category.id === category.id,
-            );
             type = "transfer";
           }
 
           if (!item) {
+            const { periodStart, periodEnd } = getCadenceStartAndEnd({
+              type: "monthly",
+              dayOfMonth: 1,
+            });
             return {
               id: category.id,
               targetAmount: 0,
@@ -147,52 +120,40 @@ export const CreateBudget: SetupPage = ({
               cadence: { type: "monthly", dayOfMonth: 1 },
               category,
               type: "expense",
-              periodStart: monthStart,
-              periodEnd: monthEnd,
+              periodStart,
+              periodEnd,
             };
           }
           const cadenceAmount = item.amount;
-          const amount =
-            "totalSaved" in item
-              ? item.totalSaved
-              : calculateCadenceMonthlyAmount(item);
+          const amount = calculateCadenceMonthlyAmount(item);
 
-          if (type === "expense") {
-            return {
-              id: item.id,
-              cadence:
-                "cadence" in item
-                  ? item.cadence
-                  : { type: "monthly", dayOfMonth: 1 },
-              category: item.category,
-              amount,
-              targetAmount: item.targetAmount,
-              cadenceAmount,
-              columnId: type,
-              type,
-              periodStart: monthStart,
-              periodEnd: monthEnd,
-            };
-          }
+          const { periodStart, periodEnd } = getCadenceStartAndEnd(
+            item.cadence,
+          );
 
           return {
             id: item.id,
+            cadence:
+              "cadence" in item
+                ? item.cadence
+                : { type: "monthly", dayOfMonth: 1 },
+            category: item.category,
             amount,
+            targetAmount: item.targetAmount,
             cadenceAmount,
             columnId: type,
             type,
-            category: item.category,
-            totalSaved: "totalSaved" in item ? item.totalSaved : 0,
-            targetAmount: item.targetAmount,
+            periodStart,
+            periodEnd,
           };
         })
         .sort((a, b) => a.category.order - b.category.order),
-    [budget.items, categoriesState, budget.goals],
+    [budget.items, categoriesState],
   );
 
   const onChangeItems: React.Dispatch<
     SetStateAction<
-      ((BudgetItem | SavingsGoal) & {
+      (BudgetItem & {
         columnId: "expense" | "transfer";
         type: "expense" | "transfer";
         cadenceAmount: number;
@@ -212,11 +173,6 @@ export const CreateBudget: SetupPage = ({
         (item) => item.columnId === "expense" && item.amount > 0,
       ) as BudgetItem[],
     );
-    changeProperty(
-      newBudget,
-      "goals",
-      result.filter((item) => item.columnId === "transfer") as SavingsGoal[],
-    );
   };
   const columns: {
     id: "expense" | "transfer";
@@ -232,11 +188,16 @@ export const CreateBudget: SetupPage = ({
         ),
       )}`,
       fill: "#14b8a6",
-      onClick: () =>
+      onClick: () => {
+        const { periodStart, periodEnd } = getCadenceStartAndEnd({
+          type: "monthly",
+          dayOfMonth: 1,
+        });
         setCreateItem({
           id: `cat-${Math.random()}}`,
           targetAmount: 100,
           amount: 100,
+          cadenceAmount: 100,
           category: {
             id: `cat-${Math.random()}}`,
             name: "",
@@ -244,9 +205,10 @@ export const CreateBudget: SetupPage = ({
             type: "expense",
           },
           cadence: { type: "monthly", dayOfMonth: 1 },
-          periodStart: monthStart,
-          periodEnd: monthEnd,
-        }),
+          periodStart,
+          periodEnd,
+        });
+      },
     },
     {
       id: "transfer",
@@ -256,19 +218,27 @@ export const CreateBudget: SetupPage = ({
         ),
       )}`,
       fill: "#1679d3",
-      onClick: () =>
-        setSavingsCreateItem({
+      onClick: () => {
+        const { periodStart, periodEnd } = getCadenceStartAndEnd({
+          type: "monthly",
+          dayOfMonth: 1,
+        });
+        setCreateItem({
           id: `cat-${Math.random()}}`,
           targetAmount: 100,
           amount: 100,
+          cadenceAmount: 100,
           category: {
             id: `cat-${Math.random()}}`,
             name: "",
             order: 0,
             type: "expense",
           },
-          totalSaved: 100,
-        }),
+          cadence: { type: "monthly", dayOfMonth: 1 },
+          periodStart,
+          periodEnd,
+        });
+      },
     },
   ];
 
@@ -293,45 +263,23 @@ export const CreateBudget: SetupPage = ({
         setItems={onChangeItems}
         defaultTotal={netWorth}
       >
-        {(item, isDragging) =>
-          "cadence" in item ? (
-            <BudgetItemCard
-              setEdit={() =>
-                setEditItem({ ...item, amount: item.cadenceAmount })
-              }
-              onRemove={() => {
-                changeProperty(
-                  budget,
-                  "items",
-                  budget.items.filter((i) => i.id !== item.id),
-                );
-                setCategoriesState(
-                  categoriesState.filter((cat) => cat.id !== item.category.id),
-                );
-              }}
-              item={item}
-              isDragging={isDragging}
-            />
-          ) : (
-            <SavingsGoalCard
-              setEdit={() =>
-                setSavingsEditItem({ ...item, amount: item.cadenceAmount })
-              }
-              onRemove={() => {
-                changeProperty(
-                  budget,
-                  "goals",
-                  budget.goals.filter((i) => i.id !== item.id),
-                );
-                setCategoriesState(
-                  categoriesState.filter((cat) => cat.id !== item.category.id),
-                );
-              }}
-              item={item}
-              isDragging={isDragging}
-            />
-          )
-        }
+        {(item, isDragging) => (
+          <BudgetItemCard
+            setEdit={() => setEditItem({ ...item, amount: item.cadenceAmount })}
+            onRemove={() => {
+              changeProperty(
+                budget,
+                "items",
+                budget.items.filter((i) => i.id !== item.id),
+              );
+              setCategoriesState(
+                categoriesState.filter((cat) => cat.id !== item.category.id),
+              );
+            }}
+            item={item}
+            isDragging={isDragging}
+          />
+        )}
       </StatusLaneContainer>
       {editItem ? (
         <BudgetItemModal
@@ -344,17 +292,6 @@ export const CreateBudget: SetupPage = ({
           categories={categoriesState}
         />
       ) : null}
-      {savingsEditItem ? (
-        <SavingsGoalModal
-          show={savingsEditItem !== null}
-          item={savingsEditItem}
-          onChange={(value) => {
-            setSavingsEditItem(null);
-            onChange(value);
-          }}
-          categories={categoriesState}
-        />
-      ) : null}
       {createItem ? (
         <CreateItemModal
           key={String(createItem?.id)}
@@ -362,23 +299,6 @@ export const CreateBudget: SetupPage = ({
           item={createItem}
           onChange={(value) => {
             setCreateItem(null);
-            onChange(value);
-            setCategoriesState(
-              [value.category, ...categoriesState].map((cat, i) => ({
-                ...cat,
-                order: i,
-              })),
-            );
-          }}
-        />
-      ) : null}
-      {savingsCreateItem ? (
-        <CreateSavingsModal
-          key={String(createItem?.id)}
-          show={savingsCreateItem !== null}
-          item={savingsCreateItem}
-          onChange={(value) => {
-            setSavingsCreateItem(null);
             onChange(value);
             setCategoriesState(
               [value.category, ...categoriesState].map((cat, i) => ({
@@ -453,26 +373,6 @@ const BudgetItemModal: React.FunctionComponent<{
   );
 };
 
-const SavingsGoalModal: React.FunctionComponent<{
-  item: SavingsGoal;
-  show: boolean;
-  onChange: (value: SavingsGoal) => void;
-  categories: CategoryBudget[];
-}> = ({ show, item: itemProps, onChange }) => {
-  const [item, setItem] = useState(itemProps);
-  const onClose = () => {
-    onChange(item);
-  };
-  return (
-    <Dialog open={show} onClose={onClose}>
-      <DialogTitle>{item.category.name}</DialogTitle>
-      <DialogBody>
-        <SavingsGoalForm item={item} onChange={setItem} />
-      </DialogBody>
-    </Dialog>
-  );
-};
-
 const CreateItemModal: React.FunctionComponent<{
   show: boolean;
   item: BudgetItem;
@@ -487,28 +387,6 @@ const CreateItemModal: React.FunctionComponent<{
       <DialogTitle>Create Item</DialogTitle>
       <DialogBody>
         <BudgetItemForm item={item} onChange={setItem} categories={[]} />
-      </DialogBody>
-      <DialogActions>
-        <Button onClick={onClose}>Save</Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
-const CreateSavingsModal: React.FunctionComponent<{
-  show: boolean;
-  item: SavingsGoal;
-  onChange: (value: SavingsGoal) => void;
-}> = ({ show, item: itemProp, onChange }) => {
-  const [item, setItem] = useState<SavingsGoal>(itemProp);
-  const onClose = () => {
-    onChange(item);
-  };
-  return (
-    <Dialog open={show} onClose={onClose}>
-      <DialogTitle>Create Savings Goal</DialogTitle>
-      <DialogBody>
-        <SavingsGoalForm item={item} onChange={setItem} />
       </DialogBody>
       <DialogActions>
         <Button onClick={onClose}>Save</Button>
@@ -544,47 +422,6 @@ const BudgetItemCard: React.FunctionComponent<{
         <div className="flex gap-2 items-center">
           <div>{formatDollarAmount(item.targetAmount)}</div>
           <div>{capitalizeFirstLetter(item.cadence.type)}</div>
-          <Button plain onPointerDown={() => setEdit(true)}>
-            Edit
-          </Button>
-          {item.id.includes("cat") ? (
-            <Button plain onPointerDown={onRemove}>
-              Remove
-            </Button>
-          ) : null}
-        </div>
-      </div>
-    </>
-  );
-};
-
-const SavingsGoalCard: React.FunctionComponent<{
-  item: SavingsGoal & { cadenceAmount: number };
-  isDragging: boolean;
-  setEdit: (value: boolean) => void;
-  onRemove: () => void;
-}> = ({ item, isDragging, setEdit, onRemove }) => {
-  if (isDragging) {
-    return (
-      <div className="border rounded-md p-4 bg-gray-200 h-[70px]">
-        <div className="invisible">Sample Text</div>
-      </div>
-    );
-  }
-  return (
-    <>
-      <div className="flex justify-between p-4 rounded-md bg-white border items-center">
-        <div className="flex gap-2">
-          <div>{item.category.name}</div>
-          {item.amount > 0 ? (
-            <div className="text-red-400">
-              -{formatDollarAmount(item.amount)}
-            </div>
-          ) : null}
-        </div>
-        <div className="flex gap-2 items-center">
-          <div>{formatDollarAmount(item.cadenceAmount)}</div>
-          <div>Monthly</div>
           <Button plain onPointerDown={() => setEdit(true)}>
             Edit
           </Button>

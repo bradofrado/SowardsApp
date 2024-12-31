@@ -4,6 +4,7 @@ import {
 } from "next-utils/src/utils/protected-routes-hoc";
 import { WelcomeModal } from "./welcome-modal";
 import {
+  getBudgets,
   getExternalLogins,
   getTransactions,
   getTransactionsWithAccounts,
@@ -14,7 +15,6 @@ import { TransactionProvider } from "../../utils/components/providers/transactio
 import { getCategories } from "api/src/repositories/budget/category";
 import { prisma } from "db/lib/prisma";
 import { getAuthSession } from "next-utils/src/utils/auth";
-import { getBudgets } from "api/src/repositories/budget/template/budget-template";
 
 const SetupPage = async () => {
   const session = await getAuthSession();
@@ -24,13 +24,9 @@ const SetupPage = async () => {
     ? await getTransactionsWithAccounts(userId, accounts)
     : [];
   const categories = userId ? await getCategories({ db: prisma, userId }) : [];
-  const budgets = userId ? await getBudgets({ db: prisma, userId }) : [];
+  const budgets = userId ? await getBudgets(userId) : [];
   return (
-    <AccountProvider
-      accounts={accounts}
-      transactions={transactions}
-      savingsGoals={budgets[0]?.goals ?? []}
-    >
+    <AccountProvider accounts={accounts} transactions={transactions}>
       <TransactionProvider
         transactions={transactions}
         categories={categories}

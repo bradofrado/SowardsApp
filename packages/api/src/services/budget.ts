@@ -2,11 +2,10 @@
 import type { Db } from "db/lib/prisma";
 import { prisma } from "db/lib/prisma";
 import {
-  calculateCadenceMonthlyAmount,
+  getCadenceStartAndEnd,
+  TransferCategory,
   type Budget,
   type BudgetItem,
-  type SavingsGoal,
-  type SavingsTransaction,
   type SpendingRecord,
 } from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
@@ -23,20 +22,19 @@ import {
   updateSpendingRecord,
   deleteSpendingRecord,
 } from "../repositories/budget/spending";
-import { createCategory } from "../repositories/budget/category";
-import { createSavingsTransaction } from "../repositories/budget/template/savings-transaction";
-import {
-  getSavingsGoals,
-  updateSavingsAmount,
-} from "../repositories/budget/template/savings-goal";
+import { createCategory, getCategories } from "../repositories/budget/category";
+import { createTransferCategory } from "../repositories/budget/template/transfer-category";
 import {
   budgetPayload,
+  getBudgets as getBudgetsRepo,
   prismaToBudget,
 } from "../repositories/budget/template/budget-template";
 import {
+  createBudgetItem,
   getBudgetItemsOfType,
   updateBudgetItemAmount,
 } from "../repositories/budget/template/budget-item";
+import { isDateInBetween } from "model/src/utils";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -158,26 +156,26 @@ export const createBudget = async ({
         : Promise.resolve(item.category),
     ),
   );
-  const newCategoriesGoals = await Promise.all(
-    budget.goals.map((item) =>
-      item.category.id.includes("cat")
-        ? createCategory({
-            category: item.category,
-            db,
-            userId,
-          })
-        : Promise.resolve(item.category),
-    ),
-  );
+  // const newCategoriesGoals = await Promise.all(
+  //   budget.goals.map((item) =>
+  //     item.category.id.includes("cat")
+  //       ? createCategory({
+  //           category: item.category,
+  //           db,
+  //           userId,
+  //         })
+  //       : Promise.resolve(item.category),
+  //   ),
+  // );
 
   const budgetItems = budget.items.map((item, index) => ({
     ...item,
     category: newCategoriesItems[index],
   }));
-  const savingsGoals = budget.goals.map((item, index) => ({
-    ...item,
-    category: newCategoriesGoals[index],
-  }));
+  // const savingsGoals = budget.goals.map((item, index) => ({
+  //   ...item,
+  //   category: newCategoriesGoals[index],
+  // }));
 
   const newBudget = await db.budgetTemplate.create({
     data: {
@@ -185,8 +183,9 @@ export const createBudget = async ({
       budgetItems: {
         createMany: {
           data: budgetItems.map((item) => ({
-            amount: 0,
+            amount: item.amount,
             targetAmount: item.targetAmount,
+            cadenceAmount: item.cadenceAmount,
             periodStart: item.periodStart,
             periodEnd: item.periodEnd,
             categoryId: item.category.id,
@@ -194,18 +193,18 @@ export const createBudget = async ({
           })),
         },
       },
-      savingsGoals: {
-        createMany: {
-          data: savingsGoals.map((item) => ({
-            amount: item.amount,
-            targetAmount: item.targetAmount,
-            //The total saved is 0 because we will make a transfer to the savings account
-            totalSaved: 0,
-            categoryId: item.category.id,
-            description: `${item.category.name} Savings Goal`,
-          })),
-        },
-      },
+      // savingsGoals: {
+      //   createMany: {
+      //     data: savingsGoals.map((item) => ({
+      //       amount: item.amount,
+      //       targetAmount: item.targetAmount,
+      //       //The total saved is 0 because we will make a transfer to the savings account
+      //       totalSaved: 0,
+      //       categoryId: item.category.id,
+      //       description: `${item.category.name} Savings Goal`,
+      //     })),
+      //   },
+      // },
       user: {
         connect: {
           id: userId,
@@ -217,78 +216,69 @@ export const createBudget = async ({
 
   const modelBudget: Budget = prismaToBudget(newBudget);
 
-  await Promise.all(
-    modelBudget.goals.map((item, i) =>
-      makeSavingsTransaction({
-        db,
-        userId,
-        item,
-        amount: budget.goals[i].totalSaved,
-      }),
-    ),
-  );
+  // await Promise.all(
+  //   modelBudget.goals.map((item, i) =>
+  //     makeSavingsTransaction({
+  //       db,
+  //       userId,
+  //       item,
+  //       amount: budget.goals[i].totalSaved,
+  //     }),
+  //   ),
+  // );
 
-  await Promise.all(
-    modelBudget.items.map((item, i) =>
-      makeExpenseTransaction({
-        db,
-        userId,
-        item,
-        amount: budget.items[i].amount,
-      }),
-    ),
-  );
+  // await Promise.all(
+  //   modelBudget.items.map((item, i) =>
+  //     makeExpenseTransaction({
+  //       db,
+  //       item,
+  //       amount: budget.items[i].amount,
+  //     }),
+  //   ),
+  // );
 
   return newBudget;
 };
 
-const checkSavingsTransfer = async (userId: string): Promise<SavingsGoal[]> => {
-  //Check if we need to make a savings transfer
-  const today = new Date();
-  const lastDayOfThisMonth = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    -1,
+export const getBudgets = async (userId: string): Promise<Budget[]> => {
+  const budgets = await getBudgetsRepo({ db: prisma, userId });
+  const categories = await getCategories({ db: prisma, userId });
+
+  //Update the budget items if the period has expired
+  await Promise.all(
+    budgets.map(async (budget) => {
+      for (const category of categories) {
+        const budgetItem = budget.items.find(
+          (item) => item.category.id === category.id,
+        );
+        //If there is a budget item for this category, but the period has expired, we need to create a new one
+        if (
+          budgetItem &&
+          !budget.items.find(
+            (item) =>
+              item.category.id === category.id &&
+              isDateInBetween(new Date(), item.periodStart, item.periodEnd),
+          )
+        ) {
+          const { periodStart, periodEnd } = getCadenceStartAndEnd(
+            budgetItem.cadence,
+          );
+
+          await createBudgetItem({
+            db: prisma,
+            budgetId: budget.id,
+            item: {
+              ...budgetItem,
+              periodStart,
+              periodEnd,
+            },
+          });
+        }
+      }
+    }),
   );
-  const firstDayOfThisMonth = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    1,
-  );
 
-  const savingsGoals = await getSavingsGoals({ db: prisma, userId });
-
-  //Get all of the spending records for the last month
-  const savingsTransactions = await prisma.savingsTransaction.findMany({
-    where: {
-      AND: [
-        {
-          date: {
-            lte: lastDayOfThisMonth,
-          },
-        },
-        {
-          date: {
-            gte: firstDayOfThisMonth,
-          },
-        },
-      ],
-    },
-  });
-
-  const outdatedSavingsGoals: SavingsGoal[] = [];
-  //For each transfer budget item, check if there is a transfer transaction. If not, we need to initiate one
-  for (const savingsGoal of savingsGoals) {
-    if (
-      savingsTransactions.filter(
-        (transaction) => transaction.savingsGoalId === savingsGoal.id,
-      ).length === 0
-    ) {
-      outdatedSavingsGoals.push(savingsGoal);
-    }
-  }
-
-  return outdatedSavingsGoals;
+  return budgets;
 };
 
 const checkExpenseTransfer = async (userId: string): Promise<BudgetItem[]> => {
@@ -351,14 +341,12 @@ export interface ActionItem {
   action: {
     type: "transfer";
     items: BudgetItem[];
-    goals: SavingsGoal[];
   };
 }
 export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
   // const savingsGoals = await checkSavingsTransfer(userId);
   // const budgetItems = await checkExpenseTransfer(userId);
 
-  const savingsGoals = await getSavingsGoals({ db: prisma, userId });
   const budgetItems = await getBudgetItemsOfType({
     db: prisma,
     userId,
@@ -374,7 +362,6 @@ export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
       action: {
         type: "transfer",
         items: budgetItems,
-        goals: savingsGoals,
       },
     },
   ];
@@ -395,85 +382,56 @@ export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
   return actionItems;
 };
 
-export const makeVariableExpenseTransaction = async ({
-  db,
-  userId,
-  item,
-}: {
-  db: Db;
-  userId: string;
-  item: BudgetItem;
-}): Promise<void> => {
-  //The amount is what is left until the target averaged among how many months are left in the year
-  const _amount = calculateCadenceMonthlyAmount(item);
-  if (_amount <= 0) {
-    return;
-  }
+// export const makeVariableExpenseTransaction = async ({
+//   db,
+//   userId,
+//   item,
+// }: {
+//   db: Db;
+//   userId: string;
+//   item: BudgetItem;
+// }): Promise<void> => {
+//   //The amount is what is left until the target averaged among how many months are left in the year
+//   const _amount = calculateCadenceMonthlyAmount(item);
+//   if (_amount <= 0) {
+//     return;
+//   }
 
-  await makeExpenseTransaction({ db, userId, item, amount: _amount });
-};
+//   await makeExpenseTransaction({ db, userId, item, amount: _amount });
+// };
 
 export const makeExpenseTransaction = async ({
   db,
-  userId,
-  item,
+  from,
+  to,
   amount,
 }: {
   db: Db;
-  userId: string;
-  item: BudgetItem;
-  amount?: number;
+  from: BudgetItem | undefined;
+  to: BudgetItem;
+  amount: number;
 }): Promise<void> => {
-  const _amount = amount ?? item.amount;
-
-  const savingsTransaction: SavingsTransaction = {
+  const transferCategory: TransferCategory = {
     id: "",
-    amount: _amount,
+    amount,
     date: new Date(),
-    description: `Transfer to ${item.category.name}`,
-    budgetItem: item,
+    from,
+    to,
   };
-  await createSavingsTransaction({
-    input: savingsTransaction,
+  await createTransferCategory({
+    input: transferCategory,
     db,
-    userId,
   });
+  from &&
+    (await updateBudgetItemAmount({
+      db,
+      itemId: from.id,
+      amount: from.amount - amount,
+    }));
   await updateBudgetItemAmount({
     db,
-    itemId: item.id,
-    amount: item.amount + _amount,
-  });
-};
-
-export const makeSavingsTransaction = async ({
-  db,
-  userId,
-  item,
-  amount,
-}: {
-  db: Db;
-  userId: string;
-  item: SavingsGoal;
-  amount?: number;
-}): Promise<void> => {
-  const _amount = amount ?? item.amount;
-
-  const savingsTransaction: SavingsTransaction = {
-    id: "",
-    amount: _amount,
-    date: new Date(),
-    description: `Transfer to ${item.category.name}`,
-    savingsGoal: item,
-  };
-  await createSavingsTransaction({
-    input: savingsTransaction,
-    db,
-    userId,
-  });
-  await updateSavingsAmount({
-    db,
-    savingsId: item.id,
-    newAmount: item.totalSaved + _amount,
+    itemId: to.id,
+    amount: to.amount + amount,
   });
 };
 

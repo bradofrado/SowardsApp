@@ -69,8 +69,6 @@ model BudgetCategory {
   spendingRecords TransactionCategory[]
   budgetItems     BudgetItem[]
   savings         SavingsGoal[]
-  fromTransfers   TransferCategory[]    @relation(name: "from")
-  toTransfers     TransferCategory[]    @relation(name: "to")
 
   @@unique([userId, name])
 }
@@ -104,12 +102,13 @@ model SavingsGoal {
 
 //Transfer overflows from one category to another
 model TransferCategory {
-  id     String         @id @default(auto()) @map("_id") @db.ObjectId
+  id     String      @id @default(auto()) @map("_id") @db.ObjectId
   amount Float
-  fromId String         @db.ObjectId
-  from   BudgetCategory @relation(name: "from", fields: [fromId], references: [id])
-  toId   String         @db.ObjectId
-  to     BudgetCategory @relation(name: "to", fields: [toId], references: [id])
+  //Undefined from means from available funds
+  fromId String?     @db.ObjectId
+  from   BudgetItem? @relation(name: "from", fields: [fromId], references: [id])
+  toId   String      @db.ObjectId
+  to     BudgetItem  @relation(name: "to", fields: [toId], references: [id])
   date   DateTime
 }
 
@@ -123,18 +122,21 @@ model BudgetTemplate {
 }
 
 model BudgetItem {
-  id           String               @id @default(auto()) @map("_id") @db.ObjectId
-  cadence      Json
-  amount       Float
-  targetAmount Float
-  categoryId   String               @db.ObjectId
-  category     BudgetCategory       @relation(fields: [categoryId], references: [id])
-  periodStart  DateTime
-  periodEnd    DateTime
-  budgetId     String               @db.ObjectId
-  budget       BudgetTemplate       @relation(fields: [budgetId], references: [id])
-  transactions SavingsTransaction[]
-  createdAt    DateTime             @default(now())
+  id            String               @id @default(auto()) @map("_id") @db.ObjectId
+  cadence       Json
+  amount        Float
+  targetAmount  Float
+  cadenceAmount Float
+  categoryId    String               @db.ObjectId
+  category      BudgetCategory       @relation(fields: [categoryId], references: [id])
+  periodStart   DateTime
+  periodEnd     DateTime
+  budgetId      String               @db.ObjectId
+  budget        BudgetTemplate       @relation(fields: [budgetId], references: [id])
+  transactions  SavingsTransaction[]
+  createdAt     DateTime             @default(now())
+  fromTransfers TransferCategory[]   @relation(name: "from")
+  toTransfers   TransferCategory[]   @relation(name: "to")
 }
 
 model ExternalLogin {

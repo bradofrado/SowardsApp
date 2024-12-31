@@ -1,5 +1,6 @@
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
 import {
+  getBudgets,
   getExternalLogins,
   getTransactions,
   getTransactionsWithAccounts,
@@ -7,7 +8,6 @@ import {
 import { CategoryMonthView } from "../../utils/components/totals/category-month-view";
 import { getCategories } from "api/src/repositories/budget/category";
 import { prisma } from "db/lib/prisma";
-import { getBudgets } from "api/src/repositories/budget/template/budget-template";
 import { TransactionTotals } from "../../utils/components/totals/transaction-totals";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { TransactionProvider } from "../../utils/components/providers/transaction-provider";
@@ -28,18 +28,14 @@ const Home = withAuth(async ({ ctx }) => {
     }
     const spending = await getTransactionsWithAccounts(userId, accounts);
     const categories = await getCategories({ db: prisma, userId });
-    const budgets = await getBudgets({ db: prisma, userId });
+    const budgets = await getBudgets(userId);
     return (
       <TransactionProvider
         transactions={spending}
         budget={budgets[0]}
         categories={categories}
       >
-        <AccountProvider
-          accounts={accounts}
-          transactions={spending}
-          savingsGoals={budgets[0]?.goals ?? []}
-        >
+        <AccountProvider accounts={accounts} transactions={spending}>
           <div className="flex flex-col md:flex-row gap-2">
             <AccountTotals />
             <Card className="flex-1" label="Totals">

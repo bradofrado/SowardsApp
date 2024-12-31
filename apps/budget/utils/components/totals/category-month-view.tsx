@@ -34,6 +34,11 @@ export const CategoryMonthView: React.FunctionComponent<
     defaultValue: months[new Date().getMonth()],
     key: "month",
   });
+  const currentMonthDate = useMemo(() => {
+    const date = new Date();
+    date.setMonth(months.indexOf(currentMonth));
+    return date;
+  }, [currentMonth]);
 
   const filteredTransactions = useMemo(
     () =>
@@ -47,15 +52,24 @@ export const CategoryMonthView: React.FunctionComponent<
   const longTermExpenses = useMemo(
     () =>
       budgetItems
-        .filter((expense) => expense.cadence.type === "eventually")
+        .filter(
+          (expense) =>
+            expense.cadence.type === "eventually" &&
+            isDateInBetween(
+              currentMonthDate,
+              expense.periodStart,
+              expense.periodEnd,
+            ),
+        )
         .map((expense) => ({
           ...expense,
-          transactions: filteredTransactions.filter(
+          transactions: transactions.filter(
             (t) =>
+              isDateInBetween(t.date, expense.periodStart, expense.periodEnd) &&
               t.transactionCategories[0]?.category.id === expense.category.id,
           ),
         })),
-    [budgetItems, filteredTransactions],
+    [budgetItems, transactions, currentMonthDate],
   );
   const longTermBudgeted = useMemo(
     () => calculateAmount(longTermExpenses),
@@ -72,7 +86,15 @@ export const CategoryMonthView: React.FunctionComponent<
   const shortTermExpenses = useMemo(
     () =>
       budgetItems
-        .filter((expense) => expense.cadence.type === "monthly")
+        .filter(
+          (expense) =>
+            expense.cadence.type === "monthly" &&
+            isDateInBetween(
+              currentMonthDate,
+              expense.periodStart,
+              expense.periodEnd,
+            ),
+        )
         .map((expense) => ({
           ...expense,
           transactions: filteredTransactions.filter(
@@ -80,7 +102,7 @@ export const CategoryMonthView: React.FunctionComponent<
               t.transactionCategories[0]?.category.id === expense.category.id,
           ),
         })),
-    [budgetItems, filteredTransactions],
+    [budgetItems, filteredTransactions, currentMonthDate],
   );
   const shortTermBudgeted = useMemo(
     () => calculateAmount(shortTermExpenses),
@@ -106,12 +128,24 @@ export const CategoryMonthView: React.FunctionComponent<
   );
   const longTermChartData: CategoryChartData[] = useMemo(
     () =>
-      longTermExpenses.map(({ category, amount, transactions }) => ({
-        category,
-        actual: calculateAmount(transactions),
-        budgeted: amount,
-      })),
-    [longTermExpenses],
+      longTermExpenses.map(({ category, amount, transactions }) => {
+        const currMonthTransactions = transactions.filter(
+          (t) => t.date.getMonth() === months.indexOf(currentMonth),
+        );
+
+        return {
+          category,
+          actual: calculateAmount(currMonthTransactions),
+          budgeted:
+            amount -
+            calculateAmount(
+              transactions.filter(
+                (t) => t.date.getMonth() < months.indexOf(currentMonth),
+              ),
+            ),
+        };
+      }),
+    [longTermExpenses, currentMonth],
   );
 
   const uncategorizedData = useMemo(() => {

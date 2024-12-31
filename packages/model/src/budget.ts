@@ -91,26 +91,26 @@ export const budgetItemSchema = z.object({
   category: categoryBudgetSchema,
   amount: z.number(),
   targetAmount: z.number(),
+  cadenceAmount: z.number(),
   periodStart: z.date(),
   periodEnd: z.date(),
   cadence: budgetCadenceSchema,
 });
 export type BudgetItem = z.infer<typeof budgetItemSchema>;
 
-export const savingsGoalSchema = z.object({
-  id: z.string(),
-  amount: z.number(),
-  targetAmount: z.number(),
-  totalSaved: z.number(),
-  category: categoryBudgetSchema,
-});
-export type SavingsGoal = z.infer<typeof savingsGoalSchema>;
+// export const savingsGoalSchema = z.object({
+//   id: z.string(),
+//   amount: z.number(),
+//   targetAmount: z.number(),
+//   totalSaved: z.number(),
+//   category: categoryBudgetSchema,
+// });
+// export type SavingsGoal = z.infer<typeof savingsGoalSchema>;
 
 export const budgetSchema = z.object({
   id: z.string(),
   name: z.string(),
   items: z.array(budgetItemSchema),
-  goals: z.array(savingsGoalSchema),
 });
 export type Budget = z.infer<typeof budgetSchema>;
 
@@ -120,17 +120,19 @@ export const savingsTransactionSchema = z.object({
   date: z.date(),
   amount: z.number(),
   budgetItem: z.optional(budgetItemSchema),
-  savingsGoal: z.optional(savingsGoalSchema),
 });
 export type SavingsTransaction = z.infer<typeof savingsTransactionSchema>;
 
-export const calculateCadenceMonthlyAmount = (
-  item: BudgetItem | SavingsGoal,
-): number => {
-  if (!("cadence" in item)) {
-    return item.amount;
-  }
+export const transferCategorySchema = z.object({
+  id: z.string(),
+  from: z.optional(budgetItemSchema),
+  to: budgetItemSchema,
+  amount: z.number(),
+  date: z.date(),
+});
+export type TransferCategory = z.infer<typeof transferCategorySchema>;
 
+export const calculateCadenceMonthlyAmount = (item: BudgetItem): number => {
   if (item.cadence.type === "weekly") {
     const amount = item.amount * 4;
     return amount;
@@ -157,4 +159,58 @@ export const calculateCadenceMonthlyAmount = (
   const amount = (item.targetAmount - item.amount) / datDiff;
 
   return amount;
+};
+
+const days = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+export const getCadenceStartAndEnd = (
+  cadenceType: BudgetCadence,
+): { periodStart: Date; periodEnd: Date } => {
+  if (cadenceType.type === "weekly") {
+    const date = new Date();
+    const dayOfWeek = date.getDay();
+    const dayDiff = dayOfWeek - days.indexOf(cadenceType.dayOfWeek);
+    const periodStart = new Date(date.getTime() - dayDiff * 86400000);
+    const periodEnd = new Date(periodStart.getTime() + 604800000);
+    return { periodStart, periodEnd };
+  } else if (cadenceType.type === "monthly") {
+    const date = new Date();
+    const periodStart = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      cadenceType.dayOfMonth,
+    );
+    const periodEnd = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      cadenceType.dayOfMonth,
+    );
+    return { periodStart, periodEnd };
+  } else if (cadenceType.type === "yearly") {
+    const date = new Date();
+    const periodStart = new Date(
+      date.getFullYear(),
+      cadenceType.month,
+      cadenceType.dayOfMonth,
+    );
+    const periodEnd = new Date(
+      date.getFullYear() + 1,
+      cadenceType.month,
+      cadenceType.dayOfMonth,
+    );
+    return { periodStart, periodEnd };
+  }
+
+  return {
+    periodStart: new Date(),
+    //Infinite time end
+    periodEnd: new Date(8640000000000000),
+  };
 };
