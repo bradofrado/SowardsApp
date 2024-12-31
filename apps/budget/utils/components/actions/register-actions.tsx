@@ -1,10 +1,10 @@
 "use client";
+
 import { ActionItem } from "api/src/services/budget";
 import { Project, ProjectList } from "ui/src/components/core/project-list";
 import { TransferFundsModal } from "./transfer-funds";
 import { useState } from "react";
 import { BudgetItem } from "model/src/budget";
-
 interface RegisterActionsProps {
   actionItems: ActionItem[];
 }
@@ -26,7 +26,6 @@ export const RegisterActions: React.FunctionComponent<RegisterActionsProps> = ({
       });
     },
   }));
-
   return (
     <>
       <ProjectList items={projects} />
