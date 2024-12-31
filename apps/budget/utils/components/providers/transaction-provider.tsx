@@ -10,6 +10,7 @@ import { createContext, useContext, useMemo } from "react";
 import { months } from "../totals/types";
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
 import { AccountType } from "plaid";
+import { isTransferTransactionAndUpdateCache } from "../../utils";
 
 interface TransactionState {
   transactions: SpendingRecordWithAccountType[];
@@ -114,25 +115,6 @@ const useExpenseOrIncome = ({
     categories: filteredCategories,
     type,
   };
-};
-
-const isTransferTransactionAndUpdateCache = (
-  transaction: SpendingRecord,
-  transferedCache: SpendingRecord[],
-) => {
-  //A transfer transaction is a transaction that has the reverse amount and is within 3 days of each other
-  const transferTransactionIndex = transferedCache.findIndex(
-    (a) =>
-      Math.abs(a.date.getTime() - transaction.date.getTime()) <= 3 * day &&
-      a.amount === -transaction.amount &&
-      a.accountId !== transaction.accountId,
-  );
-  if (transferTransactionIndex > -1) {
-    transferedCache.splice(transferTransactionIndex, 1);
-    return true;
-  }
-
-  return false;
 };
 
 const filterCategories = (

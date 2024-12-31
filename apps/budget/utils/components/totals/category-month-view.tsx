@@ -6,7 +6,12 @@ import {
 } from "../../hooks/category-totals";
 import { Button } from "ui/src/components/catalyst/button";
 import React, { useMemo, useState } from "react";
-import { formatDollarAmount, isDateInBetween } from "model/src/utils";
+import {
+  formatDollarAmount,
+  getEndOfMonthDate,
+  getStartOfMonthDate,
+  isDateInBetween,
+} from "model/src/utils";
 import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
@@ -17,6 +22,7 @@ import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { Header } from "ui/src/components/core/header";
 import { calculateAmount } from "../../utils";
+import { useExpenses } from "../../hooks/expenses";
 
 interface CategoryChartData {
   category: CategoryBudget;
@@ -34,43 +40,39 @@ export const CategoryMonthView: React.FunctionComponent<
     defaultValue: months[new Date().getMonth()],
     key: "month",
   });
-  const currentMonthDate = useMemo(() => {
+  const [currentYear, setCurrentYear] = useQueryState<number>({
+    defaultValue: new Date().getFullYear(),
+    key: "year",
+  });
+
+  const currentDate = useMemo(() => {
     const date = new Date();
     date.setMonth(months.indexOf(currentMonth));
+    date.setFullYear(currentYear);
     return date;
-  }, [currentMonth]);
+  }, [currentMonth, currentYear]);
+
+  const years = useMemo(
+    () => Array.from(new Set(transactions.map((t) => t.date.getFullYear()))),
+    [transactions],
+  );
 
   const filteredTransactions = useMemo(
     () =>
       transactions.filter(
         (transaction) =>
-          transaction.date.getMonth() === months.indexOf(currentMonth),
+          transaction.date.getMonth() === months.indexOf(currentMonth) &&
+          transaction.date.getFullYear() === currentYear,
       ),
-    [transactions, currentMonth],
+    [transactions, currentMonth, currentYear],
   );
 
-  const longTermExpenses = useMemo(
-    () =>
-      budgetItems
-        .filter(
-          (expense) =>
-            expense.cadence.type === "eventually" &&
-            isDateInBetween(
-              currentMonthDate,
-              expense.periodStart,
-              expense.periodEnd,
-            ),
-        )
-        .map((expense) => ({
-          ...expense,
-          transactions: transactions.filter(
-            (t) =>
-              isDateInBetween(t.date, expense.periodStart, expense.periodEnd) &&
-              t.transactionCategories[0]?.category.id === expense.category.id,
-          ),
-        })),
-    [budgetItems, transactions, currentMonthDate],
-  );
+  const { longTermExpenses, shortTermExpenses } = useExpenses({
+    budgetItems,
+    transactions,
+    date: currentDate,
+  });
+
   const longTermBudgeted = useMemo(
     () => calculateAmount(longTermExpenses),
     [longTermExpenses],
@@ -83,27 +85,7 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [longTermExpenses],
   );
-  const shortTermExpenses = useMemo(
-    () =>
-      budgetItems
-        .filter(
-          (expense) =>
-            expense.cadence.type === "monthly" &&
-            isDateInBetween(
-              currentMonthDate,
-              expense.periodStart,
-              expense.periodEnd,
-            ),
-        )
-        .map((expense) => ({
-          ...expense,
-          transactions: filteredTransactions.filter(
-            (t) =>
-              t.transactionCategories[0]?.category.id === expense.category.id,
-          ),
-        })),
-    [budgetItems, filteredTransactions, currentMonthDate],
-  );
+
   const shortTermBudgeted = useMemo(
     () => calculateAmount(shortTermExpenses),
     [shortTermExpenses],
@@ -129,8 +111,12 @@ export const CategoryMonthView: React.FunctionComponent<
   const longTermChartData: CategoryChartData[] = useMemo(
     () =>
       longTermExpenses.map(({ category, amount, transactions }) => {
-        const currMonthTransactions = transactions.filter(
-          (t) => t.date.getMonth() === months.indexOf(currentMonth),
+        const currMonthTransactions = transactions.filter((t) =>
+          isDateInBetween(
+            t.date,
+            getStartOfMonthDate(currentDate),
+            getEndOfMonthDate(currentDate),
+          ),
         );
 
         return {
@@ -140,12 +126,12 @@ export const CategoryMonthView: React.FunctionComponent<
             amount -
             calculateAmount(
               transactions.filter(
-                (t) => t.date.getMonth() < months.indexOf(currentMonth),
+                (t) => t.date < getStartOfMonthDate(currentDate),
               ),
             ),
         };
       }),
-    [longTermExpenses, currentMonth],
+    [longTermExpenses, currentDate],
   );
 
   const uncategorizedData = useMemo(() => {
@@ -166,11 +152,28 @@ export const CategoryMonthView: React.FunctionComponent<
     setCurrentMonth(month);
   };
 
+  const onYearClick = (year: number) => {
+    setCurrentYear(year);
+  };
+
   return (
     <>
       <Heading>Spending by Category</Heading>
       <FormDivider />
       <div className="flex flex-col">
+        {years.length > 1 ? (
+          <div className="flex gap-2 flex-wrap">
+            {years.map((year) => (
+              <Button
+                key={year}
+                onClick={() => onYearClick(year)}
+                plain={(year !== currentYear) as true}
+              >
+                {year}
+              </Button>
+            ))}
+          </div>
+        ) : null}
         <div className="flex gap-2 flex-wrap justify-between">
           {months.map((month) => (
             <Button

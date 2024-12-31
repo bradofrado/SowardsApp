@@ -52,6 +52,7 @@ import {
   DropdownMenu,
 } from "ui/src/components/catalyst/dropdown";
 import { EllipsisHorizontalIcon } from "ui/src/components/core/icons";
+import { isTransferTransactionAndUpdateCache } from "../../../../utils/utils";
 
 interface SpendingFormProps {
   transactions: SpendingRecord[];
@@ -397,6 +398,13 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
   setPickCategory,
   small = false,
 }) => {
+  const transferTransactions = useMemo(() => {
+    const transferCache = transactions.slice();
+    return transactions.filter((transaction) =>
+      isTransferTransactionAndUpdateCache(transaction, transferCache),
+    );
+  }, [transactions]);
+
   const onSelectAll = (checked: boolean) => {
     setSelected(
       checked
@@ -451,25 +459,31 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
             <TableCell>{displayDate(transaction.date)}</TableCell>
             <TableCell>{trimText(transaction.description)}</TableCell>
             <TableCell>
-              {(transaction.transactionCategories.length > 0
-                ? transaction.transactionCategories
-                : [undefined]
-              ).map((transactionCategory) => (
-                <Button
-                  key={transactionCategory?.id || "none"}
-                  onClick={() =>
-                    setPickCategory(
-                      transaction,
-                      transaction.transactionCategories.length > 1,
-                    )
-                  }
-                  plain
-                >
-                  {transactionCategory?.category.name ?? (
-                    <span className="text-blue-400">Select Category</span>
-                  )}
+              {transferTransactions.includes(transaction) ? (
+                <Button disabled plain>
+                  Transfer
                 </Button>
-              ))}
+              ) : (
+                (transaction.transactionCategories.length > 0
+                  ? transaction.transactionCategories
+                  : [undefined]
+                ).map((transactionCategory) => (
+                  <Button
+                    key={transactionCategory?.id || "none"}
+                    onClick={() =>
+                      setPickCategory(
+                        transaction,
+                        transaction.transactionCategories.length > 1,
+                      )
+                    }
+                    plain
+                  >
+                    {transactionCategory?.category.name ?? (
+                      <span className="text-blue-400">Select Category</span>
+                    )}
+                  </Button>
+                ))
+              )}
             </TableCell>
             <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
             <TableCell className="pl-1">

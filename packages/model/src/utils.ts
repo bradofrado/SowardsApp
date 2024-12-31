@@ -211,6 +211,13 @@ export function isDateInBetween(
   );
 }
 
+export function getStartOfMonthDate(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+export function getEndOfMonthDate(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
 export const arrayOfAll =
   <T>() =>
   <U extends T[]>(

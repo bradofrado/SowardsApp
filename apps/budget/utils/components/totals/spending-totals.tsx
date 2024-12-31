@@ -7,39 +7,29 @@ import { useAccounts } from "../providers/account-provider";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { calculateAmount } from "../../utils";
 import { FormSection } from "ui/src/components/catalyst/form/form";
-import { displayDate, formatDollarAmount } from "model/src/utils";
+import {
+  displayDate,
+  formatDollarAmount,
+  isDateInBetween,
+} from "model/src/utils";
 import { ChartLegend } from "ui/src/components/feature/reporting/graphs/chart-legend";
 import { SavingsAccount } from "../providers/types";
 import { HexColor } from "model/src/core/colors";
 import { Header } from "ui/src/components/core/header";
 import { AccountType } from "plaid";
+import { useExpenses } from "../../hooks/expenses";
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { expenses } = useTransactions();
   const { accounts, savingsAccounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
 
-  const longTermExpenses = useMemo(
-    () =>
-      expenses.budgetItems
-        .filter((expense) => expense.cadence.type === "eventually")
-        .map((expense) => ({
-          ...expense,
-          transactions: expenses.transactions.filter(
-            (t) =>
-              t.date.getMonth() === new Date().getMonth() &&
-              t.transactionCategories[0]?.category.id === expense.category.id,
-          ),
-        })),
-    [expenses],
-  );
-  const shortTermExpenses = useMemo(
-    () =>
-      expenses.budgetItems.filter(
-        (expense) => expense.cadence.type === "monthly",
-      ),
-    [expenses],
-  );
+  const { longTermExpenses, shortTermExpenses } = useExpenses({
+    budgetItems: expenses.budgetItems,
+    transactions: expenses.transactions,
+    date: new Date(),
+  });
+
   const debt = useMemo(
     () => accounts.filter((account) => account.type === AccountType.Credit),
     [accounts],
