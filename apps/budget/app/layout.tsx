@@ -1,8 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ApplicationLayout } from "./(dashboard)/application-layout";
-import { getUserVactions } from "api/src/repositories/user-vacation";
 import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
 import { QueryStateProvider } from "ui/src/hooks/query-state";
 

@@ -23,7 +23,7 @@ export const useExpenses = ({
       budgetItems
         .filter(
           (expense) =>
-            expense.cadence.type === "eventually" &&
+            !["weekly", "monthly"].includes(expense.cadence.type) &&
             isDateInBetween(date, expense.periodStart, expense.periodEnd),
         )
         .map((expense) => ({

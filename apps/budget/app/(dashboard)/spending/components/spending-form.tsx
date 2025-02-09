@@ -1,4 +1,5 @@
 "use client";
+
 import {
   CategoryBudget,
   SpendingRecord,
@@ -53,7 +54,6 @@ import {
 } from "ui/src/components/catalyst/dropdown";
 import { EllipsisHorizontalIcon } from "ui/src/components/core/icons";
 import { isTransferTransactionAndUpdateCache } from "../../../../utils/utils";
-
 interface SpendingFormProps {
   transactions: SpendingRecord[];
   categories: CategoryBudget[];
@@ -79,15 +79,15 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   });
   const prevTransactions = usePrevious(transactions);
   const [error, setError] = useState<string>();
-
   const {
     onApplyFilter,
     onFilterClick,
     onFilterModalClose,
     showFilterModal,
     filteredTransactions,
-  } = useFilter({ transactions });
-
+  } = useFilter({
+    transactions,
+  });
   useEffect(() => {
     if (prevTransactions !== transactions) {
       setSelected(
@@ -97,7 +97,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       );
     }
   }, [transactions, prevTransactions, setSelected, selected]);
-
   const onCategoryChange = (
     index: number,
     categories: TransactionCategory[],
@@ -109,7 +108,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       categories,
     );
     saveTransaction(
-      { transaction: newTransactions[index] },
+      {
+        transaction: newTransactions[index],
+      },
       {
         onError(error) {
           changeProperty(
@@ -123,7 +124,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       },
     );
   };
-
   const onSelect = (checked: boolean, transactionId: string) => {
     if (checked) {
       setSelected([...selected, transactionId]);
@@ -131,7 +131,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       setSelected(selected.filter((id) => id !== transactionId));
     }
   };
-
   const onSelectAll = (checked: boolean) => {
     if (checked) {
       setSelected(filteredTransactions.map((t) => t.transactionId));
@@ -139,17 +138,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       setSelected([]);
     }
   };
-
   const onExportClick = () => {
     setShowExportModal(true);
   };
-
   const onEdit = (): void => {
     setUpdateTransaction(
       filteredTransactions.find((t) => selected[0] === t.transactionId),
     );
   };
-
   const onPickCategory = (
     transaction: SpendingRecord | undefined,
     split: boolean,
@@ -157,10 +153,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     setPickCategory(transaction);
     setSplit(split);
   };
-
   return (
     <Form className="mt-4">
-      <Heading>Spending</Heading>
+      <Heading>Spending Records</Heading>
       <FormDivider />
       <div className="flex justify-between my-4">
         <div className="flex gap-4">
@@ -285,7 +280,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     </Form>
   );
 };
-
 type AccountTransactionProps = {
   transactions: SpendingRecord[];
   selected: string[];
@@ -322,7 +316,6 @@ export const AccountTransactions: React.FunctionComponent<
   const filteredTransactions = transactions.filter((t) =>
     manual ? t.accountId === null : t.accountId === account.account_id,
   );
-
   const currSelected = useMemo(
     () =>
       selected.filter((id) =>
@@ -330,7 +323,6 @@ export const AccountTransactions: React.FunctionComponent<
       ),
     [filteredTransactions, selected],
   );
-
   const totalSelected = useMemo(
     () =>
       currSelected
@@ -341,11 +333,9 @@ export const AccountTransactions: React.FunctionComponent<
         .reduce((prev, curr) => prev + curr.amount, 0),
     [currSelected, transactions],
   );
-
   if (filteredTransactions.length === 0) {
     return null;
   }
-
   return (
     <Accordion type="multiple">
       <AccordionItem value="item">
@@ -377,7 +367,6 @@ export const AccountTransactions: React.FunctionComponent<
     </Accordion>
   );
 };
-
 interface TransactionTableProps {
   transactions: SpendingRecord[];
   selected: string[];
@@ -404,7 +393,6 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
       isTransferTransactionAndUpdateCache(transaction, transferCache),
     );
   }, [transactions]);
-
   const onSelectAll = (checked: boolean) => {
     setSelected(
       checked

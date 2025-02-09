@@ -23,7 +23,6 @@ import { useQueryState } from "ui/src/hooks/query-state";
 import { Header } from "ui/src/components/core/header";
 import { calculateAmount } from "../../utils";
 import { useExpenses } from "../../hooks/expenses";
-
 interface CategoryChartData {
   category: CategoryBudget;
   actual: number;
@@ -44,19 +43,16 @@ export const CategoryMonthView: React.FunctionComponent<
     defaultValue: new Date().getFullYear(),
     key: "year",
   });
-
   const currentDate = useMemo(() => {
     const date = new Date();
     date.setMonth(months.indexOf(currentMonth));
     date.setFullYear(currentYear);
     return date;
   }, [currentMonth, currentYear]);
-
   const years = useMemo(
     () => Array.from(new Set(transactions.map((t) => t.date.getFullYear()))),
     [transactions],
   );
-
   const filteredTransactions = useMemo(
     () =>
       transactions.filter(
@@ -66,13 +62,11 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [transactions, currentMonth, currentYear],
   );
-
   const { longTermExpenses, shortTermExpenses } = useExpenses({
     budgetItems,
     transactions,
     date: currentDate,
   });
-
   const longTermBudgeted = useMemo(
     () => calculateAmount(longTermExpenses),
     [longTermExpenses],
@@ -85,7 +79,6 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [longTermExpenses],
   );
-
   const shortTermBudgeted = useMemo(
     () => calculateAmount(shortTermExpenses),
     [shortTermExpenses],
@@ -98,7 +91,6 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [shortTermExpenses],
   );
-
   const shortTermChartData: CategoryChartData[] = useMemo(
     () =>
       shortTermExpenses.map(({ category, amount, transactions }) => ({
@@ -118,7 +110,6 @@ export const CategoryMonthView: React.FunctionComponent<
             getEndOfMonthDate(currentDate),
           ),
         );
-
         return {
           category,
           actual: calculateAmount(currMonthTransactions),
@@ -133,29 +124,23 @@ export const CategoryMonthView: React.FunctionComponent<
       }),
     [longTermExpenses, currentDate],
   );
-
   const uncategorizedData = useMemo(() => {
     const uncategorizedTransactions = filteredTransactions.filter(
       (transaction) => transaction.transactionCategories.length === 0,
     );
-
     if (uncategorizedTransactions.length === 0) return undefined;
-
     const totalAmount = calculateAmount(uncategorizedTransactions);
     return {
       actual: totalAmount,
       budgeted: 0,
     };
   }, [filteredTransactions]);
-
   const onMonthClick = (month: Month) => {
     setCurrentMonth(month);
   };
-
   const onYearClick = (year: number) => {
     setCurrentYear(year);
   };
-
   return (
     <>
       <Heading>Spending by Category</Heading>
@@ -174,7 +159,7 @@ export const CategoryMonthView: React.FunctionComponent<
             ))}
           </div>
         ) : null}
-        <div className="flex gap-2 flex-wrap justify-between">
+        <div className="flex gap-2 flex-wrap justify-between mt-2">
           {months.map((month) => (
             <Button
               key={month}
@@ -244,7 +229,6 @@ export const CategoryMonthView: React.FunctionComponent<
     </>
   );
 };
-
 const CategoryTarget: React.FunctionComponent<{
   data: CategoryChartData;
   defaultLabel?: string;
@@ -265,9 +249,11 @@ const CategoryTarget: React.FunctionComponent<{
             value: data.budgeted,
             label: formatDollarAmount(data.actual),
           },
-          { fill: "#fe502d", value: -left },
+          {
+            fill: "#fe502d",
+            value: -left,
+          },
         ];
-
   const label =
     left > 0 ? (
       <div>

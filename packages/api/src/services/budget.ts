@@ -251,15 +251,14 @@ export const getBudgets = async (userId: string): Promise<Budget[]> => {
         const budgetItem = budget.items.find(
           (item) => item.category.id === category.id,
         );
+        const budgetItemNotExpired = budget.items.find(
+          (item) =>
+            item.category.id === category.id &&
+            isDateInBetween(new Date(), item.periodStart, item.periodEnd),
+        );
+
         //If there is a budget item for this category, but the period has expired, we need to create a new one
-        if (
-          budgetItem &&
-          !budget.items.find(
-            (item) =>
-              item.category.id === category.id &&
-              isDateInBetween(new Date(), item.periodStart, item.periodEnd),
-          )
-        ) {
+        if (budgetItem && budgetItemNotExpired === undefined) {
           const { periodStart, periodEnd } = getCadenceStartAndEnd(
             budgetItem.cadence,
           );
@@ -361,7 +360,9 @@ export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
         "Some of your categories have not been funded this month. Click to make transfers.",
       action: {
         type: "transfer",
-        items: budgetItems,
+        items: budgetItems.filter((item) =>
+          isDateInBetween(new Date(), item.periodStart, item.periodEnd),
+        ),
       },
     },
   ];
