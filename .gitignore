@@ -38,3 +38,5 @@ yarn-error.log*
 generated
 db_data
 tsconfig.tsbuildinfo
+
+harmony.config.json

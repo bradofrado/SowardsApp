@@ -29,7 +29,8 @@ export const CategoryForm: React.FunctionComponent<CategoryFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { mutate: saveCategories } = api.budget.createCategories.useMutation();
 
-  const onSubmit = () => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setLoading(true);
     saveCategories(
       { categories: tempCategories },
