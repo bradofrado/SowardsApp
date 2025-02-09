@@ -15,12 +15,16 @@ async function getVersion(): Promise<string> {
 }
 
 async function runMigrationScript(version: string, db: Db) {
-  const migrationScriptPath = path.join(__dirname, version, "migrate.ts");
-  const migrationModule = await import(migrationScriptPath);
-  const runMigration = migrationModule.default as MigrationScript;
+  try {
+    const migrationScriptPath = path.join(__dirname, version, "migrate.ts");
+    const migrationModule = await import(migrationScriptPath);
+    const runMigration = migrationModule.default as MigrationScript;
 
-  if (typeof runMigration === "function") {
-    console.log(await runMigration(db));
+    if (typeof runMigration === "function") {
+      console.log(await runMigration(db));
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 
