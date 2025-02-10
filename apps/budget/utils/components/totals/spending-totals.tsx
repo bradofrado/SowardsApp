@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTransactions } from "../providers/transaction-provider";
 import { ProgressBarMultiValue } from "ui/src/components/feature/reporting/graphs/progressbar-multivalue";
 import { useAccountTotals } from "../../hooks/account-totals";
@@ -40,6 +40,44 @@ export const SpendingTotals: React.FunctionComponent = () => {
     () => accounts.filter((account) => account.type === AccountType.Credit),
     [accounts],
   );
+
+  const expenseFills: Record<string, HexColor> = {
+    shortTerm: "#fe502d",
+    longTerm: "#000",
+    debt: "#8c52ff",
+    savings: "#41b8d5",
+    transfers: "#7ed957",
+  };
+
+  const getFill = useCallback(
+    (item: BudgetItem) => {
+      if (shortTermExpenses.find((expense) => expense.id === item.id)) {
+        return expenseFills.shortTerm;
+      } else if (longTermExpenses.find((expense) => expense.id === item.id)) {
+        return expenseFills.longTerm;
+      } else if (savingsGoals.find((expense) => expense.id === item.id)) {
+        return expenseFills.savings;
+      } else {
+        return expenseFills.debt;
+      }
+    },
+    [shortTermExpenses, longTermExpenses, savingsGoals],
+  );
+
+  const unmetGoals = useMemo(
+    () =>
+      [...shortTermExpenses, ...longTermExpenses, ...savingsGoals].filter(
+        (item) => item.amount < item.targetAmount,
+      ),
+    [],
+  );
+
+  const monthlyTransfers = useMemo(() => {
+    return unmetGoals.map((item) => ({
+      amount: Math.min(item.cadenceAmount, item.targetAmount - item.amount),
+    }));
+  }, [unmetGoals]);
+
   const barValues: GraphValue[] = useMemo(
     () => [
       {
@@ -50,28 +88,33 @@ export const SpendingTotals: React.FunctionComponent = () => {
               amount: calculateAmount(expense.transactions),
             })),
           ),
-        fill: "#000",
+        fill: expenseFills.longTerm,
         label: "Long Term Expenses",
       },
       {
         value: calculateAmount(shortTermExpenses),
-        fill: "#fe502d",
+        fill: expenseFills.shortTerm,
         label: "Monthly Expenses",
       },
       {
         value: calculateAmount(
           debt.map((account) => ({ amount: account.balances.current || 0 })),
         ),
-        fill: "#8c52ff",
+        fill: expenseFills.debt,
         label: "Debt",
       },
       {
         value: calculateAmount(savingsGoals),
-        fill: "#41b8d5",
+        fill: expenseFills.savings,
         label: "Savings Goals",
       },
+      {
+        value: calculateAmount(monthlyTransfers),
+        fill: expenseFills.transfers,
+        label: "Monthly Transfers",
+      },
     ],
-    [longTermExpenses, shortTermExpenses, savingsGoals, debt],
+    [longTermExpenses, shortTermExpenses, savingsGoals, debt, monthlyTransfers],
   );
 
   return (
@@ -104,11 +147,11 @@ export const SpendingTotals: React.FunctionComponent = () => {
           <ChartLegend values={barValues} total={netWorth} noSort />
         </div>
         <div className="mt-2 flex flex-col gap-2">
-          {savingsGoals.map((savingsGoal, i) => (
+          {unmetGoals.map((item) => (
             <SavingGoalTotal
-              key={savingsGoal.category.name}
-              savingsGoal={savingsGoal}
-              fill={fills[i % fills.length]}
+              key={item.category.name}
+              savingsGoal={item}
+              fill={getFill(item)}
             />
           ))}
         </div>
