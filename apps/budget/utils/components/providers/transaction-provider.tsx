@@ -23,6 +23,8 @@ interface TransactionContextState {
   expenses: TransactionState;
   income: TransactionState;
   transactions: SpendingRecordWithAccountType[];
+  budget: Budget | undefined;
+  categories: CategoryBudget[];
 }
 const TransactionContext = createContext<TransactionContextState>({
   expenses: {
@@ -38,6 +40,8 @@ const TransactionContext = createContext<TransactionContextState>({
     type: "income",
   },
   transactions: [],
+  budget: undefined,
+  categories: [],
 });
 
 interface TransactionProviderProps {
@@ -75,6 +79,8 @@ export const TransactionProvider: React.FunctionComponent<
         expenses: spendingFilter,
         income: incomeFilter,
         transactions: nonTransferTransactions,
+        budget,
+        categories,
       }}
     >
       {children}

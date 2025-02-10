@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTransactions } from "../providers/transaction-provider";
 import { ProgressBarMultiValue } from "ui/src/components/feature/reporting/graphs/progressbar-multivalue";
 import { useAccountTotals } from "../../hooks/account-totals";
@@ -18,13 +18,19 @@ import { HexColor } from "model/src/core/colors";
 import { Header } from "ui/src/components/core/header";
 import { AccountType } from "plaid";
 import { useExpenses } from "../../hooks/expenses";
+import { BudgetItem, CategoryBudget } from "model/src/budget";
+import { Button } from "ui/src/components/catalyst/button";
+import { UpdateBudgetModal } from "../budget/update-budget-modal";
+import { useUpdateBudget } from "../../hooks/update-budget";
 
 export const SpendingTotals: React.FunctionComponent = () => {
-  const { expenses } = useTransactions();
-  const { accounts, savingsAccounts } = useAccounts();
+  const { expenses, budget, categories } = useTransactions();
+  const { accounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
+  const updateBudget = useUpdateBudget();
+  const [showEditBudget, setShowEditBudget] = useState(false);
 
-  const { longTermExpenses, shortTermExpenses } = useExpenses({
+  const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
     budgetItems: expenses.budgetItems,
     transactions: expenses.transactions,
     date: new Date(),
@@ -60,19 +66,26 @@ export const SpendingTotals: React.FunctionComponent = () => {
         label: "Debt",
       },
       {
-        value: calculateAmount(
-          savingsAccounts.map((account) => ({ amount: account.totalSaved })),
-        ),
+        value: calculateAmount(savingsGoals),
         fill: "#41b8d5",
         label: "Savings Goals",
       },
     ],
-    [longTermExpenses, shortTermExpenses, savingsAccounts, debt],
+    [longTermExpenses, shortTermExpenses, savingsGoals, debt],
   );
 
   return (
     <>
-      <FormSection label="Spending Totals">
+      <FormSection
+        label="Spending Totals"
+        button={
+          budget ? (
+            <Button onClick={() => setShowEditBudget(true)} plain>
+              Edit Budget
+            </Button>
+          ) : undefined
+        }
+      >
         <Header level={4}>
           Total Left:{" "}
           {formatDollarAmount(
@@ -91,52 +104,67 @@ export const SpendingTotals: React.FunctionComponent = () => {
           <ChartLegend values={barValues} total={netWorth} noSort />
         </div>
         <div className="mt-2 flex flex-col gap-2">
-          {savingsAccounts.map((account, i) => (
+          {savingsGoals.map((savingsGoal, i) => (
             <SavingGoalTotal
-              key={account.name}
-              account={account}
+              key={savingsGoal.category.name}
+              savingsGoal={savingsGoal}
               fill={fills[i % fills.length]}
             />
           ))}
         </div>
       </FormSection>
+      {budget ? (
+        <UpdateBudgetModal
+          show={showEditBudget}
+          onClose={() => setShowEditBudget(false)}
+          budget={budget}
+          categories={categories}
+          title="Edit Budget"
+          description="Edit the budget to plan for your future!"
+          onSave={async (item) => {
+            await updateBudget(item);
+            setShowEditBudget(false);
+          }}
+        />
+      ) : null}
     </>
   );
 };
 
 const SavingGoalTotal: React.FunctionComponent<{
-  account: SavingsAccount;
+  savingsGoal: BudgetItem;
   fill: HexColor;
-}> = ({ account, fill }) => {
-  const calculateTargetDate = (account: SavingsAccount) => {
+}> = ({ savingsGoal, fill }) => {
+  const calculateTargetDate = (savingsGoal: BudgetItem) => {
     const today = new Date();
     const months = Math.floor(
-      (account.targetAmount - account.totalSaved) / account.monthlyContribution,
+      (savingsGoal.targetAmount - savingsGoal.amount) /
+        savingsGoal.cadenceAmount,
     );
     const targetDate = new Date(today);
     targetDate.setMonth(today.getMonth() + months);
     return targetDate;
   };
 
-  const targetDate = calculateTargetDate(account);
+  const targetDate = calculateTargetDate(savingsGoal);
   return (
-    <div className="flex gap-2 items-center" key={account.name}>
-      <div>{account.name}</div>
-      <div>{formatDollarAmount(account.totalSaved)}</div>
+    <div className="flex gap-2 items-center" key={savingsGoal.id}>
+      <div>{savingsGoal.category.name}</div>
+      <div>{formatDollarAmount(savingsGoal.amount)}</div>
       <ProgressBarMultiValue
         className="flex-1"
         values={[
           {
-            value: account.totalSaved,
+            value: savingsGoal.amount,
             fill,
-            label: formatDollarAmount(account.totalSaved),
+            label: formatDollarAmount(savingsGoal.amount),
           },
         ]}
-        total={account.targetAmount}
+        total={savingsGoal.targetAmount}
       />
       <div>
         <span className="text-sm">left to save:</span>{" "}
-        {formatDollarAmount(account.targetAmount - account.totalSaved)} (
+        {formatDollarAmount(savingsGoal.targetAmount - savingsGoal.amount)} (
         {displayDate(targetDate)})
       </div>
     </div>

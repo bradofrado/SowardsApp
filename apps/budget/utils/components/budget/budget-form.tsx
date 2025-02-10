@@ -232,6 +232,36 @@ export const BudgetItemForm: React.FunctionComponent<
     fixed: "Fixed means that you will save by the fixed date.",
   };
 
+  const calculatedRenewingAllotment = useMemo(() => {
+    if (item.cadence.type === "fixed") {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      const monthDiff = item.cadence.date.getMonth() - currentMonth;
+      const yearDiff = item.cadence.date.getFullYear() - currentYear;
+
+      const numMonthsInBetween = monthDiff + yearDiff * 12;
+      return (item.targetAmount - item.amount) / numMonthsInBetween;
+    }
+
+    return undefined;
+  }, [item.cadence, item.targetAmount, item.amount]);
+
+  const calculatedTargetGoal = useMemo(() => {
+    if (item.cadence.type === "fixed") {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      const monthDiff = item.cadence.date.getMonth() - currentMonth;
+      const yearDiff = item.cadence.date.getFullYear() - currentYear;
+
+      const numMonthsInBetween = monthDiff + yearDiff * 12;
+      return item.amount + numMonthsInBetween * item.cadenceAmount;
+    }
+
+    return undefined;
+  }, [item.cadence, item.amount, item.cadenceAmount]);
+
   return (
     <>
       <FormRow label="Name" description="The name of this category">
@@ -264,7 +294,7 @@ export const BudgetItemForm: React.FunctionComponent<
             { id: "monthly", name: "Monthly" },
             { id: "yearly", name: "Yearly" },
             { id: "eventually", name: "Eventually" },
-            { id: "fixed", name: "Fixed" },
+            { id: "fixed", name: "Savings Goal" },
           ]}
           onChange={(value) =>
             changeProperty(item, "cadence", createCadence(value.id))
@@ -289,7 +319,22 @@ export const BudgetItemForm: React.FunctionComponent<
           value={item.targetAmount}
           onChange={changeProperty.formFuncNumber("targetAmount", item)}
         />
-        {/* TODO: Put 'per month' gray text */}
+        {calculatedRenewingAllotment !== undefined ? (
+          <Label label="Estimated Renewing Allotment">
+            <Button
+              plain
+              onClick={() =>
+                changeProperty(
+                  item,
+                  "cadenceAmount",
+                  calculatedRenewingAllotment,
+                )
+              }
+            >
+              {calculatedRenewingAllotment}
+            </Button>
+          </Label>
+        ) : null}
       </FormRow>
       <FormDivider />
       <FormRow
@@ -301,6 +346,18 @@ export const BudgetItemForm: React.FunctionComponent<
           value={item.cadenceAmount}
           onChange={changeProperty.formFuncNumber("cadenceAmount", item)}
         />
+        {calculatedTargetGoal !== undefined ? (
+          <Label label="Estimated Target Goal">
+            <Button
+              plain
+              onClick={() =>
+                changeProperty(item, "targetAmount", calculatedTargetGoal)
+              }
+            >
+              {calculatedTargetGoal}
+            </Button>
+          </Label>
+        ) : null}
         {/* TODO: Put 'per month' gray text */}
       </FormRow>
       <FormDivider />

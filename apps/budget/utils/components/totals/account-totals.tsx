@@ -16,6 +16,7 @@ import { useChartTotals } from "./chart-totals";
 import { SavingsAccount } from "../providers/types";
 import { SpendingRecord } from "model/src/budget";
 import { calculateAmount, transactionsOnDate } from "../../utils";
+import { useExpenses } from "../../hooks/expenses";
 
 const dateButtons: {
   label: string;
@@ -41,7 +42,6 @@ const dateButtons: {
 export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
   future = false,
 }) => {
-  const { savingsAccounts } = useAccounts();
   const [currDaysBack, setCurrDaysBack] = useQueryState({
     key: "netWorthFilter",
     defaultValue: 1,
@@ -78,7 +78,7 @@ export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
             </Button>
           ))}
         </div>
-        {savingsAccounts.length > 0 ? (
+        {/* {savingsAccounts.length > 0 ? (
           <div className="flex gap-4 mt-2">
             {["Net Worth", ...savingsAccounts.map((a) => a.name)].map(
               (name, i) => (
@@ -92,7 +92,7 @@ export const AccountTotals: React.FunctionComponent<{ future?: boolean }> = ({
               ),
             )}
           </div>
-        ) : null}
+        ) : null} */}
       </div>
     </Card>
   );
@@ -119,34 +119,34 @@ const useAccountChartTotals = (
   future: boolean,
   account: string,
 ) => {
-  const { savingsAccounts } = useAccounts();
+  //const { savingsAccounts } = useAccounts();
   const { netWorth, chartData, onValueChange } = useNetWorthChartTotals(
     daysBack,
     future,
   );
-  const {
-    amount: savingsAmount,
-    chartData: savingsChartData,
-    onValueChange: onSavingsValueChange,
-  } = useSavingAccountTotals(
-    daysBack,
-    savingsAccounts.find((a) => a.name === account),
-    future,
-  );
+  // const {
+  //   amount: savingsAmount,
+  //   chartData: savingsChartData,
+  //   onValueChange: onSavingsValueChange,
+  // } = useSavingAccountTotals(
+  //   daysBack,
+  //   savingsAccounts.find((a) => a.name === account),
+  //   future,
+  // );
 
-  if (account === "Net Worth") {
-    return {
-      amount: netWorth,
-      chartData,
-      onValueChange,
-    };
-  }
-
+  //if (account === "Net Worth") {
   return {
-    amount: savingsAmount,
-    chartData: savingsChartData,
-    onValueChange: onSavingsValueChange,
+    amount: netWorth,
+    chartData,
+    onValueChange,
   };
+  //}
+
+  // return {
+  //   amount: savingsAmount,
+  //   chartData: savingsChartData,
+  //   onValueChange: onSavingsValueChange,
+  // };
 };
 
 const useNetWorthChartTotals = (daysBack: number, future: boolean) => {

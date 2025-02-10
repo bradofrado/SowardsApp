@@ -1,9 +1,9 @@
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
-import { BudgetItem } from "model/src/budget";
+import { BudgetCadence, BudgetItem } from "model/src/budget";
 import { isDateInBetween } from "model/src/utils";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
-interface BudgetItemWithTransactions extends BudgetItem {
+export interface BudgetItemWithTransactions extends BudgetItem {
   transactions: SpendingRecordWithAccountType[];
 }
 export const useExpenses = ({
@@ -17,13 +17,14 @@ export const useExpenses = ({
 }): {
   longTermExpenses: BudgetItemWithTransactions[];
   shortTermExpenses: BudgetItemWithTransactions[];
+  savingsGoals: BudgetItemWithTransactions[];
 } => {
-  const longTermExpenses = useMemo(
-    () =>
-      budgetItems
+  const createBudgetItemWithTransactions = useCallback(
+    (cadenceTypes: BudgetCadence["type"][]) => {
+      return budgetItems
         .filter(
           (expense) =>
-            !["weekly", "monthly"].includes(expense.cadence.type) &&
+            cadenceTypes.includes(expense.cadence.type) &&
             isDateInBetween(date, expense.periodStart, expense.periodEnd),
         )
         .map((expense) => ({
@@ -47,40 +48,21 @@ export const useExpenses = ({
                   (tc) => tc.category.id === expense.category.id,
                 )?.amount || t.amount,
             })),
-        })),
+        }));
+    },
+    [budgetItems, transactions, date],
+  );
+  const longTermExpenses = useMemo(
+    () => createBudgetItemWithTransactions(["yearly", "eventually"]),
     [budgetItems, transactions, date],
   );
   const shortTermExpenses = useMemo(
-    () =>
-      budgetItems
-        .filter(
-          (expense) =>
-            isDateInBetween(date, expense.periodStart, expense.periodEnd) &&
-            expense.cadence.type === "monthly",
-        )
-        .map((expense) => ({
-          ...expense,
-          transactions: transactions
-            .filter(
-              (t) =>
-                isDateInBetween(
-                  t.date,
-                  expense.periodStart,
-                  expense.periodEnd,
-                ) &&
-                t.transactionCategories.find(
-                  (tc) => tc.category.id === expense.category.id,
-                ),
-            )
-            .map((t) => ({
-              ...t,
-              amount:
-                t.transactionCategories.find(
-                  (tc) => tc.category.id === expense.category.id,
-                )?.amount || t.amount,
-            })),
-        })),
+    () => createBudgetItemWithTransactions(["monthly", "weekly"]),
     [budgetItems, transactions, date],
   );
-  return { longTermExpenses, shortTermExpenses };
+  const savingsGoals = useMemo(
+    () => createBudgetItemWithTransactions(["fixed"]),
+    [budgetItems, transactions, date],
+  );
+  return { longTermExpenses, shortTermExpenses, savingsGoals };
 };

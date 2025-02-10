@@ -1,8 +1,8 @@
-import { classNames } from "model/src/utils";
-import { Divider } from "../divider";
-import { Heading, Subheading } from "../heading";
-import { Text } from "../text";
-import clsx from "clsx";
+import { classNames } from 'model/src/utils';
+import clsx from 'clsx';
+import { Divider } from '../divider';
+import { Heading, Subheading } from '../heading';
+import { Text } from '../text';
 
 interface FormProps {
   children: React.ReactNode;
@@ -16,8 +16,8 @@ export const Form: React.FunctionComponent<FormProps> = ({
 }) => {
   return (
     <form
+      className={classNames('mx-auto max-w-4xl', className)}
       method="post"
-      className={classNames("mx-auto max-w-4xl", className)}
       onSubmit={onSubmit}
     >
       {children}
@@ -28,14 +28,19 @@ export const Form: React.FunctionComponent<FormProps> = ({
 interface FormSectionProps {
   label: string;
   children: React.ReactNode;
+  button?: React.ReactNode;
 }
 export const FormSection: React.FunctionComponent<FormSectionProps> = ({
   label,
   children,
+  button,
 }) => {
   return (
     <>
-      <Heading>{label}</Heading>
+      <div className="flex justify-between">
+        <Heading>{label}</Heading>
+        {button ?? <div />}
+      </div>
 
       <Divider className="my-10" soft />
       {children}
@@ -57,7 +62,7 @@ export const FormRow: React.FunctionComponent<FormRowProps> = ({
 }) => {
   return (
     <section
-      className={clsx("grid gap-x-8 gap-y-6", sameLine ? "" : "sm:grid-cols-2")}
+      className={clsx('grid gap-x-8 gap-y-6', sameLine ? '' : 'sm:grid-cols-2')}
     >
       <div className="space-y-1">
         <Subheading>{label}</Subheading>
@@ -71,5 +76,5 @@ export const FormRow: React.FunctionComponent<FormRowProps> = ({
 export const FormDivider: React.FunctionComponent<{ className?: string }> = ({
   className,
 }) => {
-  return <Divider className={classNames("my-10", className)} soft />;
+  return <Divider className={classNames('my-10', className)} soft />;
 };

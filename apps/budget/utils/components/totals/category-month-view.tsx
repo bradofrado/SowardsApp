@@ -20,7 +20,7 @@ import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { Header } from "ui/src/components/core/header";
 import { calculateAmount } from "../../utils";
-import { useExpenses } from "../../hooks/expenses";
+import { BudgetItemWithTransactions, useExpenses } from "../../hooks/expenses";
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
 import {
   Dialog,
@@ -62,75 +62,27 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [transactions, currentMonth, currentYear],
   );
-  const { longTermExpenses, shortTermExpenses } = useExpenses({
+  const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
     budgetItems,
     transactions,
     date: currentDate,
   });
-  const longTermBudgeted = useMemo(
-    () => calculateAmount(longTermExpenses),
-    [longTermExpenses],
-  );
-  const longTermActual = useMemo(
-    () =>
-      longTermExpenses.reduce(
-        (prev, curr) => prev + calculateAmount(curr.transactions),
-        0,
-      ),
-    [longTermExpenses],
-  );
-  const shortTermBudgeted = useMemo(
-    () => calculateAmount(shortTermExpenses),
-    [shortTermExpenses],
-  );
-  const shortTermActual = useMemo(
-    () =>
-      shortTermExpenses.reduce(
-        (prev, curr) => prev + calculateAmount(curr.transactions),
-        0,
-      ),
-    [shortTermExpenses],
-  );
-  const shortTermChartData: CategoryChartData[] = useMemo(
-    () =>
-      shortTermExpenses.map(({ category, amount, transactions }) => ({
-        category,
-        actual: calculateAmount(transactions),
-        budgeted: amount,
-        transactions,
-      })),
-    [shortTermExpenses],
-  );
-  const longTermChartData: CategoryChartData[] = useMemo(
-    () =>
-      longTermExpenses.map(({ category, amount, transactions }) => {
-        const currMonthTransactions = transactions.filter((t) =>
-          isDateInBetween(
-            t.date,
-            getStartOfMonthDate(currentDate),
-            getEndOfMonthDate(currentDate),
-          ),
-        );
-        console.log(category.name);
-        console.log(
-          transactions.filter((t) => t.date < getStartOfMonthDate(currentDate))
-            .length,
-        );
-        return {
-          category,
-          actual: calculateAmount(currMonthTransactions),
-          budgeted:
-            amount -
-            calculateAmount(
-              transactions.filter(
-                (t) => t.date < getStartOfMonthDate(currentDate),
-              ),
-            ),
-          transactions: currMonthTransactions,
-        };
-      }),
-    [longTermExpenses, currentDate],
-  );
+  const {
+    chartData: shortTermChartData,
+    budgeted: shortTermBudgeted,
+    actual: shortTermActual,
+  } = useCategoryChartData(shortTermExpenses, currentDate);
+  const {
+    chartData: longTermChartData,
+    budgeted: longTermBudgeted,
+    actual: longTermActual,
+  } = useCategoryChartData(longTermExpenses, currentDate);
+  const {
+    chartData: savingsGoalsChartData,
+    budgeted: savingsGoalsBudgeted,
+    actual: savingsGoalsActual,
+  } = useCategoryChartData(savingsGoals, currentDate);
+
   const uncategorizedData = useMemo(() => {
     const uncategorizedTransactions = filteredTransactions.filter(
       (transaction) => transaction.transactionCategories.length === 0,
@@ -241,11 +193,80 @@ export const CategoryMonthView: React.FunctionComponent<
               <CategoryTarget key={data.category.id} data={data} />
             ))}
           </div>
+          <Header level={4}>Savings Goals</Header>
+          <div className="flex flex-col gap-2">
+            <CategoryTarget
+              data={{
+                category: {
+                  id: "fixed",
+                  name: "Total Savings Goals",
+                  type: "expense",
+                  order: -2,
+                },
+                actual: savingsGoalsActual,
+                budgeted: savingsGoalsBudgeted,
+                transactions: savingsGoals.reduce<
+                  SpendingRecordWithAccountType[]
+                >((prev, curr) => prev.concat(...curr.transactions), []),
+              }}
+            />
+
+            {savingsGoalsChartData.map((data) => (
+              <CategoryTarget key={data.category.id} data={data} />
+            ))}
+          </div>
         </div>
       </div>
     </>
   );
 };
+
+const useCategoryChartData = (
+  budgetExpenses: BudgetItemWithTransactions[],
+  currentDate: Date,
+) => {
+  const budgeted = useMemo(
+    () => calculateAmount(budgetExpenses),
+    [budgetExpenses],
+  );
+  const actual = useMemo(
+    () =>
+      budgetExpenses.reduce(
+        (prev, curr) => prev + calculateAmount(curr.transactions),
+        0,
+      ),
+    [budgetExpenses],
+  );
+
+  const chartData: CategoryChartData[] = useMemo(
+    () =>
+      budgetExpenses.map(({ category, amount, transactions }) => {
+        const currMonthTransactions = transactions.filter((t) =>
+          isDateInBetween(
+            t.date,
+            getStartOfMonthDate(currentDate),
+            getEndOfMonthDate(currentDate),
+          ),
+        );
+        return {
+          category,
+          actual: calculateAmount(currMonthTransactions),
+          budgeted:
+            amount -
+            calculateAmount(
+              transactions.filter(
+                (t) => t.date < getStartOfMonthDate(currentDate),
+              ),
+            ),
+          transactions: currMonthTransactions,
+        };
+      }),
+    [budgetExpenses, currentDate],
+  );
+
+  return { chartData, budgeted, actual };
+};
+
 const CategoryTarget: React.FunctionComponent<{
   data: CategoryChartData;
   defaultLabel?: string;

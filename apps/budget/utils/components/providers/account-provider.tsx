@@ -6,11 +6,9 @@ import { SavingsAccount } from "./types";
 
 interface AccountContextState {
   accounts: AccountBase[];
-  savingsAccounts: SavingsAccount[];
 }
 const AccountContext = createContext<AccountContextState>({
   accounts: [],
-  savingsAccounts: [],
 });
 
 interface AccountProviderProps {
@@ -23,18 +21,11 @@ export const AccountProvider: React.FunctionComponent<AccountProviderProps> = ({
   accounts,
   transactions,
 }) => {
-  const savingsAccounts = getSavingsAccounts(transactions);
   return (
-    <AccountContext.Provider value={{ accounts, savingsAccounts }}>
+    <AccountContext.Provider value={{ accounts }}>
       {children}
     </AccountContext.Provider>
   );
-};
-
-const getSavingsAccounts = (
-  transactions: SpendingRecord[],
-): SavingsAccount[] => {
-  return [];
 };
 
 export const useAccounts = () => {

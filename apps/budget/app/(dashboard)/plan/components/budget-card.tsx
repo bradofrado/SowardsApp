@@ -3,9 +3,10 @@
 import { Budget, CategoryBudget } from "model/src/budget";
 import { formatDollarAmount } from "model/src/utils";
 import { Card } from "ui/src/components/core/card";
-import { UpdateBudgetModal } from "./new-budget";
 import { useState } from "react";
 import { api } from "next-utils/src/utils/api";
+import { useUpdateBudget } from "../../../../utils/hooks/update-budget";
+import { UpdateBudgetModal } from "../../../../utils/components/budget/update-budget-modal";
 
 interface BudgetCardProps {
   categories: CategoryBudget[];
@@ -15,26 +16,15 @@ export const BudgetCard: React.FunctionComponent<BudgetCardProps> = ({
   budget,
   categories,
 }) => {
-  const { mutate: saveBudget } = api.budget.updateBudget.useMutation();
+  const saveBudget = useUpdateBudget();
   const [show, setShow] = useState(false);
   const onCardClick = () => setShow(true);
 
-  const onSave = (budget: Budget): Promise<void> => {
-    return new Promise<void>((resolve, reject) =>
-      saveBudget(
-        { budget },
-        {
-          onSuccess() {
-            setShow(false);
-            resolve();
-          },
-          onError() {
-            reject();
-          },
-        },
-      ),
-    );
+  const onSave = async (budget: Budget): Promise<void> => {
+    await saveBudget(budget);
+    setShow(false);
   };
+
   return (
     <>
       <Card label={budget.name} onClick={onCardClick}>
