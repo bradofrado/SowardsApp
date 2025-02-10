@@ -337,30 +337,34 @@ export const BudgetItemForm: React.FunctionComponent<
         ) : null}
       </FormRow>
       <FormDivider />
-      <FormRow
-        label="Renewing Allotment"
-        description="The amount you will budget for this category each month"
-      >
-        <InputBlur
-          className="h-fit"
-          value={item.cadenceAmount}
-          onChange={changeProperty.formFuncNumber("cadenceAmount", item)}
-        />
-        {calculatedTargetGoal !== undefined ? (
-          <Label label="Estimated Target Goal">
-            <Button
-              plain
-              onClick={() =>
-                changeProperty(item, "targetAmount", calculatedTargetGoal)
-              }
-            >
-              {calculatedTargetGoal}
-            </Button>
-          </Label>
-        ) : null}
-        {/* TODO: Put 'per month' gray text */}
-      </FormRow>
-      <FormDivider />
+      {!["weekly", "monthly"].includes(item.cadence.type) ? (
+        <>
+          <FormRow
+            label="Renewing Allotment"
+            description="The amount you will budget for this category each month"
+          >
+            <InputBlur
+              className="h-fit"
+              value={item.cadenceAmount}
+              onChange={changeProperty.formFuncNumber("cadenceAmount", item)}
+            />
+            {calculatedTargetGoal !== undefined ? (
+              <Label label="Estimated Target Goal">
+                <Button
+                  plain
+                  onClick={() =>
+                    changeProperty(item, "targetAmount", calculatedTargetGoal)
+                  }
+                >
+                  {calculatedTargetGoal}
+                </Button>
+              </Label>
+            ) : null}
+            {/* TODO: Put 'per month' gray text */}
+          </FormRow>
+          <FormDivider />
+        </>
+      ) : null}
       <FormRow
         label="Current Allotment"
         description="The amount of money you want to put into this category right now. It can be less than the target amount if you do not have the funds currently."
