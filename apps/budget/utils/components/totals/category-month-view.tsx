@@ -1,12 +1,10 @@
 "use client";
 
-import {
-  useCategoryTotals,
-  useTransactionCategoryTotals,
-} from "../../hooks/category-totals";
 import { Button } from "ui/src/components/catalyst/button";
 import React, { useMemo, useState } from "react";
 import {
+  compare,
+  displayDate,
   formatDollarAmount,
   getEndOfMonthDate,
   getStartOfMonthDate,
@@ -16,17 +14,24 @@ import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
 import { useTransactions } from "../providers/transaction-provider";
-import { BudgetItem, CategoryBudget } from "model/src/budget";
+import { CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { useQueryState } from "ui/src/hooks/query-state";
 import { Header } from "ui/src/components/core/header";
 import { calculateAmount } from "../../utils";
 import { useExpenses } from "../../hooks/expenses";
+import { SpendingRecordWithAccountType } from "api/src/services/budget";
+import {
+  Dialog,
+  DialogBody,
+  DialogTitle,
+} from "ui/src/components/catalyst/dialog";
 interface CategoryChartData {
   category: CategoryBudget;
   actual: number;
   budgeted: number;
+  transactions: SpendingRecordWithAccountType[];
 }
 interface CategoryMonthViewProps {}
 export const CategoryMonthView: React.FunctionComponent<
@@ -97,6 +102,7 @@ export const CategoryMonthView: React.FunctionComponent<
         category,
         actual: calculateAmount(transactions),
         budgeted: amount,
+        transactions,
       })),
     [shortTermExpenses],
   );
@@ -120,6 +126,7 @@ export const CategoryMonthView: React.FunctionComponent<
                 (t) => t.date < getStartOfMonthDate(currentDate),
               ),
             ),
+          transactions: currMonthTransactions,
         };
       }),
     [longTermExpenses, currentDate],
@@ -133,6 +140,7 @@ export const CategoryMonthView: React.FunctionComponent<
     return {
       actual: totalAmount,
       budgeted: 0,
+      transactions: uncategorizedTransactions,
     };
   }, [filteredTransactions]);
   const onMonthClick = (month: Month) => {
@@ -183,6 +191,7 @@ export const CategoryMonthView: React.FunctionComponent<
                   },
                   actual: uncategorizedData.actual || 0,
                   budgeted: uncategorizedData.actual || 0,
+                  transactions: uncategorizedData.transactions,
                 }}
                 defaultLabel={formatDollarAmount(uncategorizedData.actual)}
               />
@@ -200,8 +209,12 @@ export const CategoryMonthView: React.FunctionComponent<
                 },
                 actual: shortTermActual,
                 budgeted: shortTermBudgeted,
+                transactions: shortTermExpenses.reduce<
+                  SpendingRecordWithAccountType[]
+                >((prev, curr) => prev.concat(...curr.transactions), []),
               }}
             />
+
             {shortTermChartData.map((data) => (
               <CategoryTarget key={data.category.id} data={data} />
             ))}
@@ -218,8 +231,12 @@ export const CategoryMonthView: React.FunctionComponent<
                 },
                 actual: longTermActual,
                 budgeted: longTermBudgeted,
+                transactions: longTermExpenses.reduce<
+                  SpendingRecordWithAccountType[]
+                >((prev, curr) => prev.concat(...curr.transactions), []),
               }}
             />
+
             {longTermChartData.map((data) => (
               <CategoryTarget key={data.category.id} data={data} />
             ))}
@@ -233,6 +250,7 @@ const CategoryTarget: React.FunctionComponent<{
   data: CategoryChartData;
   defaultLabel?: string;
 }> = ({ data, defaultLabel }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const left = data.budgeted - data.actual;
   const values: GraphValue[] =
     left > 0
@@ -254,6 +272,7 @@ const CategoryTarget: React.FunctionComponent<{
             value: -left,
           },
         ];
+
   const label =
     left > 0 ? (
       <div>
@@ -266,19 +285,71 @@ const CategoryTarget: React.FunctionComponent<{
         <span className="text-red-400">{formatDollarAmount(-left)}</span>
       </div>
     );
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between">
-        <div>{data.category.name}</div>
-        {defaultLabel ?? label}
-      </div>
-      <TargetBar
-        className="w-full"
-        values={values}
-        target={data.budgeted}
-        total={data.budgeted * 1.25}
-        totalLabel={`Total: ${formatDollarAmount(data.budgeted)}`}
+    <>
+      <button
+        className="flex flex-col gap-2 p-2 hover:bg-gray-100 rounded-md"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="flex justify-between w-full">
+          <div>{data.category.name}</div>
+          {defaultLabel ?? label}
+        </div>
+        <TargetBar
+          className="w-full"
+          values={values}
+          target={data.budgeted}
+          total={data.budgeted * 1.25}
+          totalLabel={`Total: ${formatDollarAmount(data.budgeted)}`}
+        />
+      </button>
+      <CategoryTransactionsModal
+        data={data}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
       />
-    </div>
+    </>
+  );
+};
+
+interface CategoryTransactionsModalProps {
+  data: CategoryChartData;
+  isOpen: boolean;
+  onClose: () => void;
+}
+const CategoryTransactionsModal: React.FunctionComponent<
+  CategoryTransactionsModalProps
+> = ({ isOpen, onClose, data: { transactions, budgeted, actual } }) => {
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>Transactions</DialogTitle>
+      <DialogBody>
+        <div className="grid grid-cols-2 mb-4">
+          <div>Budget</div>
+
+          <span>{formatDollarAmount(budgeted)}</span>
+          <div>Actual</div>
+          <span>{formatDollarAmount(actual)}</span>
+        </div>
+        <div className="flex flex-col gap-2 max-h-96 overflow-auto">
+          {transactions
+            .slice()
+            .sort((a, b) => compare(b.date.getTime(), a.date.getTime()))
+            .map((transaction) => (
+              <div
+                key={transaction.transactionId}
+                className="flex flex-row justify-between w-full border p-3 rounded-md"
+              >
+                <div className="flex gap-4">
+                  <div>{displayDate(transaction.date)}</div>
+                  <span>{transaction.description}</span>
+                </div>
+                <span>{formatDollarAmount(transaction.amount)}</span>
+              </div>
+            ))}
+        </div>
+      </DialogBody>
+    </Dialog>
   );
 };
