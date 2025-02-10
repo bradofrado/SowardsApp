@@ -1,14 +1,15 @@
 /* eslint-disable no-await-in-loop -- ok*/
 import type { Db } from "db/lib/prisma";
 import { prisma } from "db/lib/prisma";
-import {
-  getCadenceStartAndEnd,
+import { getCadenceStartAndEnd } from "model/src/budget";
+import type {
   TransferCategory,
-  type Budget,
-  type BudgetItem,
-  type SpendingRecord,
+  Budget,
+  BudgetItem,
+  SpendingRecord,
 } from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
+import { isDateInBetween } from "model/src/utils";
 import {
   getLogins,
   updateExternalLoginCursor,
@@ -34,7 +35,6 @@ import {
   getBudgetItemsOfType,
   updateBudgetItemAmount,
 } from "../repositories/budget/template/budget-item";
-import { isDateInBetween } from "model/src/utils";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
@@ -360,9 +360,7 @@ export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
         "Some of your categories have not been funded this month. Click to make transfers.",
       action: {
         type: "transfer",
-        items: budgetItems.filter((item) =>
-          isDateInBetween(new Date(), item.periodStart, item.periodEnd),
-        ),
+        items: budgetItems,
       },
     },
   ];
@@ -406,16 +404,18 @@ export const makeExpenseTransaction = async ({
   from,
   to,
   amount,
+  date,
 }: {
   db: Db;
   from: BudgetItem | undefined;
   to: BudgetItem;
   amount: number;
+  date: Date;
 }): Promise<void> => {
   const transferCategory: TransferCategory = {
     id: "",
     amount,
-    date: new Date(),
+    date,
     from,
     to,
   };

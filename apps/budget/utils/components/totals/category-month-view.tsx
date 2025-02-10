@@ -27,6 +27,7 @@ import {
   DialogBody,
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
+import { useDateState } from "../../hooks/date-state";
 interface CategoryChartData {
   category: CategoryBudget;
   actual: number;
@@ -40,20 +41,14 @@ export const CategoryMonthView: React.FunctionComponent<
   const {
     expenses: { budgetItems, transactions },
   } = useTransactions();
-  const [currentMonth, setCurrentMonth] = useQueryState<Month>({
-    defaultValue: months[new Date().getMonth()],
-    key: "month",
-  });
-  const [currentYear, setCurrentYear] = useQueryState<number>({
-    defaultValue: new Date().getFullYear(),
-    key: "year",
-  });
-  const currentDate = useMemo(() => {
-    const date = new Date();
-    date.setMonth(months.indexOf(currentMonth));
-    date.setFullYear(currentYear);
-    return date;
-  }, [currentMonth, currentYear]);
+  const {
+    currentMonth,
+    currentYear,
+    setCurrentMonth,
+    setCurrentYear,
+    currentDate,
+  } = useDateState();
+
   const years = useMemo(
     () => Array.from(new Set(transactions.map((t) => t.date.getFullYear()))),
     [transactions],

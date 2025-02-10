@@ -87,6 +87,7 @@ export const budgetRouter = createTRPCRouter({
             amount: z.number(),
           }),
         ),
+        date: z.date(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -97,6 +98,7 @@ export const budgetRouter = createTRPCRouter({
             from,
             to,
             amount,
+            date: input.date,
           }),
         ),
       );

@@ -1,7 +1,7 @@
 import { BudgetItem, TransferCategory } from "model/src/budget";
-import { formatDollarAmount } from "model/src/utils";
+import { formatDollarAmount, isDateInBetween } from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import {
   Dialog,
@@ -10,9 +10,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
+import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { Dropdown } from "ui/src/components/core/dropdown";
+import { XMarkIcon } from "ui/src/components/core/icons";
 import { InputBlur } from "ui/src/components/core/input";
 import { Label } from "ui/src/components/core/label";
+import { useDateState } from "../../hooks/date-state";
 
 interface TransferFundsModalProps {
   show: boolean;
@@ -23,6 +26,10 @@ export const TransferFundsModal: React.FunctionComponent<
   TransferFundsModalProps
 > = ({ show, onClose, items: itemsProps }) => {
   const [items, setItems] = useState<TransferCategory[]>([]);
+  const { currentDate } = useDateState();
+
+  const [date, setDate] = useState<Date | null>(currentDate);
+
   const [loading, setLoading] = useState(false);
   const [transferItem, setTransferItem] = useState<{
     item: TransferCategory;
@@ -30,11 +37,21 @@ export const TransferFundsModal: React.FunctionComponent<
   } | null>(null);
   const [error, setError] = useState("");
   const { mutate: transferFunds } = api.budget.transferFunds.useMutation();
+
+  const currentItems = useMemo(
+    () =>
+      itemsProps.filter((item) =>
+        isDateInBetween(date ?? new Date(), item.periodStart, item.periodEnd),
+      ),
+    [itemsProps, date],
+  );
+
   const onTransfer = (): void => {
     setLoading(true);
     transferFunds(
       {
         transfers: items,
+        date: date ?? new Date(),
       },
       {
         onSuccess() {
@@ -52,7 +69,7 @@ export const TransferFundsModal: React.FunctionComponent<
       item: {
         id: String(Math.random()),
         from: undefined,
-        to: itemsProps[0],
+        to: currentItems[0],
         amount: 0,
         date: new Date(),
       },
@@ -68,21 +85,47 @@ export const TransferFundsModal: React.FunctionComponent<
           accounted for.
         </DialogDescription>
         <DialogBody>
-          {items.map((item, i) => (
-            <div key={i} className="flex flex-col gap-2 mt-4 p-0">
-              <div className="flex justify-between items-center w-full border rounded-md p-2">
-                <div className="flex p-1 gap-2">
-                  <span>{item.from?.category.name ?? "Net Worth"}</span>
-                  <span className="text-gray-400">to</span>
-                  <span>{item.to.category.name}</span>
-                </div>
-                <span>{formatDollarAmount(item.amount)}</span>
+          <div className="space-y-2">
+            <Label label="Date">
+              <DatePicker
+                date={date}
+                onChange={(value) => {
+                  // Clear the items because they depend on the date
+                  setItems([]);
+                  setDate(value);
+                }}
+              />
+            </Label>
+            {items.map((item, i) => (
+              <div key={i} className="flex gap-2">
+                <button
+                  className="flex justify-between items-center w-full border rounded-md p-2 hover:bg-gray-100"
+                  onClick={() => setTransferItem({ item, editIndex: i })}
+                >
+                  <div className="flex p-1 gap-2">
+                    <span>{item.from?.category.name ?? "Net Worth"}</span>
+                    <span className="text-gray-400">to</span>
+                    <span>{item.to.category.name}</span>
+                  </div>
+                  <span>{formatDollarAmount(item.amount)}</span>
+                </button>
+                <Button
+                  plain
+                  onClick={() =>
+                    setItems((prev) => prev.filter((_, j) => j !== i))
+                  }
+                >
+                  <XMarkIcon className="size-4" />
+                </Button>
               </div>
-            </div>
-          ))}
-          <Button onClick={onAddTransfer}>Add Transfer</Button>
-
-          {error ? <p className="text-red-400 text-sm mt-2">{error}</p> : null}
+            ))}
+            <Button className="mt-1" onClick={onAddTransfer}>
+              Add Transfer
+            </Button>
+            {error ? (
+              <p className="text-red-400 text-sm mt-2">{error}</p>
+            ) : null}
+          </div>
         </DialogBody>
         <DialogActions>
           <Button plain onClick={onClose}>
@@ -109,15 +152,16 @@ export const TransferFundsModal: React.FunctionComponent<
           }
           setTransferItem(null);
         }}
-        items={itemsProps}
+        items={currentItems}
         transfer={
           transferItem?.item || {
             id: String(Math.random()),
-            to: itemsProps[0],
+            to: currentItems[0],
             amount: 0,
             date: new Date(),
           }
         }
+        edit={transferItem?.editIndex !== null}
       />
     </>
   );
@@ -128,9 +172,10 @@ const TransferItemModal: React.FunctionComponent<{
   show: boolean;
   onClose: () => void;
   onChange: (transferItem: TransferCategory) => void;
-}> = ({ transfer: transferProps, items, show, onClose, onChange }) => {
+  edit: boolean;
+}> = ({ transfer: transferProps, items, show, onClose, onChange, edit }) => {
   const [transfer, setTransfer] = useState<TransferCategory>(transferProps);
-  const onAddFrom = (item: BudgetItem): void => {
+  const onAddFrom = (item: BudgetItem | undefined): void => {
     setTransfer({
       ...transfer,
       from: item,
@@ -147,12 +192,25 @@ const TransferItemModal: React.FunctionComponent<{
       <DialogTitle>Transfer</DialogTitle>
       <DialogBody>
         <Label label="From">
+          {/* Item index 0 is networth, so initialValue and onChange need to account for that */}
           <Dropdown
-            items={items.map((item, i) => ({
-              id: i,
-              name: item.category.name,
-            }))}
-            onChange={(item) => onAddFrom(items[item.id])}
+            items={[
+              { id: 0, name: "Net Worth" },
+              ...items.map((item, i) => ({
+                id: i + 1,
+                name: item.category.name,
+              })),
+            ]}
+            onChange={(item) =>
+              item.id > 0 ? onAddFrom(items[item.id - 1]) : onAddFrom(undefined)
+            }
+            initialValue={
+              transfer.from
+                ? items.findIndex(
+                    (i) => i.category.id === transfer.from?.category.id,
+                  ) + 1
+                : 0
+            }
           >
             {transfer.from?.category.name || "Select Category"}
           </Dropdown>
@@ -184,7 +242,9 @@ const TransferItemModal: React.FunctionComponent<{
         <Button plain onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={() => onChange(transfer)}>Add</Button>
+        <Button onClick={() => onChange(transfer)}>
+          {edit ? "Update" : "Add"}
+        </Button>
       </DialogActions>
     </Dialog>
   );
