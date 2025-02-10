@@ -1,5 +1,5 @@
 import type { Db, Prisma } from "db/lib/prisma";
-import type { Budget } from "model/src/budget";
+import type { Budget, BudgetItem } from "model/src/budget";
 import { budgetItemPayload, prismaToBudgetItem } from "./budget-item";
 
 export const budgetPayload = {
@@ -88,6 +88,86 @@ export const updateBudget = async ({
   db: Db;
   budget: Budget;
 }): Promise<Budget> => {
+  const compare = (
+    a: BudgetItem,
+    b: Prisma.BudgetItemGetPayload<typeof budgetItemPayload>,
+  ): boolean =>
+    a.amount === b.amount &&
+    a.targetAmount === b.targetAmount &&
+    a.cadenceAmount === b.cadenceAmount &&
+    JSON.stringify(a.cadence) === JSON.stringify(b.cadence) &&
+    a.periodStart.getTime() === b.periodStart.getTime() &&
+    a.periodEnd.getTime() === b.periodEnd.getTime() &&
+    a.category.id === b.categoryId &&
+    a.id === b.id;
+  const existingItems = await db.budgetItem.findMany({
+    where: {
+      budget: {
+        id: budget.id,
+      },
+    },
+    ...budgetItemPayload,
+  });
+
+  const updateItems = budget.items.filter((item) => {
+    const existingItem = existingItems.find(
+      ({ id: updateId }) => updateId === item.id,
+    );
+    if (!existingItem) return false;
+    return !compare(item, existingItem);
+  });
+  const newItems = budget.items.filter(
+    ({ id }) => !existingItems.find(({ id: updateId }) => updateId === id),
+  );
+  const deleteItems = existingItems.filter(
+    ({ id }) => !budget.items.find(({ id: updateId }) => updateId === id),
+  );
+  if (deleteItems.length) {
+    await db.budgetItem.deleteMany({
+      where: {
+        id: {
+          in: deleteItems.map(({ id }) => id),
+        },
+      },
+    });
+  }
+
+  if (updateItems.length) {
+    await Promise.all(
+      updateItems.map((item) =>
+        db.budgetItem.update({
+          where: {
+            id: item.id,
+          },
+          data: {
+            targetAmount: item.targetAmount,
+            amount: item.amount,
+            cadenceAmount: item.cadenceAmount,
+            categoryId: item.category.id,
+            cadence: item.cadence,
+            periodStart: item.periodStart,
+            periodEnd: item.periodEnd,
+          },
+        }),
+      ),
+    );
+  }
+
+  if (newItems.length) {
+    await db.budgetItem.createMany({
+      data: newItems.map((item) => ({
+        budgetId: budget.id,
+        targetAmount: item.targetAmount,
+        amount: item.amount,
+        cadenceAmount: item.cadenceAmount,
+        categoryId: item.category.id,
+        cadence: item.cadence,
+        periodStart: item.periodStart,
+        periodEnd: item.periodEnd,
+      })),
+    });
+  }
+
   return prismaToBudget(
     await db.budgetTemplate.update({
       where: {
@@ -95,20 +175,6 @@ export const updateBudget = async ({
       },
       data: {
         name: budget.name,
-        budgetItems: {
-          deleteMany: {},
-          createMany: {
-            data: budget.items.map((item) => ({
-              targetAmount: item.amount,
-              amount: item.amount,
-              cadenceAmount: item.cadenceAmount,
-              categoryId: item.category.id,
-              cadence: item.cadence,
-              periodStart: item.periodStart,
-              periodEnd: item.periodEnd,
-            })),
-          },
-        },
       },
       ...budgetPayload,
     }),

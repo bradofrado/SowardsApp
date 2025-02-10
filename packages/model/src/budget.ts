@@ -70,19 +70,18 @@ const eventuallyCadence = z.object({
 });
 export type EventuallyCadence = z.infer<typeof eventuallyCadence>;
 
-// const targetCadence = z.object({
-//   type: z.literal("target"),
-//   targetAmount: z.number(),
-//   currentBalance: z.number(),
-// });
-// export type TargetCadence = z.infer<typeof targetCadence>;
+const fixedCadence = z.object({
+  type: z.literal("fixed"),
+  date: z.coerce.date(),
+});
+export type FixedCadence = z.infer<typeof fixedCadence>;
 
 export const budgetCadenceSchema = z.union([
   weeklyCadence,
   monthlyCadence,
   yearlyCadence,
   eventuallyCadence,
-  //targetCadence,
+  fixedCadence,
 ]);
 export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
 
@@ -173,44 +172,55 @@ const days = [
 export const getCadenceStartAndEnd = (
   cadenceType: BudgetCadence,
 ): { periodStart: Date; periodEnd: Date } => {
-  if (cadenceType.type === "weekly") {
-    const date = new Date();
-    const dayOfWeek = date.getDay();
-    const dayDiff = dayOfWeek - days.indexOf(cadenceType.dayOfWeek);
-    const periodStart = new Date(date.getTime() - dayDiff * 86400000);
-    const periodEnd = new Date(periodStart.getTime() + 604800000);
-    return { periodStart, periodEnd };
-  } else if (cadenceType.type === "monthly") {
-    const date = new Date();
-    const periodStart = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      cadenceType.dayOfMonth,
-    );
-    const periodEnd = new Date(
-      date.getFullYear(),
-      date.getMonth() + 1,
-      cadenceType.dayOfMonth,
-    );
-    return { periodStart, periodEnd };
-  } else if (cadenceType.type === "yearly") {
-    const date = new Date();
-    const periodStart = new Date(
-      date.getFullYear(),
-      cadenceType.month,
-      cadenceType.dayOfMonth,
-    );
-    const periodEnd = new Date(
-      date.getFullYear() + 1,
-      cadenceType.month,
-      cadenceType.dayOfMonth,
-    );
-    return { periodStart, periodEnd };
+  switch (cadenceType.type) {
+    case "weekly": {
+      const date = new Date();
+      const dayOfWeek = date.getDay();
+      const dayDiff = dayOfWeek - days.indexOf(cadenceType.dayOfWeek);
+      const periodStart = new Date(date.getTime() - dayDiff * 86400000);
+      const periodEnd = new Date(periodStart.getTime() + 604800000);
+      return { periodStart, periodEnd };
+    }
+    case "monthly": {
+      const date = new Date();
+      const periodStart = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        cadenceType.dayOfMonth,
+      );
+      const periodEnd = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        cadenceType.dayOfMonth,
+      );
+      return { periodStart, periodEnd };
+    }
+    case "yearly": {
+      const date = new Date();
+      const periodStart = new Date(
+        date.getFullYear(),
+        cadenceType.month,
+        cadenceType.dayOfMonth,
+      );
+      const periodEnd = new Date(
+        date.getFullYear() + 1,
+        cadenceType.month,
+        cadenceType.dayOfMonth,
+      );
+      return { periodStart, periodEnd };
+    }
+    case "eventually": {
+      return {
+        periodStart: new Date(),
+        //Infinite time end
+        periodEnd: new Date(8640000000000000),
+      };
+    }
+    case "fixed": {
+      return {
+        periodStart: new Date(),
+        periodEnd: cadenceType.date,
+      };
+    }
   }
-
-  return {
-    periodStart: new Date(),
-    //Infinite time end
-    periodEnd: new Date(8640000000000000),
-  };
 };

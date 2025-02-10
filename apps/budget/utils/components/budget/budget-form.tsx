@@ -7,8 +7,11 @@ import {
   type MonthlyCadence,
   type WeeklyCadence,
   type YearlyCadence,
+  type FixedCadence,
+  getCadenceStartAndEnd,
 } from "model/src/budget";
 import { Replace } from "model/src/core/utils";
+import { capitalizeFirstLetter, groupBy } from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
@@ -31,6 +34,7 @@ import {
 } from "ui/src/components/core/accordion";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { Dropdown, DropdownItem } from "ui/src/components/core/dropdown";
+import { Header } from "ui/src/components/core/header";
 import { CalendarIcon } from "ui/src/components/core/icons";
 import { Input, InputBlur } from "ui/src/components/core/input";
 import { Label } from "ui/src/components/core/label";
@@ -64,6 +68,11 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
       setCategories(categoriesProps);
     }
   }, [categoriesProps, prevCategories]);
+
+  const groupedCategories = useMemo(
+    () => groupBy(categories, "type"),
+    [categories],
+  );
 
   const onAddItem = (item: BudgetItem) => {
     changeProperty(budget, "items", [...budget.items, item]);
@@ -110,34 +119,40 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
           description="Select the categories that will be in this budget. Also include the amount and cadence for each category."
           sameLine
         >
-          <div className="w-full max-w-md mx-auto">
+          <div className="w-full max-w-md mx-auto space-y-4">
             <Button onClick={() => setShowCreateCategory(true)}>
               Create Category
             </Button>
-            <Accordion type="single" collapsible>
-              {categories.map((category) => (
-                <BudgetItemAccordion
-                  key={category.id}
-                  item={
-                    budget.items.find(
-                      (item) => item.category.id === category.id,
-                    ) ?? {
-                      id: `cat-${category.id}`,
-                      category,
-                      cadence: { type: "monthly", dayOfMonth: 1 },
-                      cadenceAmount: 0,
-                      amount: 0,
-                      targetAmount: 0,
-                      periodStart: monthStart,
-                      periodEnd: monthEnd,
-                    }
-                  }
-                  categories={categories}
-                  onChange={onChangeItem}
-                  onRemove={onRemoveItem}
-                />
-              ))}
-            </Accordion>
+
+            {Object.entries(groupedCategories).map(([type, categories]) => (
+              <div>
+                <Header level={4}>{capitalizeFirstLetter(type)}</Header>
+                <Accordion type="single" collapsible>
+                  {categories.map((category) => (
+                    <BudgetItemAccordion
+                      key={category.id}
+                      item={
+                        budget.items.find(
+                          (item) => item.category.id === category.id,
+                        ) ?? {
+                          id: `cat-${category.id}`,
+                          category,
+                          cadence: { type: "monthly", dayOfMonth: 1 },
+                          cadenceAmount: 0,
+                          amount: 0,
+                          targetAmount: 0,
+                          periodStart: monthStart,
+                          periodEnd: monthEnd,
+                        }
+                      }
+                      categories={categories}
+                      onChange={onChangeItem}
+                      onRemove={onRemoveItem}
+                    />
+                  ))}
+                </Accordion>
+              </div>
+            ))}
           </div>
         </FormRow>
       </Form>
@@ -165,6 +180,12 @@ export const BudgetItemForm: React.FunctionComponent<
   );
 
   const item = onAdd ? itemState : itemProps;
+
+  useEffect(() => {
+    const { periodStart, periodEnd } = getCadenceStartAndEnd(item.cadence);
+    const changed = changeProperty(item, "periodStart", periodStart);
+    changeProperty(changed, "periodEnd", periodEnd);
+  }, [item.cadence]);
 
   const onAddClick = (): void => {
     if (!item.category) {
@@ -194,7 +215,21 @@ export const BudgetItemForm: React.FunctionComponent<
         return { type, month: 1, dayOfMonth: 1 };
       case "eventually":
         return { type };
+      case "fixed":
+        return { type, date: new Date() };
     }
+  };
+
+  const cadenceDescription: Record<BudgetCadence["type"], string> = {
+    weekly:
+      "Weekly means that you will save for this amount by the day of the week. This renews every week.",
+    monthly:
+      "Monthly means that you will save for this amount by the day of the month. This renews every month.",
+    yearly:
+      "Yearly means that you will save for this amount by the day of the year. This renews every year.",
+    eventually:
+      "Eventually means that you will budget for this category eventually",
+    fixed: "Fixed means that you will save by the fixed date.",
   };
 
   return (
@@ -217,7 +252,9 @@ export const BudgetItemForm: React.FunctionComponent<
       <FormDivider />
       <FormRow
         label="Type"
-        description="The category type determines how much you are putting away each month. Variable means you could spend up to the amount by the end of the year. We will estimate how much you need to put aside each month to save for this amount."
+        description={`The category type determines by when you want money saved. ${
+          cadenceDescription[item.cadence.type]
+        }`}
       >
         <Dropdown<BudgetCadence["type"]>
           className="w-full h-fit"
@@ -225,18 +262,34 @@ export const BudgetItemForm: React.FunctionComponent<
           items={[
             //{ id: "weekly", name: "Weekly" },
             { id: "monthly", name: "Monthly" },
-            //{ id: "yearly", name: "Yearly" },
-            { id: "eventually", name: "Variable" },
+            { id: "yearly", name: "Yearly" },
+            { id: "eventually", name: "Eventually" },
+            { id: "fixed", name: "Fixed" },
           ]}
           onChange={(value) =>
             changeProperty(item, "cadence", createCadence(value.id))
           }
         />
 
-        {/* <CadenceComponent
+        {/* For now only handle fixed cadences */}
+        {item.cadence.type === "fixed" ? (
+          <CadenceComponent
             value={item.cadence}
             onChange={changeProperty.formFunc("cadence", item)}
-          /> */}
+          />
+        ) : null}
+      </FormRow>
+      <FormDivider />
+      <FormRow
+        label="Target Goal"
+        description="The goal that you have for this category. This is the amount you want to have saved by the end of the selected time period."
+      >
+        <InputBlur
+          className="h-fit"
+          value={item.targetAmount}
+          onChange={changeProperty.formFuncNumber("targetAmount", item)}
+        />
+        {/* TODO: Put 'per month' gray text */}
       </FormRow>
       <FormDivider />
       <FormRow
@@ -245,8 +298,8 @@ export const BudgetItemForm: React.FunctionComponent<
       >
         <InputBlur
           className="h-fit"
-          value={item.targetAmount}
-          onChange={changeProperty.formFuncNumber("targetAmount", item)}
+          value={item.cadenceAmount}
+          onChange={changeProperty.formFuncNumber("cadenceAmount", item)}
         />
         {/* TODO: Put 'per month' gray text */}
       </FormRow>
@@ -289,6 +342,7 @@ const CadenceComponent: React.FunctionComponent<{
       monthly: MonthlyCadence,
       yearly: YearlyCadence,
       eventually: EventuallyCadence,
+      fixed: FixedCadence,
     }),
     [],
   );
@@ -385,6 +439,22 @@ const EventuallyCadence: BudgetCadencyComponent<EventuallyCadence> = ({
   }, []);
 
   return <></>;
+};
+
+const FixedCadence: BudgetCadencyComponent<FixedCadence> = ({
+  onChange,
+  value,
+}) => {
+  return (
+    <Label label="Fixed Date">
+      <DatePicker
+        date={value.date}
+        onChange={(date) =>
+          onChange({ type: "fixed", date: date || new Date() })
+        }
+      />
+    </Label>
+  );
 };
 
 // const TargetCadence: BudgetCadencyComponent<TargetCadence> = ({
