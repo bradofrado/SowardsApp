@@ -22,6 +22,7 @@ interface TransactionState {
 interface TransactionContextState {
   expenses: TransactionState;
   income: TransactionState;
+  transactions: SpendingRecordWithAccountType[];
 }
 const TransactionContext = createContext<TransactionContextState>({
   expenses: {
@@ -36,6 +37,7 @@ const TransactionContext = createContext<TransactionContextState>({
     categories: [],
     type: "income",
   },
+  transactions: [],
 });
 
 interface TransactionProviderProps {
@@ -72,6 +74,7 @@ export const TransactionProvider: React.FunctionComponent<
       value={{
         expenses: spendingFilter,
         income: incomeFilter,
+        transactions: nonTransferTransactions,
       }}
     >
       {children}
@@ -131,6 +134,12 @@ const filterExpenses = <T extends SpendingRecord>(transactions: T[]) => {
 };
 
 const isIncome = (transaction: SpendingRecordWithAccountType) => {
+  if (transaction.transactionCategories.length > 0) {
+    return transaction.transactionCategories.some(
+      (tc) => tc.category.type === "income",
+    );
+  }
+
   if (transaction.amount >= 0) {
     return false;
   }

@@ -38,7 +38,7 @@ export const CategoryMonthView: React.FunctionComponent<
   CategoryMonthViewProps
 > = () => {
   const {
-    expenses: { transactions, budgetItems, categories },
+    expenses: { budgetItems, transactions },
   } = useTransactions();
   const [currentMonth, setCurrentMonth] = useQueryState<Month>({
     defaultValue: months[new Date().getMonth()],
@@ -115,6 +115,11 @@ export const CategoryMonthView: React.FunctionComponent<
             getStartOfMonthDate(currentDate),
             getEndOfMonthDate(currentDate),
           ),
+        );
+        console.log(category.name);
+        console.log(
+          transactions.filter((t) => t.date < getStartOfMonthDate(currentDate))
+            .length,
         );
         return {
           category,

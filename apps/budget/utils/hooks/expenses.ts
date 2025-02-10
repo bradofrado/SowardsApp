@@ -28,11 +28,25 @@ export const useExpenses = ({
         )
         .map((expense) => ({
           ...expense,
-          transactions: transactions.filter(
-            (t) =>
-              isDateInBetween(t.date, expense.periodStart, expense.periodEnd) &&
-              t.transactionCategories[0]?.category.id === expense.category.id,
-          ),
+          transactions: transactions
+            .filter(
+              (t) =>
+                isDateInBetween(
+                  t.date,
+                  expense.periodStart,
+                  expense.periodEnd,
+                ) &&
+                t.transactionCategories.find(
+                  (tc) => tc.category.id === expense.category.id,
+                ),
+            )
+            .map((t) => ({
+              ...t,
+              amount:
+                t.transactionCategories.find(
+                  (tc) => tc.category.id === expense.category.id,
+                )?.amount || t.amount,
+            })),
         })),
     [budgetItems, transactions, date],
   );
@@ -46,11 +60,25 @@ export const useExpenses = ({
         )
         .map((expense) => ({
           ...expense,
-          transactions: transactions.filter(
-            (t) =>
-              isDateInBetween(t.date, expense.periodStart, expense.periodEnd) &&
-              t.transactionCategories[0]?.category.id === expense.category.id,
-          ),
+          transactions: transactions
+            .filter(
+              (t) =>
+                isDateInBetween(
+                  t.date,
+                  expense.periodStart,
+                  expense.periodEnd,
+                ) &&
+                t.transactionCategories.find(
+                  (tc) => tc.category.id === expense.category.id,
+                ),
+            )
+            .map((t) => ({
+              ...t,
+              amount:
+                t.transactionCategories.find(
+                  (tc) => tc.category.id === expense.category.id,
+                )?.amount || t.amount,
+            })),
         })),
     [budgetItems, transactions, date],
   );

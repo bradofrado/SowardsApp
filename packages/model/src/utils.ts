@@ -215,7 +215,7 @@ export function getStartOfMonthDate(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 export function getEndOfMonthDate(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, -1);
 }
 
 export const arrayOfAll =
