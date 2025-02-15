@@ -1,4 +1,4 @@
-import type { Db, Prisma } from "db/lib/prisma";
+import type { DbTransaction, Prisma } from "db/lib/prisma";
 import type { BudgetItem, CategoryBudget } from "model/src/budget";
 import { budgetCadenceSchema } from "model/src/budget";
 import { prismaToBudgetCategory } from "../category";
@@ -14,7 +14,7 @@ export const getBudgetItemsOfType = async ({
   userId,
   type,
 }: {
-  db: Db;
+  db: DbTransaction;
   userId: string;
   type: CategoryBudget["type"];
 }): Promise<BudgetItem[]> => {
@@ -38,7 +38,7 @@ export const createBudgetItem = async ({
   item,
   budgetId,
 }: {
-  db: Db;
+  db: DbTransaction;
   item: BudgetItem;
   budgetId: string;
 }): Promise<BudgetItem> => {
@@ -87,7 +87,7 @@ export const updateBudgetItemAmount = async ({
   itemId,
   amount,
 }: {
-  db: Db;
+  db: DbTransaction;
   itemId: string;
   amount: number;
 }) => {

@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/budget-updates",
+      "schedule": "0 0 1 * *"
+    }
+  ]
+}

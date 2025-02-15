@@ -8,7 +8,9 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,md,json}\" && eslint --fix .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm withenv vitest",
+    "test:watch": "pnpm withenv vitest --watch"
   },
   "eslintConfig": {
     "root": true,
@@ -25,7 +27,9 @@
     "@trpc/server": "^10.38.3",
     "axios": "^1.7.2",
     "db": "workspace:^",
+    "dotenv": "^16.4.7",
     "model": "workspace:^",
+    "next": "^14.0.0",
     "openai": "^4.52.0",
     "plaid": "^26.0.0",
     "superjson": "^1.13.1",
@@ -33,12 +37,19 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/next": "latest",
+    "@types/node": "^20.0.0",
     "@types/uuid": "^10.0.0",
+    "dotenv-cli": "^7.3.0",
     "eslint": "^8.48.0",
     "eslint-config-custom": "workspace:^",
+    "jest": "^29.0.0",
     "prettier": "^3.0.3",
     "prettier-config": "workspace:^",
+    "ts-jest": "^29.0.0",
     "tsconfig": "workspace:^",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^3.0.5"
   }
 }

@@ -1,4 +1,4 @@
-import type { Db, Prisma } from "db/lib/prisma";
+import type { DbTransaction, Prisma } from "db/lib/prisma";
 import type { TransferCategory } from "model/src/budget";
 import { budgetItemPayload, prismaToBudgetItem } from "./budget-item";
 
@@ -25,7 +25,7 @@ export const createTransferCategory = async ({
   db,
   input,
 }: {
-  db: Db;
+  db: DbTransaction;
   input: TransferCategory;
 }): Promise<TransferCategory> => {
   const newTransaction = await db.transferCategory.create({

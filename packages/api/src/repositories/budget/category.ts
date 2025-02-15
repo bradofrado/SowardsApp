@@ -1,12 +1,12 @@
 import type { Prisma } from "db/lib/generated/client";
-import type { Db } from "db/lib/prisma";
+import type { DbTransaction } from "db/lib/prisma";
 import type { CategoryBudget } from "model/src/budget";
 
 export const getCategories = async ({
   db,
   userId,
 }: {
-  db: Db;
+  db: DbTransaction;
   userId: string;
 }): Promise<CategoryBudget[]> => {
   const categories = await db.budgetCategory.findMany({
@@ -26,7 +26,7 @@ export const createCategory = async ({
   userId,
 }: {
   category: CategoryBudget;
-  db: Db;
+  db: DbTransaction;
   userId: string;
 }): Promise<CategoryBudget> => {
   const newCategory = await db.budgetCategory.create({
@@ -46,7 +46,7 @@ export const createCategories = async ({
   userId,
 }: {
   categories: CategoryBudget[];
-  db: Db;
+  db: DbTransaction;
   userId: string;
 }): Promise<void> => {
   const currCategories = await getCategories({ db, userId });
@@ -75,7 +75,7 @@ export const updateCategory = async ({
   db,
 }: {
   category: CategoryBudget;
-  db: Db;
+  db: DbTransaction;
 }): Promise<CategoryBudget> => {
   const updatedCategory = await db.budgetCategory.update({
     where: {
@@ -94,7 +94,7 @@ export const deleteCategory = async ({
   db,
   id,
 }: {
-  db: Db;
+  db: DbTransaction;
   id: string;
 }): Promise<void> => {
   await db.budgetCategory.delete({

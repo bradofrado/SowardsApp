@@ -1,7 +1,11 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+
+const isCronRoute = createRouteMatcher(["/api/cron"]);
 
 export default clerkMiddleware((auth, req) => {
-  auth().protect();
+  if (!isCronRoute(req)) {
+    auth().protect();
+  }
 });
 
 export const config = {

@@ -40,3 +40,6 @@ db_data
 tsconfig.tsbuildinfo
 
 harmony.config.json
+
+# mongodb backups
+dump

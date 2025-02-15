@@ -3,6 +3,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "test": "turbo run test",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "compose": "docker compose -f devops/docker-compose.yml -p my-app-sowards up --build -d",
