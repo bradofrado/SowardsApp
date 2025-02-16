@@ -1,22 +1,20 @@
 "use client";
 import { Header } from "ui/src/components/core/header";
 import { useAccounts } from "../providers/account-provider";
-import { AccountBase, AccountType } from "plaid";
-import { datesEqual, day, formatDollarAmount } from "model/src/utils";
+import { formatDollarAmount } from "model/src/utils";
 import { Card } from "ui/src/components/core/card";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useTransactions } from "../providers/transaction-provider";
 import { Button } from "ui/src/components/catalyst/button";
 import { useQueryState } from "ui/src/hooks/query-state";
-import { AccountLineChart, TotalGraphValue } from "../charts/line-chart";
+import { AccountLineChart } from "../charts/line-chart";
 import { useAccountTotals } from "../../hooks/account-totals";
 import { useMonthlyAverage } from "./transaction-totals";
 import { useChartTotals } from "./chart-totals";
 import { SavingsAccount } from "../providers/types";
-import { SpendingRecord } from "model/src/budget";
 import { calculateAmount, transactionsOnDate } from "../../utils";
-import { useExpenses } from "../../hooks/expenses";
+import { useDebtTotals } from "../../hooks/debt-totals";
 
 const dateButtons: {
   label: string;
@@ -152,22 +150,22 @@ const useAccountChartTotals = (
 const useNetWorthChartTotals = (daysBack: number, future: boolean) => {
   const { accounts } = useAccounts();
   const { netWorth } = useAccountTotals(accounts);
+  const debt = useDebtTotals(accounts);
 
-  const { expenses, income } = useTransactions();
+  const { transactions } = useTransactions();
   const { avgMonthlyExpense, avgMonthlyIncome } = useMonthlyAverage();
 
   const amountDateCallback = useCallback(
     (date) => {
-      const expenseOnDate = transactionsOnDate(expenses.transactions, date);
-      const incomeOnDate = transactionsOnDate(income.transactions, date);
+      const transactionsOnTheDate = transactionsOnDate(transactions, date);
 
-      const expenseTotal = calculateAmount(expenseOnDate);
+      const total = calculateAmount(transactionsOnTheDate);
 
-      const incomeTotal = calculateAmount(incomeOnDate);
-
-      return incomeTotal - expenseTotal;
+      // Negative because income is negative and expense is positive
+      // so we need to invert this
+      return -total;
     },
-    [expenses, income],
+    [transactions],
   );
 
   const futureAmountDateCallback = useCallback(() => {
@@ -175,7 +173,7 @@ const useNetWorthChartTotals = (daysBack: number, future: boolean) => {
   }, [avgMonthlyIncome, avgMonthlyExpense]);
 
   const options = useChartTotals({
-    presentAmount: netWorth,
+    presentAmount: netWorth - debt,
     numDays: daysBack,
     isFuture: future,
     amountDateCallback,

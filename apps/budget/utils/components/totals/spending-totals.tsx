@@ -22,6 +22,7 @@ import { BudgetItem, CategoryBudget } from "model/src/budget";
 import { Button } from "ui/src/components/catalyst/button";
 import { UpdateBudgetModal } from "../budget/update-budget-modal";
 import { useUpdateBudget } from "../../hooks/update-budget";
+import { useDebtTotals } from "../../hooks/debt-totals";
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { expenses, budget, categories } = useTransactions();
@@ -36,10 +37,7 @@ export const SpendingTotals: React.FunctionComponent = () => {
     date: new Date(),
   });
 
-  const debt = useMemo(
-    () => accounts.filter((account) => account.type === AccountType.Credit),
-    [accounts],
-  );
+  const debt = useDebtTotals(accounts);
 
   const expenseFills: Record<string, HexColor> = {
     shortTerm: "#fe502d",
@@ -97,9 +95,7 @@ export const SpendingTotals: React.FunctionComponent = () => {
         label: "Monthly Expenses",
       },
       {
-        value: calculateAmount(
-          debt.map((account) => ({ amount: account.balances.current || 0 })),
-        ),
+        value: debt,
         fill: expenseFills.debt,
         label: "Debt",
       },

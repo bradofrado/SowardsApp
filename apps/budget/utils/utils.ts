@@ -9,7 +9,7 @@ export function transactionsOnDate(transactions: SpendingRecord[], date: Date) {
 
 export function calculateAmount<T extends { amount: number }>(
   transactions: T[],
-);
+): number;
 export function calculateAmount<
   T extends { [k in K]: number },
   K extends string,
@@ -17,7 +17,7 @@ export function calculateAmount<
 export function calculateAmount<
   T extends { [k in K]: number },
   K extends string = "amount",
->(transactions: T[], key?: K) {
+>(transactions: T[], key?: K): number {
   return transactions.reduce(
     (prev, curr) => prev + curr[key || ("amount" as K)],
     0,
