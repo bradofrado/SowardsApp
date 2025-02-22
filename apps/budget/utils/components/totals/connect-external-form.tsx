@@ -17,12 +17,13 @@ import { Alert } from "ui/src/components/core/alert";
 export type ExternalAccount = AccountBase & { access_token: string };
 interface ConnectExternalAccountFormProps {
   accounts: ExternalAccount[];
+  onDone?: () => void;
 }
 export const ConnectExternalAccountForm: React.FunctionComponent<
   ConnectExternalAccountFormProps
-> = ({ accounts }) => {
+> = ({ accounts, onDone }) => {
   return (
-    <Form>
+    <Form className="w-full">
       <FormSection label="External Accounts">
         <div className="flex flex-col gap-4">
           {accounts.map((account) => (
@@ -30,7 +31,10 @@ export const ConnectExternalAccountForm: React.FunctionComponent<
           ))}
         </div>
         {accounts.length > 0 ? <FormDivider /> : null}
-        <PlaidLink />
+        <div className="flex gap-2">
+          <PlaidLink />
+          {onDone ? <Button onClick={onDone}>Done</Button> : null}
+        </div>
       </FormSection>
     </Form>
   );

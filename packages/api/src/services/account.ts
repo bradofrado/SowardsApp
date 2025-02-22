@@ -14,6 +14,10 @@ export const createUser = async (
     session.auth.user.id = newUser.id;
   }
 
+  if (session.auth.userVacation?.id) {
+    return;
+  }
+
   await createUserVacation(
     {
       name: user.name,

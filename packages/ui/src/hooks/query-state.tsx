@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   createContext,
   useCallback,
@@ -7,8 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
-} from "react";
-import { z } from "zod";
+} from 'react';
 
 /** Stores state as search parameter json values in the url */
 export function useQueryState<T = undefined>(props: {
@@ -33,12 +32,10 @@ export function useQueryState<T>({
     //If stuff is empty, remove it from the url
     if (
       value === undefined ||
-      value === "" ||
+      value === '' ||
       value === null ||
       (Array.isArray(value) && value.length === 0) ||
-      (!(value instanceof Date) &&
-        typeof value === "object" &&
-        Object.keys(value).length === 0)
+      (typeof value === 'object' && Object.keys(value).length === 0)
     ) {
       deleteSearchParam(key);
     } else {
@@ -47,12 +44,16 @@ export function useQueryState<T>({
   };
 
   useEffect(() => {
-    if (defaultValue && !searchParams.get(key)) {
+    if (defaultValue && !searchParams?.get(key)) {
       setUrlValue(defaultValue);
     }
   }, []);
 
   const value: T | undefined = useMemo(() => {
+    if (typeof window === 'undefined') return defaultValue;
+
+    if (!searchParams)
+      throw new Error('Must use QueryStateProvider to use useQueryState');
     const val = searchParams.get(key);
     return val ? decodeState<T>(val) : defaultValue;
   }, [key, searchParams, defaultValue]);
@@ -62,13 +63,13 @@ export function useQueryState<T>({
 
 interface QueryStateContextType {
   url: string;
-  searchParams: URLSearchParams;
+  searchParams?: URLSearchParams;
   setSearchParam: (key: string, value: string) => void;
   deleteSearchParam: (key: string) => void;
 }
 const QueryStateContext = createContext<QueryStateContextType>({
-  url: "",
-  searchParams: new URLSearchParams(),
+  url: '',
+  searchParams: undefined,
   setSearchParam: () => undefined,
   deleteSearchParam: () => undefined,
 });
@@ -77,14 +78,14 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const urlRef = useRef(
-    typeof window !== "undefined" ? window.location.href : "",
+    typeof window !== 'undefined' ? window.location.href : undefined
   );
   const [forceRerender, setForceRerender] = useState(0);
-  const router = window.location;
+  const router = typeof window !== 'undefined' ? window.location : undefined;
 
   const searchParams = useMemo(
-    () => new URL(urlRef.current).searchParams,
-    [urlRef.current],
+    () => (urlRef.current ? new URL(urlRef.current).searchParams : undefined),
+    [urlRef.current]
   );
 
   const setUrl = useCallback(
@@ -97,33 +98,37 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
       urlRef.current = url.href;
       hasChanged && setForceRerender((prev) => prev + 1);
     },
-    [urlRef, setForceRerender],
+    [urlRef, setForceRerender]
   );
 
   const setSearchParam = useCallback(
     (key: string, value: string) => {
+      if (!urlRef.current) return;
+
       const url = new URL(urlRef.current);
       url.searchParams.set(key, value);
       setUrl(url.href);
     },
-    [urlRef, setUrl],
+    [urlRef, setUrl]
   );
 
   const deleteSearchParam = useCallback(
     (key: string) => {
+      if (!urlRef.current) return;
+
       const url = new URL(urlRef.current);
       url.searchParams.delete(key);
       setUrl(url.href);
     },
-    [urlRef, setUrl],
+    [urlRef, setUrl]
   );
 
   //Whenever the urlRef changes, update the url
   useEffect(() => {
-    if (window.location.href !== urlRef.current) {
+    if (urlRef.current && window.location.href !== urlRef.current) {
       const url = new URL(urlRef.current);
       const path = url.pathname + url.search + url.hash;
-      window.history.pushState({}, "", path);
+      window.history.pushState({}, '', path);
     }
   }, [urlRef, forceRerender, router]);
 
@@ -137,7 +142,7 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
   return (
     <QueryStateContext.Provider
       value={{
-        url: urlRef.current,
+        url: urlRef.current ?? '',
         setSearchParam,
         deleteSearchParam,
         searchParams,
@@ -149,28 +154,16 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const encodeState = <T,>(state: T): string => {
-  if (typeof state === "string") {
+  if (typeof state === 'string') {
     return state;
-  } else if (state instanceof Date) {
-    return JSON.stringify({ value: state.toISOString(), type: "date" });
   }
 
   return JSON.stringify(state);
 };
 
-const dateSchema = z.object({
-  value: z.string(),
-  type: z.literal("date"),
-});
 export const decodeState = <T,>(state: string): T => {
   try {
-    const parsed = JSON.parse(state) as T;
-    const dateResult = dateSchema.safeParse(parsed);
-    if (dateResult.success) {
-      return new Date(dateResult.data.value) as T;
-    }
-
-    return parsed;
+    return JSON.parse(state) as T;
   } catch {
     //If it fails to parse, then it is probably a string
     return state as T;
