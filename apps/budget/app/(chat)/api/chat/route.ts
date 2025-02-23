@@ -25,6 +25,7 @@ import {
 import { getAuthSession } from "next-utils/src/utils/auth";
 import * as ToolCalls from "@/lib/ai/tools/budget-workflow";
 import { isToolCall } from "@/lib/ai/tools/budget-workflow.utils";
+import { redirect } from "next/navigation";
 
 const {
   connectBankAccount,
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
 
   return createDataStreamResponse({
     execute: async (dataStream) => {
+      let hasRedirect = false;
       if (lastMessage.toolInvocations) {
         lastMessage.toolInvocations = await Promise.all(
           lastMessage.toolInvocations.map<Promise<ToolInvocation>>(
@@ -110,6 +112,10 @@ export async function POST(request: Request) {
                     messageId: lastMessage.id,
                   });
 
+                  if (result === false) {
+                    hasRedirect = true;
+                  }
+
                   return {
                     ...toolInvocation,
                     result,
@@ -128,6 +134,10 @@ export async function POST(request: Request) {
             },
           ),
         );
+      }
+
+      if (hasRedirect) {
+        return redirect("/");
       }
 
       const result = streamText({
@@ -193,7 +203,10 @@ export async function POST(request: Request) {
         sendReasoning: true,
       });
     },
-    onError: (error) => {
+    onError: (error: { message: string }) => {
+      if (error.message === "NEXT_REDIRECT") {
+        return "NEXT_REDIRECT";
+      }
       console.error(error);
       return "Oops, an error occured!";
     },

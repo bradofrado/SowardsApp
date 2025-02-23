@@ -41,6 +41,13 @@ export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
 };
 
+const humanize = (name: string): string => {
+  return name
+    .split("_")
+    .map((s) => `${s.charAt(0)}${s.slice(1).toLowerCase()}`)
+    .join(" ");
+};
+
 export const getTransactions = async (
   userId: string,
   includeCategories = false,
@@ -69,7 +76,8 @@ export const getTransactions = async (
             await Promise.all(
               Object.entries(categoryGroup).map<
                 Promise<[string, CategoryBudget][]>
-              >(async ([categoryName, transactions]) => {
+              >(async ([_categoryName, transactions]) => {
+                const categoryName = humanize(_categoryName);
                 if (categoryName) {
                   const category =
                     (await getCategoryByName({

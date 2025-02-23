@@ -8,6 +8,7 @@ import { createBudget, getExternalLogins } from "api/src/services/budget";
 import { Budget, budgetSchema, categoryBudgetSchema } from "model/src/budget";
 import { prisma } from "db/lib/prisma";
 import { createBudgetFromBudgetTool } from "../../budget-item";
+import { redirect } from "next/navigation";
 
 export const createAccount = tool({
   description: "Create a new account with the given account name",
@@ -117,10 +118,12 @@ export const createBudgetTool = hitlTool({
       throw new Error("No session found");
     }
 
-    return await createBudget({
+    await createBudget({
       budget,
       db: prisma,
       userId: session.auth.userVacation.id,
     });
+
+    return false;
   },
 });

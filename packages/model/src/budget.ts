@@ -235,7 +235,7 @@ export const getCadenceStartAndEnd = (
       return {
         periodStart: new Date(),
         //Infinite time end
-        periodEnd: new Date(8640000000000000),
+        periodEnd: new Date("9999-08-31T23:20:55.675Z"),
       };
     }
     case "fixed": {

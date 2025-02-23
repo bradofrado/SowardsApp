@@ -42,7 +42,7 @@ const convertToolItemToBudgetItem = (
   const category: CategoryBudget = categories.find(
     (c) => c.name === item.category,
   ) ?? {
-    id: generateUUID(),
+    id: `cat-${generateUUID()}`,
     name: item.category,
     type: "expense",
     order: 0,

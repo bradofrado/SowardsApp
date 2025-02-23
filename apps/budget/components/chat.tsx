@@ -13,6 +13,7 @@ import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
 import type { VisibilityType } from "./visibility-selector";
 import { toast } from "sonner";
+import { redirect, useRouter } from "next/navigation";
 
 export function Chat({
   id,
@@ -28,7 +29,7 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
-
+  const router = useRouter();
   const {
     messages,
     setMessages,
@@ -51,6 +52,10 @@ export function Chat({
       mutate("/api/history");
     },
     onError: (error) => {
+      if (error.message === "NEXT_REDIRECT") {
+        router.push("/");
+        return;
+      }
       console.error(error);
       toast.error("An error occured, please try again!");
     },
@@ -66,13 +71,6 @@ export function Chat({
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader
-          chatId={id}
-          selectedModelId={selectedChatModel}
-          selectedVisibilityType={selectedVisibilityType}
-          isReadonly={isReadonly}
-        />
-
         <Messages
           chatId={id}
           isLoading={isLoading}

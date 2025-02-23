@@ -7,6 +7,7 @@ import {
 } from "model/src/budget";
 import { differenceInDays } from "date-fns";
 import { calculateAmount } from "@/utils/utils";
+import { round } from "model/src/utils";
 
 export const MonthlyTotals: FC = () => {
   const categoryTotals = useMonthlyTotals();
@@ -61,23 +62,15 @@ export const useMonthlyTotals = () => {
       const maxDate = new Date(
         Math.max(...category.transactions.map((t) => t.date.getTime())),
       );
-      const monthsInBetween = differenceInDays(minDate, maxDate) / 30;
+      const monthsInBetween = differenceInDays(maxDate, minDate) / 30;
       return {
         category,
-        total: calculateAmount(category.transactions) / monthsInBetween,
+        total:
+          round(Math.abs(calculateAmount(category.transactions)), 2) /
+          monthsInBetween,
       };
     });
   }, [categories]);
 
   return categoryTotals;
-};
-
-const unique = <T,>(arr: T[], key: (item: T) => string): T[] => {
-  return arr.reduce((acc, item) => {
-    const k = key(item);
-    if (acc.find((i) => key(i) === k)) {
-      return acc;
-    }
-    return [...acc, item];
-  }, []);
 };
