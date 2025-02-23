@@ -14,7 +14,9 @@ export interface SetupUser {
   dependents: VacationDependent[];
   amountType: "adult" | "child";
 }
-export const createUser = async (user: UserVacation): Promise<void> => {
+export const createUser = async (
+  user: UserVacation,
+): Promise<UserVacation | null> => {
   const session = await getAuthSession();
   return createUserService(user, session);
 };

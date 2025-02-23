@@ -3,44 +3,22 @@
 import type { ChatRequestOptions, Message } from "ai";
 import cx from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
-import { FC, memo, useEffect, useMemo, useState } from "react";
+import { memo, useState } from "react";
 
 import type { Vote } from "@/lib/db/schema";
 
-import { DocumentToolCall, DocumentToolResult } from "./document";
-import {
-  ChevronDownIcon,
-  LoaderIcon,
-  PencilEditIcon,
-  SparklesIcon,
-} from "./icons";
-import { Markdown } from "./markdown";
+import { PencilEditIcon, SparklesIcon } from "./icons";
 import { MessageActions } from "./message-actions";
 import { PreviewAttachment } from "./preview-attachment";
-import { Weather } from "./weather";
 import equal from "fast-deep-equal";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { MessageEditor } from "./message-editor";
-import { DocumentPreview } from "./document-preview";
-import { MessageReasoning } from "./message-reasoning";
-import { useCreateUser } from "@/app/(chat)/setup/components/pages/create-user";
-import { api } from "next-utils/src/utils/api";
-import { useChat } from "ai/react";
-import {
-  ConnectExternalAccountForm,
-  ExternalAccount,
-} from "@/utils/components/totals/connect-external-form";
-import { AccountBase } from "plaid";
-import { AccountTotals } from "@/utils/components/totals/account-totals";
-import { Card } from "ui/src/components/core/card";
-import { TransactionTotals } from "@/utils/components/totals/transaction-totals";
-import { Confetti } from "@/utils/components/totals/confetti";
-import {
-  AIWorkflowName,
-  AIWorkflowParameters,
-} from "@/lib/ai/tools/ai-workflow";
+import { toolCallComponents } from "./tools/tool-calls";
+import { isToolCall } from "@/lib/ai/tools/budget-workflow.utils";
+import { TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip } from "./ui/tooltip";
+import { Button } from "./ui/button";
+import { Markdown } from "./markdown";
 
 const PurePreviewMessage = ({
   chatId,
@@ -63,9 +41,23 @@ const PurePreviewMessage = ({
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
-  addToolResult: (toolResult: { toolCallId: string; result: any }) => void;
+  addToolResult: ({
+    toolCallId,
+    result,
+  }: {
+    toolCallId: string;
+    result: any;
+  }) => void;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
+
+  if (
+    message.role === "assistant" &&
+    !message.content &&
+    !isLoading &&
+    !message.toolInvocations?.length
+  )
+    return null;
 
   return (
     <AnimatePresence>
@@ -102,13 +94,6 @@ const PurePreviewMessage = ({
                   />
                 ))}
               </div>
-            )}
-
-            {message.reasoning && (
-              <MessageReasoning
-                isLoading={isLoading}
-                reasoning={message.reasoning}
-              />
             )}
 
             {(message.content || message.reasoning) && mode === "view" && (
@@ -160,25 +145,26 @@ const PurePreviewMessage = ({
                 {message.toolInvocations.map((toolInvocation) => {
                   const { toolName, toolCallId, state, args } = toolInvocation;
 
-                  if (state === "result" || state === "call") {
-                    const ToolCallComponent = AIWorkflowToolCalls[toolName] as
-                      | AIWorkflowToolCallComponent
-                      | undefined;
+                  // if (state === "result") {
+                  //   return null;
+                  // }
 
-                    if (!ToolCallComponent) {
-                      return null;
-                    }
-
+                  if (
+                    ["call", "result"].includes(state) &&
+                    isToolCall(toolName)
+                  ) {
+                    const ToolCallComponent = toolCallComponents[toolName];
                     return (
-                      <ToolCallComponent
-                        {...toolInvocation}
-                        toolName={toolName as AIWorkflowName}
-                        type={state}
-                        addToolResult={addToolResult}
-                      />
+                      <div key={toolCallId}>
+                        <ToolCallComponent
+                          toolCallId={toolCallId}
+                          toolName={toolName}
+                          args={args}
+                          addToolResult={addToolResult}
+                        />
+                      </div>
                     );
                   }
-
                   return null;
                 })}
               </div>
@@ -198,91 +184,6 @@ const PurePreviewMessage = ({
       </motion.div>
     </AnimatePresence>
   );
-};
-
-const AccountNameToolCall: AIWorkflowToolCallComponent<"getAccountName"> = ({
-  toolName,
-  toolCallId,
-  args,
-  addToolResult,
-  type,
-}) => {
-  const { mutate: createUser } = api.account.createAccount.useMutation();
-
-  useEffect(() => {
-    if (type === "call") {
-      createUser(
-        {
-          account: {
-            name: args.accountName,
-          },
-        },
-        {
-          onSuccess: () => {
-            addToolResult({
-              toolCallId,
-              result: {
-                accountName: args.accountName,
-              },
-            });
-          },
-        },
-      );
-    }
-  }, [toolName, args, createUser]);
-
-  return null;
-};
-
-const ConnectBankAccountToolCall: AIWorkflowToolCallComponent<
-  "connectBankAccount"
-> = ({ toolCallId, addToolResult, args }) => {
-  return (
-    <ConnectExternalAccountForm
-      accounts={args.accounts}
-      onDone={
-        addToolResult
-          ? () => {
-              addToolResult({
-                toolCallId,
-                result: {},
-              });
-            }
-          : undefined
-      }
-    />
-  );
-};
-
-const CalculateFinanceTotalsToolCall: AIWorkflowToolCallComponent = () => {
-  return (
-    <>
-      <div className="flex flex-col gap-2 mt-4">
-        <AccountTotals future />
-        <Card className="flex-1" label="Monthly Totals">
-          <TransactionTotals label="" type="income" />
-        </Card>
-      </div>
-      <Confetti />
-    </>
-  );
-};
-
-type AIWorkflowToolCallComponent<NAME extends AIWorkflowName = AIWorkflowName> =
-  FC<{
-    toolName: AIWorkflowName;
-    toolCallId: string;
-    args: AIWorkflowParameters<NAME>;
-    addToolResult: (toolResult: { toolCallId: string; result: any }) => void;
-    type: "call" | "result";
-  }>;
-
-const AIWorkflowToolCalls = {
-  getAccountName: AccountNameToolCall,
-  connectBankAccount: ConnectBankAccountToolCall,
-  calculateFinanceTotals: CalculateFinanceTotalsToolCall,
-} satisfies {
-  [Key in AIWorkflowName]: AIWorkflowToolCallComponent<Key>;
 };
 
 export const PreviewMessage = memo(

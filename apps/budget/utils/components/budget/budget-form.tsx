@@ -119,7 +119,7 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
           description="Select the categories that will be in this budget. Also include the amount and cadence for each category."
           sameLine
         >
-          <div className="w-full max-w-md mx-auto space-y-4">
+          <div className="w-full mx-auto space-y-4">
             <Button onClick={() => setShowCreateCategory(true)}>
               Create Category
             </Button>

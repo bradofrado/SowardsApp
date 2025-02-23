@@ -1,27 +1,37 @@
 import {
   type Message,
+  type ToolInvocation,
   createDataStreamResponse,
   formatDataStreamPart,
   smoothStream,
   streamText,
-  tool,
 } from "ai";
 
 import { myProvider } from "@/lib/ai/models";
-import { deleteChatById, getChatById } from "@/lib/db/queries";
+import { budgetSetupPrompt } from "@/lib/ai/prompts";
+import {
+  deleteChatById,
+  getChatById,
+  saveChat,
+  saveMessages,
+  saveToolResult,
+} from "@/lib/db/queries";
 import {
   generateUUID,
-  getMostRecentAssistantMessage,
   getMostRecentUserMessage,
+  sanitizeResponseMessages,
 } from "@/lib/utils";
 
 import { getAuthSession } from "next-utils/src/utils/auth";
-import { z } from "zod";
-import {
-  AIWorkflow,
-  aiWorkflowMap,
-  aiWorkflows,
-} from "@/lib/ai/tools/ai-workflow";
+import * as ToolCalls from "@/lib/ai/tools/budget-workflow";
+import { isToolCall } from "@/lib/ai/tools/budget-workflow.utils";
+
+const {
+  connectBankAccount,
+  createAccount,
+  calculateFinanceTotals,
+  createBudgetTool,
+} = ToolCalls;
 
 export const maxDuration = 60;
 
@@ -40,102 +50,151 @@ export async function POST(request: Request) {
   }
 
   const userMessage = getMostRecentUserMessage(messages);
-  const assistantMessage = getMostRecentAssistantMessage(messages);
 
-  // if (!userMessage) {
-  //   return new Response("No user message found", { status: 400 });
-  // }
+  if (!userMessage) {
+    return new Response("No user message found", { status: 400 });
+  }
 
-  // const chat = await getChatById({ id });
+  const chat = await getChatById({ id });
 
   // if (!chat) {
-  //   //const title = await generateTitleFromUserMessage({ message: userMessage });
-  //   await saveChat({
-  //     id,
-  //     userId: session.auth.userId,
-  //     title: "Setup your budget",
-  //   });
+  //   const title = await generateTitleFromUserMessage({ message: userMessage });
+  //   await saveChat({ id, userId: session.user.id, title });
   // }
+  const lastMessage = messages[messages.length - 1];
 
-  // await saveMessages({
-  //   messages:
-  //     messages.length === 2
-  //       ? messages.map((message) => ({
-  //           ...message,
-  //           createdAt: new Date(),
-  //           chatId: id,
-  //         }))
-  //       : [{ ...userMessage, createdAt: new Date(), chatId: id }],
-  // });
+  // For tool calls, the last message won't be from the user, so we don't want to save this.
+  if (userMessage.id === lastMessage.id) {
+    await saveMessages({
+      messages: [
+        {
+          ...userMessage,
+          createdAt: new Date(),
+          chatId: id,
+        },
+      ],
+    });
+  }
 
   return createDataStreamResponse({
     execute: async (dataStream) => {
-      if (
-        assistantMessage?.toolInvocations &&
-        assistantMessage.toolInvocations.length > 0
-      ) {
-        const toolInvocation =
-          assistantMessage.toolInvocations[
-            assistantMessage.toolInvocations.length - 1
-          ];
-        if (toolInvocation.state !== "result") return;
+      if (lastMessage.toolInvocations) {
+        lastMessage.toolInvocations = await Promise.all(
+          lastMessage.toolInvocations.map<Promise<ToolInvocation>>(
+            async (toolInvocation) => {
+              const { toolName, args, toolCallId, state } = toolInvocation;
 
-        const toolCall = aiWorkflowMap[toolInvocation.toolName] as
-          | AIWorkflow
-          | undefined;
+              if (state !== "result") return toolInvocation;
 
-        if (!toolCall) {
-          throw new Error(`Tool call ${toolInvocation.toolName} not found`);
-        }
+              if (isToolCall(toolName)) {
+                const resultParameters = toolInvocation.result;
+                const executeResult =
+                  ToolCalls[toolName].executeResult ?? (async () => ({}));
+                try {
+                  const result = await executeResult(
+                    (
+                      ToolCalls[toolName].resultParameters ??
+                      ToolCalls[toolName].parameters
+                    ).parse(resultParameters),
+                  );
 
-        dataStream.write(
-          formatDataStreamPart("tool_result", {
-            toolCallId: toolInvocation.toolCallId,
-            result: {},
-          }),
+                  dataStream.write(
+                    formatDataStreamPart("tool_result", {
+                      toolCallId,
+                      result,
+                    }),
+                  );
+
+                  await saveToolResult({
+                    toolCallId,
+                    messageId: lastMessage.id,
+                  });
+
+                  return {
+                    ...toolInvocation,
+                    result,
+                  };
+                } catch (error) {
+                  console.error(`Error executing ${toolName}:`, error);
+                  // Optionally, you can return a failed status or a default value
+                  return {
+                    ...toolInvocation,
+                    error: `Failed to execute ${toolName}`,
+                  };
+                }
+              }
+
+              return toolInvocation;
+            },
+          ),
         );
-        toolInvocation.state = "result";
-        toolInvocation.result = {};
-
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: `You are a helpful assistant that will help the user through a list of tasks workflow. Give a friendly response to the last task the user has completed. Don't do anything else like ask another question.`,
-          messages,
-        });
-
-        result.mergeIntoDataStream(dataStream);
-      } else {
-        const initialToolCall = aiWorkflows[0];
-        if (!initialToolCall.streamText) {
-          throw new Error("Initial tool call not found");
-        }
-
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: initialToolCall.streamText.prompt,
-          messages,
-          maxSteps: 1,
-          experimental_activeTools:
-            selectedChatModel === "chat-model-reasoning"
-              ? []
-              : [initialToolCall.toolName],
-          experimental_transform: smoothStream({ chunking: "word" }),
-          experimental_generateMessageId: generateUUID,
-          tools: {
-            [initialToolCall.toolName]: initialToolCall.streamText.tool,
-          },
-          experimental_telemetry: {
-            isEnabled: true,
-            functionId: "stream-text",
-          },
-        });
-
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-        });
       }
+
+      const result = streamText({
+        model: myProvider.languageModel(selectedChatModel),
+        system: budgetSetupPrompt,
+        messages,
+        maxSteps: 5,
+        experimental_activeTools:
+          selectedChatModel === "chat-model-reasoning"
+            ? []
+            : [
+                "createAccount",
+                "connectBankAccount",
+                "calculateFinanceTotals",
+                "createBudgetTool",
+              ],
+        experimental_transform: smoothStream({ chunking: "word" }),
+        experimental_generateMessageId: generateUUID,
+        tools: {
+          createAccount,
+          connectBankAccount,
+          calculateFinanceTotals,
+          createBudgetTool,
+        },
+        onFinish: async ({ response, reasoning, steps }) => {
+          if (!session.auth.userVacation) {
+            session.auth.userVacation = (await getAuthSession())?.auth
+              .userVacation;
+          }
+
+          if (session.auth.userVacation?.id) {
+            try {
+              const sanitizedResponseMessages = sanitizeResponseMessages({
+                messages: response.messages,
+                reasoning,
+              });
+              if (sanitizedResponseMessages.length > 0) {
+                await saveMessages({
+                  messages: sanitizedResponseMessages.map((message) => {
+                    return {
+                      id: message.id,
+                      chatId: id,
+                      role: message.role,
+                      content: message.content,
+                      createdAt: new Date(),
+                      experimental_attachments: undefined,
+                    };
+                  }),
+                });
+              }
+            } catch (error) {
+              console.error("Failed to save chat");
+            }
+          }
+        },
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: "stream-text",
+        },
+      });
+
+      result.mergeIntoDataStream(dataStream, {
+        sendReasoning: true,
+      });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error(error);
       return "Oops, an error occured!";
     },
   });
@@ -151,14 +210,14 @@ export async function DELETE(request: Request) {
 
   const session = await getAuthSession();
 
-  if (!session || !session.auth.userVacation) {
+  if (!session || !session.auth.user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   try {
     const chat = await getChatById({ id });
 
-    if (chat.userId !== session.auth.userVacation.id) {
+    if (chat.userId !== session.auth.user.id) {
       return new Response("Unauthorized", { status: 401 });
     }
 

@@ -13,8 +13,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccountDisplay } from "../../../app/(dashboard)/settings/components/account-display";
 import { Alert } from "ui/src/components/core/alert";
+import { ExternalAccount } from "./types";
 
-export type ExternalAccount = AccountBase & { access_token: string };
 interface ConnectExternalAccountFormProps {
   accounts: ExternalAccount[];
   onDone?: () => void;

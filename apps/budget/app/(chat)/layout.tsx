@@ -1,8 +1,6 @@
-import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { auth } from "@clerk/nextjs/dist/types/server";
 import { cookies } from "next/headers";
 import { Toaster } from "sonner";
 import Script from "next/script";

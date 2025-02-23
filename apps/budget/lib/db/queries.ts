@@ -16,7 +16,6 @@ import {
   message,
   vote,
 } from "./schema";
-import { ArtifactKind } from "@/components/artifact";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -113,6 +112,40 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
   }
 }
 
+export async function saveToolResult({
+  toolCallId,
+  messageId,
+}: {
+  messageId: string;
+  toolCallId: string;
+}) {
+  try {
+    const [existingToolResult] = await db
+      .select()
+      .from(message)
+      .where(eq(message.id, messageId));
+    if (existingToolResult) {
+      const content = existingToolResult.content as {
+        type: "tool-call" | "tool-result";
+        toolCallId: string;
+        toolName: string;
+        args: any;
+      }[];
+      const toolCall = content.find((c) => c.toolCallId === toolCallId);
+      if (toolCall) {
+        toolCall.type = "tool-result";
+      }
+      return await db
+        .update(message)
+        .set({ content })
+        .where(eq(message.id, messageId));
+    }
+    throw new Error("Tool call not found");
+  } catch (error) {
+    console.error("Failed to save tool result in database", error);
+    throw error;
+  }
+}
 export async function updateMessage({
   id,
   message: messageToUpdate,
@@ -180,34 +213,6 @@ export async function getVotesByChatId({ id }: { id: string }) {
     return await db.select().from(vote).where(eq(vote.chatId, id));
   } catch (error) {
     console.error("Failed to get votes by chat id from database", error);
-    throw error;
-  }
-}
-
-export async function saveDocument({
-  id,
-  title,
-  kind,
-  content,
-  userId,
-}: {
-  id: string;
-  title: string;
-  kind: ArtifactKind;
-  content: string;
-  userId: string;
-}) {
-  try {
-    return await db.insert(document).values({
-      id,
-      title,
-      kind,
-      content,
-      userId,
-      createdAt: new Date(),
-    });
-  } catch (error) {
-    console.error("Failed to save document in database");
     throw error;
   }
 }

@@ -2,20 +2,17 @@
 
 import type { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 
 import { ChatHeader } from "@/components/chat-header";
 import type { Vote } from "@/lib/db/schema";
 import { fetcher, generateUUID } from "@/lib/utils";
 
-import { Artifact } from "./artifact";
 import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
-import { VisibilityType } from "./visibility-selector";
-import { useArtifactSelector } from "@/hooks/use-artifact";
+import type { VisibilityType } from "./visibility-selector";
 import { toast } from "sonner";
-import { aiWorkflows } from "@/lib/ai/tools/ai-workflow";
 
 export function Chat({
   id,
@@ -31,7 +28,6 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
-  const [isLoadingOverride, setIsLoadingOverride] = useState(false);
 
   const {
     messages,
@@ -51,42 +47,8 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
-    onFinish: (message, options: { finishReason }) => {
-      if (message.toolInvocations && message.toolInvocations.length > 0) {
-        const toolInvocation =
-          message.toolInvocations[message.toolInvocations.length - 1];
-        if (toolInvocation.state !== "result") {
-          return;
-        }
-
-        const toolCallIndex = aiWorkflows.findIndex(
-          (workflow) => workflow.toolName === toolInvocation.toolName,
-        );
-
-        if (toolCallIndex === -1) {
-          throw new Error(`Tool call ${toolInvocation.toolName} not found`);
-        }
-
-        const toolCall = aiWorkflows[toolCallIndex + 1];
-
-        if (!toolCall) return;
-
-        setTimeout(() =>
-          append({
-            id: generateUUID(),
-            content: toolCall.content(toolInvocation.args),
-            role: "assistant",
-            toolInvocations: [
-              {
-                args: toolCall.defaultArgs,
-                state: "call",
-                toolCallId: generateUUID(),
-                toolName: toolCall.toolName,
-              },
-            ],
-          }),
-        );
-      }
+    onFinish: () => {
+      mutate("/api/history");
     },
     onError: (error) => {
       console.error(error);
@@ -94,24 +56,12 @@ export function Chat({
     },
   });
 
-  console.log(messages);
-
-  useEffect(() => {
-    if (messages.length === 1 && messages[0].role === "system") {
-      setIsLoadingOverride(true);
-      setTimeout(() => {
-        setIsLoadingOverride(false);
-      }, 3000);
-    }
-  }, [messages, setIsLoadingOverride]);
-
   const { data: votes } = useSWR<Array<Vote>>(
     `/api/vote?chatId=${id}`,
     fetcher,
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   return (
     <>
@@ -125,13 +75,13 @@ export function Chat({
 
         <Messages
           chatId={id}
-          isLoading={isLoading || isLoadingOverride}
+          isLoading={isLoading}
           votes={votes}
-          messages={isLoadingOverride ? [] : messages}
+          messages={messages}
           setMessages={setMessages}
           reload={reload}
           isReadonly={isReadonly}
-          isArtifactVisible={isArtifactVisible}
+          isArtifactVisible={false}
           addToolResult={addToolResult}
         />
 
@@ -153,23 +103,6 @@ export function Chat({
           )}
         </form>
       </div>
-
-      <Artifact
-        chatId={id}
-        input={input}
-        setInput={setInput}
-        handleSubmit={handleSubmit}
-        isLoading={isLoading}
-        stop={stop}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        append={append}
-        messages={messages}
-        setMessages={setMessages}
-        reload={reload}
-        votes={votes}
-        isReadonly={isReadonly}
-      />
     </>
   );
 }

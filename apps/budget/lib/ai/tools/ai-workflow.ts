@@ -1,7 +1,7 @@
+import { ExternalAccount } from "@/utils/components/totals/types";
 import { Tool, tool } from "ai";
 import { groupBy, groupByDistinct } from "model/src/utils";
 import { z } from "zod";
-import { type ExternalAccount } from "../../../utils/components/totals/connect-external-form";
 
 export interface AIWorkflow<NAME extends string = string, PARAMETERS = any> {
   toolName: NAME;
