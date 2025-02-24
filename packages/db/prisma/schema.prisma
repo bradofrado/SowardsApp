@@ -188,7 +188,7 @@ model Chat {
 }
 
 model Message {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(uuid()) @map("_id")
   chatId String @db.ObjectId
   chat Chat @relation(fields: [chatId], references: [id])
   content Json

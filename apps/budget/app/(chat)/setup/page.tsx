@@ -12,7 +12,7 @@ import { TransactionProvider } from "@/utils/components/providers/transaction-pr
 import { getMessagesByChatId } from "api/src/repositories/chat/chat";
 
 export default async function Page() {
-  const id = "7bac2239-f9e7-43ed-9fe1-52106e998e40";
+  const id = "66c900bf612cd36b1a2d194a";
 
   const session = await getAuthSession();
   if (!session) {
