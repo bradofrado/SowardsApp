@@ -6,15 +6,19 @@ import { createUserVacation } from "../repositories/user-vacation";
 export const createUser = async (
   user: UserVacation,
   session: Session | undefined,
-): Promise<void> => {
-  if (!session?.auth.userId) return;
+): Promise<UserVacation | null> => {
+  if (!session?.auth.userId) return null;
 
   if (!session.auth.user.id) {
     const newUser = await createAccount(session.auth.user, session.auth.userId);
     session.auth.user.id = newUser.id;
   }
 
-  await createUserVacation(
+  if (session.auth.userVacation?.id) {
+    return session.auth.userVacation;
+  }
+
+  return createUserVacation(
     {
       name: user.name,
       groupIds: user.groupIds,
@@ -27,4 +31,21 @@ export const createUser = async (
     },
     session.auth.user.id,
   );
+};
+
+export const createAccountFromName = async (
+  name: string,
+  session: Session,
+): Promise<UserVacation | null> => {
+  const user: UserVacation = {
+    name,
+    groupIds: [],
+    groups: [],
+    events: [],
+    eventIds: [],
+    id: "",
+    createdByEvents: [],
+    dependents: [],
+  };
+  return createUser(user, session);
 };

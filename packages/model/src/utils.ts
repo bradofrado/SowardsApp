@@ -142,27 +142,75 @@ export const classNames = (...strings: (string | undefined | boolean)[]) => {
   return strings.filter(Boolean).join(" ");
 };
 
-export const groupBy = function <T extends Pick<T, K>, K extends keyof T>(
+// export function groupBy<T, K extends string | number>(
+//   arr: T[],
+//   keyExtractor: (item: T) => K,
+// ) {
+//   return arr.reduce<Record<K, T[]>>((prev, curr) => {
+//     const key = keyExtractor(curr);
+//     prev[key] = prev[key] || [];
+//     prev[key].push(curr);
+//     return prev;
+//   }, {} as Record<K, T[]>);
+// };
+export function groupBy<T, K extends string | number>(
+  arr: T[],
+  keyExtractor: (item: T) => K | undefined,
+): Record<K, T[]>;
+export function groupBy<T extends Pick<T, K>, K extends keyof T>(
   arr: T[],
   key: K,
-) {
+): Record<T[K], T[]>;
+export function groupBy<T extends Pick<T, K>, K extends keyof T>(
+  arr: readonly T[],
+  key: K,
+): Record<T[K], T[]>;
+export function groupBy<T extends Pick<T, K>, K extends keyof T>(
+  arr: readonly T[],
+  keyOrExtractor: K | ((item: T) => K | undefined),
+): Record<K, T[]> | Record<T[K], T[]> {
+  if (typeof keyOrExtractor === "function") {
+    return arr.reduce<Record<K, T[]>>(
+      (prev, curr) => {
+        const key = keyOrExtractor(curr);
+        if (key === undefined) {
+          return prev;
+        }
+
+        prev[key] = prev[key] || [];
+        prev[key].push(curr);
+        return prev;
+      },
+      {} as Record<K, T[]>,
+    );
+  }
   return arr.reduce<Record<T[K], T[]>>((prev, curr) => {
     let a: T[] = [];
-    const val = prev[curr[key]];
+    const val = prev[curr[keyOrExtractor]];
     if (val) {
       a = val;
     }
     a?.push(curr);
-    prev[curr[key]] = a;
+    prev[curr[keyOrExtractor]] = a;
 
     return prev;
   }, {});
-};
+}
 
-export const groupByDistinct = function <
-  T extends Pick<T, K>,
-  K extends keyof T,
->(arr: T[], key: K) {
+export function groupByDistinct<T extends Pick<T, K>, K extends keyof T>(
+  arr: T[],
+  key: K,
+): Record<T[K], T>;
+export function groupByDistinct<T extends Pick<T, K>, K extends keyof T>(
+  arr: readonly T[],
+  key: K,
+): {
+  [Key in T[K]]: Extract<T, { [k in K]: Key }>;
+};
+export function groupByDistinct<T extends Pick<T, K>, K extends keyof T>(
+  arr: readonly T[],
+  key: K,
+) {
   return arr.reduce<Record<T[K], T>>((prev, curr) => {
     if (prev[curr[key]]) {
       throw new Error("Each key value in the list must be unique");
@@ -172,7 +220,7 @@ export const groupByDistinct = function <
 
     return prev;
   }, {});
-};
+}
 
 export const groupTogether = function <T extends Pick<T, K>, K extends keyof T>(
   arr: T[],

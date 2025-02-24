@@ -6,8 +6,10 @@ import type {
   Budget,
   BudgetItem,
   SpendingRecord,
+  CategoryBudget,
 } from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
+import { groupBy } from "model/src/utils";
 import {
   getLogins,
   updateExternalLoginCursor,
@@ -21,7 +23,10 @@ import {
   updateSpendingRecord,
   deleteSpendingRecord,
 } from "../repositories/budget/spending";
-import { createCategory } from "../repositories/budget/category";
+import {
+  createCategory,
+  getCategoryByName,
+} from "../repositories/budget/category";
 import { createTransferCategory } from "../repositories/budget/template/transfer-category";
 import {
   budgetPayload,
@@ -36,8 +41,16 @@ export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
 };
 
+const humanize = (name: string): string => {
+  return name
+    .split("_")
+    .map((s) => `${s.charAt(0)}${s.slice(1).toLowerCase()}`)
+    .join(" ");
+};
+
 export const getTransactions = async (
   userId: string,
+  includeCategories = false,
 ): Promise<SpendingRecord[]> => {
   const allTransactionSync = await makeLoginRequest(
     userId,
@@ -52,18 +65,71 @@ export const getTransactions = async (
       cursor: transactionSync.cursor,
     });
 
+    const categoryGroup = groupBy(
+      transactionSync.added,
+      (t) => t.personal_finance_category?.primary,
+    );
+
+    const categoryMap = includeCategories
+      ? Object.fromEntries(
+          (
+            await Promise.all(
+              Object.entries(categoryGroup).map<
+                Promise<[string, CategoryBudget][]>
+              >(async ([_categoryName, transactions]) => {
+                const categoryName = humanize(_categoryName);
+                if (categoryName) {
+                  const category =
+                    (await getCategoryByName({
+                      db: prisma,
+                      userId,
+                      name: categoryName,
+                    })) ??
+                    (await createCategory({
+                      db: prisma,
+                      userId,
+                      category: {
+                        id: "",
+                        name: categoryName,
+                        type: transactions[0].amount > 0 ? "expense" : "income",
+                        order: 0,
+                      },
+                    }));
+
+                  return transactions.map((t) => [t.transaction_id, category]);
+                }
+
+                return [];
+              }),
+            )
+          ).flat(),
+        )
+      : {};
+
     // Add new transactions
     await createSpendingRecords({
       db: prisma,
       userId,
-      spendingRecords: transactionSync.added.map((transaction) => ({
-        transactionId: transaction.transaction_id,
-        amount: transaction.amount,
-        date: new Date(transaction.date),
-        description: transaction.name,
-        transactionCategories: [],
-        accountId: transaction.account_id,
-      })),
+      spendingRecords: transactionSync.added.map<SpendingRecord>(
+        (transaction) => ({
+          transactionId: transaction.transaction_id,
+          amount: transaction.amount,
+          date: new Date(transaction.date),
+          description: transaction.name,
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- not always truthy
+          transactionCategories: categoryMap[transaction.transaction_id]
+            ? [
+                {
+                  category: categoryMap[transaction.transaction_id],
+                  amount: transaction.amount,
+                  transactionId: transaction.transaction_id,
+                  id: "",
+                },
+              ]
+            : [],
+          accountId: transaction.account_id,
+        }),
+      ),
     });
 
     // Update modified transactions

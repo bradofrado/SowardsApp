@@ -13,7 +13,11 @@ import {
   deleteBudget,
   updateBudget,
 } from "../../repositories/budget/template/budget-template";
-import { createBudget, makeExpenseTransaction } from "../../services/budget";
+import {
+  createBudget,
+  getExternalLogins,
+  makeExpenseTransaction,
+} from "../../services/budget";
 
 export const budgetRouter = createTRPCRouter({
   createCategories: protectedProcedure
@@ -103,4 +107,7 @@ export const budgetRouter = createTRPCRouter({
         ),
       );
     }),
+  getExternalAccounts: protectedProcedure.query(async ({ ctx }) => {
+    return getExternalLogins(ctx.session.auth.userVacation.id);
+  }),
 });

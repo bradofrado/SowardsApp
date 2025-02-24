@@ -1,9 +1,9 @@
 import { classNames } from "model/src/utils";
-import { AccountBase } from "plaid";
+import { ExternalAccount } from "../../../../utils/components/totals/types";
 import { BankIcon } from "ui/src/components/core/icons";
 
 interface AccountDisplayProps {
-  account: AccountBase;
+  account: Omit<ExternalAccount, "access_token">;
   className?: string;
 }
 export const AccountDisplay: React.FunctionComponent<AccountDisplayProps> = ({

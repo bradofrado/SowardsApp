@@ -20,6 +20,24 @@ export const getCategories = async ({
   return categories.map(prismaToBudgetCategory);
 };
 
+export const getCategoryByName = async ({
+  db,
+  userId,
+  name,
+}: {
+  db: DbTransaction;
+  userId: string;
+  name: string;
+}): Promise<CategoryBudget | undefined> => {
+  const category = await db.budgetCategory.findFirst({
+    where: {
+      userId,
+      name,
+    },
+  });
+  return category ? prismaToBudgetCategory(category) : undefined;
+};
+
 export const createCategory = async ({
   category,
   db,
