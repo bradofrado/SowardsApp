@@ -58,10 +58,10 @@ export async function POST(request: Request) {
 
   const chat = await getChatById({ id });
 
-  // if (!chat) {
-  //   const title = await generateTitleFromUserMessage({ message: userMessage });
-  //   await saveChat({ id, userId: session.user.id, title });
-  // }
+  if (!chat && session.auth.userVacation?.id) {
+    const title = "Setup";
+    await saveChat({ id, userId: session.auth.userVacation.id, title });
+  }
   const lastMessage = messages[messages.length - 1];
 
   // For tool calls, the last message won't be from the user, so we don't want to save this.
