@@ -8,8 +8,7 @@ import type {
 } from "ai";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-
-import type { Message as DBMessage, Document } from "@/lib/db/schema";
+import type { Message as DBMessage } from "db/lib/generated/client";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -91,7 +90,7 @@ export function convertToUIMessages(
   return messages.reduce((chatMessages: Array<Message>, message) => {
     if (message.role === "tool") {
       return addToolMessageToChat({
-        toolMessage: message as CoreToolMessage,
+        toolMessage: message as unknown as CoreToolMessage,
         messages: chatMessages,
       });
     }
@@ -103,7 +102,8 @@ export function convertToUIMessages(
     if (typeof message.content === "string") {
       textContent = message.content;
     } else if (Array.isArray(message.content)) {
-      for (const content of message.content) {
+      for (const _content of message.content) {
+        const content = _content as any;
         if (content.type === "text") {
           textContent += content.text;
         } else if (content.type === "tool-call") {
@@ -225,14 +225,4 @@ export function getMostRecentAssistantMessage(messages: Array<Message>) {
     (message) => message.role === "assistant",
   );
   return assistantMessages.at(-1);
-}
-
-export function getDocumentTimestampByIndex(
-  documents: Array<Document>,
-  index: number,
-) {
-  if (!documents) return new Date();
-  if (index > documents.length) return new Date();
-
-  return documents[index].createdAt;
 }

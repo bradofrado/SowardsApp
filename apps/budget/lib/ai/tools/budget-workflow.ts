@@ -7,8 +7,6 @@ import { ExternalAccount } from "@/utils/components/totals/types";
 import { createBudget, getExternalLogins } from "api/src/services/budget";
 import { Budget, budgetSchema, categoryBudgetSchema } from "model/src/budget";
 import { prisma } from "db/lib/prisma";
-import { createBudgetFromBudgetTool } from "../../budget-item";
-import { redirect } from "next/navigation";
 
 export const createAccount = tool({
   description: "Create a new account with the given account name",

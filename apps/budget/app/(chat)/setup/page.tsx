@@ -3,13 +3,13 @@ import { cookies } from "next/headers";
 import { Chat } from "@/components/chat";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { getMessagesByChatId, saveChat } from "@/lib/db/queries";
 import { getAuthSession } from "next-utils/src/utils/auth";
 import { notFound } from "next/navigation";
 import { Message } from "ai";
 import { getExternalLogins, getTransactions } from "api/src/services/budget";
 import { AccountProvider } from "@/utils/components/providers/account-provider";
 import { TransactionProvider } from "@/utils/components/providers/transaction-provider";
+import { getMessagesByChatId } from "api/src/repositories/chat/chat";
 
 export default async function Page() {
   const id = "7bac2239-f9e7-43ed-9fe1-52106e998e40";
@@ -28,7 +28,7 @@ export default async function Page() {
 
   const initialMessages: Message[] = convertToUIMessages(
     await getMessagesByChatId({
-      id,
+      chatId: id,
     }),
   );
 

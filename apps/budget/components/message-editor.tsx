@@ -4,8 +4,6 @@ import { ChatRequestOptions, Message } from "ai";
 import { Button } from "./ui/button";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Textarea } from "./ui/textarea";
-import { deleteTrailingMessages } from "@/app/(chat)/actions";
-import { toast } from "sonner";
 
 export type MessageEditorProps = {
   message: Message;
@@ -74,10 +72,6 @@ export function MessageEditor({
           disabled={isSubmitting}
           onClick={async () => {
             setIsSubmitting(true);
-
-            await deleteTrailingMessages({
-              id: message.id,
-            });
 
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);

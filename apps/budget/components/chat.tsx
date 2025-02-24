@@ -5,13 +5,10 @@ import { useChat } from "ai/react";
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 
-import { ChatHeader } from "@/components/chat-header";
-import type { Vote } from "@/lib/db/schema";
 import { fetcher, generateUUID } from "@/lib/utils";
 
 import { MultimodalInput } from "./multimodal-input";
 import { Messages } from "./messages";
-import type { VisibilityType } from "./visibility-selector";
 import { toast } from "sonner";
 import { redirect, useRouter } from "next/navigation";
 
@@ -25,7 +22,7 @@ export function Chat({
   id: string;
   initialMessages: Array<Message>;
   selectedChatModel: string;
-  selectedVisibilityType: VisibilityType;
+  selectedVisibilityType: "private" | "public";
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
@@ -61,11 +58,6 @@ export function Chat({
     },
   });
 
-  const { data: votes } = useSWR<Array<Vote>>(
-    `/api/vote?chatId=${id}`,
-    fetcher,
-  );
-
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
@@ -74,7 +66,6 @@ export function Chat({
         <Messages
           chatId={id}
           isLoading={isLoading}
-          votes={votes}
           messages={messages}
           setMessages={setMessages}
           reload={reload}

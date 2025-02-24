@@ -10,13 +10,6 @@ import {
 import { myProvider } from "@/lib/ai/models";
 import { budgetSetupPrompt } from "@/lib/ai/prompts";
 import {
-  deleteChatById,
-  getChatById,
-  saveChat,
-  saveMessages,
-  saveToolResult,
-} from "@/lib/db/queries";
-import {
   generateUUID,
   getMostRecentUserMessage,
   sanitizeResponseMessages,
@@ -26,6 +19,13 @@ import { getAuthSession } from "next-utils/src/utils/auth";
 import * as ToolCalls from "@/lib/ai/tools/budget-workflow";
 import { isToolCall } from "@/lib/ai/tools/budget-workflow.utils";
 import { redirect } from "next/navigation";
+import {
+  getChatById,
+  saveChat,
+  saveMessages,
+  saveToolResult,
+} from "api/src/repositories/chat/chat";
+import { Prisma } from "db/lib/prisma";
 
 const {
   connectBankAccount,
@@ -181,9 +181,8 @@ export async function POST(request: Request) {
                       id: message.id,
                       chatId: id,
                       role: message.role,
-                      content: message.content,
+                      content: message.content as Prisma.InputJsonValue,
                       createdAt: new Date(),
-                      experimental_attachments: undefined,
                     };
                   }),
                 });
@@ -213,33 +212,33 @@ export async function POST(request: Request) {
   });
 }
 
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+// export async function DELETE(request: Request) {
+//   const { searchParams } = new URL(request.url);
+//   const id = searchParams.get("id");
 
-  if (!id) {
-    return new Response("Not Found", { status: 404 });
-  }
+//   if (!id) {
+//     return new Response("Not Found", { status: 404 });
+//   }
 
-  const session = await getAuthSession();
+//   const session = await getAuthSession();
 
-  if (!session || !session.auth.user) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+//   if (!session || !session.auth.user) {
+//     return new Response("Unauthorized", { status: 401 });
+//   }
 
-  try {
-    const chat = await getChatById({ id });
+//   try {
+//     const chat = await getChatById({ id });
 
-    if (chat.userId !== session.auth.user.id) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+//     if (chat.userId !== session.auth.user.id) {
+//       return new Response("Unauthorized", { status: 401 });
+//     }
 
-    await deleteChatById({ id });
+//     await deleteChatById({ id });
 
-    return new Response("Chat deleted", { status: 200 });
-  } catch (error) {
-    return new Response("An error occurred while processing your request", {
-      status: 500,
-    });
-  }
-}
+//     return new Response("Chat deleted", { status: 200 });
+//   } catch (error) {
+//     return new Response("An error occurred while processing your request", {
+//       status: 500,
+//     });
+//   }
+// }
