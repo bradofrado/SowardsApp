@@ -231,9 +231,10 @@ const useCategoryChartData = (
   );
   const actual = useMemo(
     () =>
-      budgetExpenses.reduce(
-        (prev, curr) => prev + calculateAmount(curr.transactions),
-        0,
+      calculateAmount(
+        budgetExpenses.map((expense) => ({
+          amount: calculateAmount(expense.transactions),
+        })),
       ),
     [budgetExpenses],
   );

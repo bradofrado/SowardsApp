@@ -7,22 +7,17 @@ import { useAccounts } from "../providers/account-provider";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { calculateAmount } from "../../utils";
 import { FormSection } from "ui/src/components/catalyst/form/form";
-import {
-  displayDate,
-  formatDollarAmount,
-  isDateInBetween,
-} from "model/src/utils";
+import { displayDate, formatDollarAmount } from "model/src/utils";
 import { ChartLegend } from "ui/src/components/feature/reporting/graphs/chart-legend";
-import { SavingsAccount } from "../providers/types";
 import { HexColor } from "model/src/core/colors";
 import { Header } from "ui/src/components/core/header";
-import { AccountType } from "plaid";
 import { useExpenses } from "../../hooks/expenses";
-import { BudgetItem, CategoryBudget } from "model/src/budget";
+import { BudgetItem } from "model/src/budget";
 import { Button } from "ui/src/components/catalyst/button";
 import { UpdateBudgetModal } from "../budget/update-budget-modal";
 import { useUpdateBudget } from "../../hooks/update-budget";
 import { useDebtTotals } from "../../hooks/debt-totals";
+import { useDateState } from "../../hooks/date-state";
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { expenses, budget, categories } = useTransactions();
@@ -79,18 +74,28 @@ export const SpendingTotals: React.FunctionComponent = () => {
   const barValues: GraphValue[] = useMemo(
     () => [
       {
-        value:
+        value: Math.max(
           calculateAmount(longTermExpenses) -
-          calculateAmount(
-            longTermExpenses.map((expense) => ({
-              amount: calculateAmount(expense.transactions),
-            })),
-          ),
+            calculateAmount(
+              longTermExpenses.map((expense) => ({
+                amount: calculateAmount(expense.transactions),
+              })),
+            ),
+          0,
+        ),
         fill: expenseFills.longTerm,
         label: "Long Term Expenses",
       },
       {
-        value: calculateAmount(shortTermExpenses),
+        value: Math.max(
+          calculateAmount(shortTermExpenses) -
+            calculateAmount(
+              shortTermExpenses.map((expense) => ({
+                amount: calculateAmount(expense.transactions),
+              })),
+            ),
+          0,
+        ),
         fill: expenseFills.shortTerm,
         label: "Monthly Expenses",
       },
