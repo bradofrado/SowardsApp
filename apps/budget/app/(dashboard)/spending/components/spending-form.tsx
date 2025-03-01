@@ -502,6 +502,11 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
                     >
                       Split Cost
                     </DropdownItem>
+                    <DropdownItem
+                      onClick={() => onEdit(transaction.transactionId)}
+                    >
+                      Edit
+                    </DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
               </div>
