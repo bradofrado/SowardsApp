@@ -37,6 +37,7 @@ export const updateExpiredBudgets = async (
             budgetId: budget.id,
             item: {
               ...budgetItem,
+              amount: budgetItem.targetAmount,
               periodStart,
               periodEnd,
             },
@@ -54,11 +55,16 @@ export const processAutomatedTransfers = async (
   db: Db,
   userVacation: UserVacationWithBudgets,
 ): Promise<number> => {
+  const today = new Date();
   return db.$transaction(async (tx) => {
     let processedCount = 0;
     const budgetItems = userVacation.budgets
       .flatMap((budget) => budget.items)
-      .filter((item) => item.category.type === "expense");
+      .filter(
+        (item) =>
+          item.category.type === "expense" &&
+          isDateInBetween(today, item.periodStart, item.periodEnd),
+      );
 
     // Process transfers sequentially to avoid race conditions
     for (const item of budgetItems) {

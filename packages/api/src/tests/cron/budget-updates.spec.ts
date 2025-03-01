@@ -170,6 +170,33 @@ describe("Budget Update Cron", () => {
       expect(budgetItems.map((item) => item.id)).toContain(testBudgetItem.id);
       expect(createdCount).toBe(0);
     });
+
+    it("should set amount equal to targetAmount for new budget items regardless of previous amount", async () => {
+      // Update the expired test budget item to have a different amount than targetAmount
+      await prisma.budgetItem.update({
+        where: { id: testBudgetItem.id },
+        data: { amount: 500 }, // Different from targetAmount which is 1000
+      });
+
+      const userWithBudgets = prismaToUserVacation(
+        await prisma.userVacation.findFirstOrThrow({
+          where: { id: testUser.id },
+          ...userVacationBudgetPayload,
+        }),
+      );
+
+      const createdCount = await updateExpiredBudgets(prisma, userWithBudgets);
+
+      const budgetItems = await prisma.budgetItem.findMany({
+        where: { budgetId: testBudget.id },
+      });
+
+      const newItem = budgetItems.find((item) => item.id !== testBudgetItem.id);
+
+      expect(newItem).toBeDefined();
+      expect(newItem?.amount).toBe(testBudgetItem.targetAmount);
+      expect(createdCount).toBe(1);
+    });
   });
 
   describe("processAutomatedTransfers", () => {
@@ -229,6 +256,35 @@ describe("Budget Update Cron", () => {
       await prisma.budgetItem.update({
         where: { id: testBudgetItem.id },
         data: { cadenceAmount: 0 },
+      });
+
+      const userWithBudgets = prismaToUserVacation(
+        await prisma.userVacation.findFirstOrThrow({
+          where: { id: testUser.id },
+          ...userVacationBudgetPayload,
+        }),
+      );
+
+      const processedCount = await processAutomatedTransfers(
+        prisma,
+        userWithBudgets,
+      );
+
+      const transfers = await prisma.transferCategory.findMany({
+        where: { toId: testBudgetItem.id },
+      });
+
+      expect(transfers).toHaveLength(0);
+      expect(processedCount).toBe(0);
+    });
+
+    it("should not transfer if item is not in between periodStart and periodEnd", async () => {
+      await prisma.budgetItem.update({
+        where: { id: testBudgetItem.id },
+        data: {
+          periodStart: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+          periodEnd: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+        },
       });
 
       const userWithBudgets = prismaToUserVacation(
