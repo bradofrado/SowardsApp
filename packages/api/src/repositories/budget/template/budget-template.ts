@@ -116,8 +116,13 @@ export const updateBudget = async ({
     if (!existingItem) return false;
     return !compare(item, existingItem);
   });
+
+  // In the budget form, we show all categories even if the user does not want it set
+  // So we assume that if the target or amount is 0, the user does not want it in the budget
   const newItems = budget.items.filter(
-    ({ id }) => !existingItems.find(({ id: updateId }) => updateId === id),
+    ({ id, targetAmount, amount }) =>
+      !existingItems.find(({ id: updateId }) => updateId === id) &&
+      (targetAmount > 0 || amount > 0),
   );
   const deleteItems = existingItems.filter(
     ({ id }) => !budget.items.find(({ id: updateId }) => updateId === id),
