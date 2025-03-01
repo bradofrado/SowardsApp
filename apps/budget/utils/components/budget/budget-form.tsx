@@ -11,7 +11,11 @@ import {
   getCadenceStartAndEnd,
 } from "model/src/budget";
 import { Replace } from "model/src/core/utils";
-import { capitalizeFirstLetter, groupBy } from "model/src/utils";
+import {
+  capitalizeFirstLetter,
+  groupBy,
+  isDateInBetween,
+} from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
@@ -133,7 +137,13 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
                       key={category.id}
                       item={
                         budget.items.find(
-                          (item) => item.category.id === category.id,
+                          (item) =>
+                            item.category.id === category.id &&
+                            isDateInBetween(
+                              new Date(),
+                              item.periodStart,
+                              item.periodEnd,
+                            ),
                         ) ?? {
                           id: `cat-${category.id}`,
                           category,
