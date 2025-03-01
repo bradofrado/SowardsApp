@@ -17,7 +17,7 @@ import { Button } from "ui/src/components/catalyst/button";
 import { UpdateBudgetModal } from "../budget/update-budget-modal";
 import { useUpdateBudget } from "../../hooks/update-budget";
 import { useDebtTotals } from "../../hooks/debt-totals";
-import { useDateState } from "../../hooks/date-state";
+import { TransferFundsModal } from "../actions/transfer-funds";
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { expenses, budget, categories } = useTransactions();
@@ -25,7 +25,7 @@ export const SpendingTotals: React.FunctionComponent = () => {
   const { netWorth } = useAccountTotals(accounts);
   const updateBudget = useUpdateBudget();
   const [showEditBudget, setShowEditBudget] = useState(false);
-
+  const [showTransferFunds, setShowTransferFunds] = useState(false);
   const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
     budgetItems: expenses.budgetItems,
     transactions: expenses.transactions,
@@ -74,28 +74,24 @@ export const SpendingTotals: React.FunctionComponent = () => {
   const barValues: GraphValue[] = useMemo(
     () => [
       {
-        value: Math.max(
+        value:
           calculateAmount(longTermExpenses) -
-            calculateAmount(
-              longTermExpenses.map((expense) => ({
-                amount: calculateAmount(expense.transactions),
-              })),
-            ),
-          0,
-        ),
+          calculateAmount(
+            longTermExpenses.map((expense) => ({
+              amount: calculateAmount(expense.transactions),
+            })),
+          ),
         fill: expenseFills.longTerm,
         label: "Long Term Expenses",
       },
       {
-        value: Math.max(
+        value:
           calculateAmount(shortTermExpenses) -
-            calculateAmount(
-              shortTermExpenses.map((expense) => ({
-                amount: calculateAmount(expense.transactions),
-              })),
-            ),
-          0,
-        ),
+          calculateAmount(
+            shortTermExpenses.map((expense) => ({
+              amount: calculateAmount(expense.transactions),
+            })),
+          ),
         fill: expenseFills.shortTerm,
         label: "Monthly Expenses",
       },
@@ -123,11 +119,16 @@ export const SpendingTotals: React.FunctionComponent = () => {
       <FormSection
         label="Spending Totals"
         button={
-          budget ? (
-            <Button onClick={() => setShowEditBudget(true)} plain>
-              Edit Budget
+          <div className="flex gap-2">
+            <Button onClick={() => setShowTransferFunds(true)} plain>
+              Transfer Funds
             </Button>
-          ) : undefined
+            {budget ? (
+              <Button onClick={() => setShowEditBudget(true)} plain>
+                Edit Budget
+              </Button>
+            ) : undefined}
+          </div>
         }
       >
         <Header level={4}>
@@ -171,6 +172,11 @@ export const SpendingTotals: React.FunctionComponent = () => {
           }}
         />
       ) : null}
+      <TransferFundsModal
+        show={showTransferFunds}
+        onClose={() => setShowTransferFunds(false)}
+        items={expenses.budgetItems}
+      />
     </>
   );
 };

@@ -203,26 +203,28 @@ export interface ActionItem {
   };
 }
 export const getActionItems = async (userId: string): Promise<ActionItem[]> => {
-  const budgetItems = await getBudgetItemsOfType({
-    db: prisma,
-    userId,
-    type: "expense",
-  });
+  // const budgetItems = await getBudgetItemsOfType({
+  //   db: prisma,
+  //   userId,
+  //   type: "expense",
+  // });
 
-  const actionItems: ActionItem[] = [
-    {
-      id: "0",
-      title: "Make Transfers",
-      description:
-        "Some of your categories have not been funded this month. Click to make transfers.",
-      action: {
-        type: "transfer",
-        items: budgetItems,
-      },
-    },
-  ];
+  // const actionItems: ActionItem[] = [
+  //   {
+  //     id: "0",
+  //     title: "Make Transfers",
+  //     description:
+  //       "Some of your categories have not been funded this month. Click to make transfers.",
+  //     action: {
+  //       type: "transfer",
+  //       items: budgetItems,
+  //     },
+  //   },
+  // ];
 
-  return actionItems;
+  // return actionItems;
+
+  return [];
 };
 
 export const makeExpenseTransaction = async ({
