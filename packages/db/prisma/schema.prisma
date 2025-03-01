@@ -43,6 +43,7 @@ model SpendingRecord {
   transactionId         String                @id @map("_id")
   amount                Float
   date                  DateTime
+  recordDate            DateTime
   description           String
   accountId             String?
   userId                String                @db.ObjectId

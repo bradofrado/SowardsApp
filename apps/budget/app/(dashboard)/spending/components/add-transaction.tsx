@@ -55,6 +55,7 @@ export const AddTransactionModal: React.FunctionComponent<
         amount: 0,
         transactionCategories: [],
         date: new Date(),
+        recordDate: new Date(),
         transactionId: "",
         description: "",
         accountId: null,

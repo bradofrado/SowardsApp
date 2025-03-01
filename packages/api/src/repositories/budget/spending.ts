@@ -70,6 +70,7 @@ export const createSpendingRecord = async ({
       transactionId,
       amount: spendingRecord.amount,
       date: spendingRecord.date,
+      recordDate: spendingRecord.recordDate,
       description: spendingRecord.description,
       transactionCategories:
         spendingRecord.transactionCategories.length > 0
@@ -114,6 +115,7 @@ export const createSpendingRecords = async ({
           transactionId,
           amount: spendingRecord.amount,
           date: spendingRecord.date,
+          recordDate: spendingRecord.recordDate,
           description: spendingRecord.description,
           transactionCategories:
             spendingRecord.transactionCategories.length > 0
@@ -205,6 +207,7 @@ export const updateSpendingRecord = async ({
       },
       amount: spendingRecord.amount,
       date: spendingRecord.date,
+      recordDate: spendingRecord.recordDate,
       description: spendingRecord.description,
       accountId: spendingRecord.accountId,
     },
@@ -248,6 +251,7 @@ export const prismaToSpendingRecord = (
     transactionId: spendingRecord.transactionId,
     amount: spendingRecord.amount,
     date: spendingRecord.date,
+    recordDate: spendingRecord.recordDate,
     description: spendingRecord.description,
     transactionCategories: spendingRecord.transactionCategories.map(
       (transactionCategory) => ({

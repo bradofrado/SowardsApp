@@ -24,6 +24,7 @@ export const spendingRecordSchema = z.object({
   transactionId: z.string(),
   amount: z.number(),
   date: z.date(),
+  recordDate: z.date(),
   description: z.string(),
   transactionCategories: z.array(transactionCategorySchema),
   accountId: z.string().nullable(),

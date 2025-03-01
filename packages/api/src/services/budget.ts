@@ -60,6 +60,7 @@ export const getTransactions = async (
         transactionId: transaction.transaction_id,
         amount: transaction.amount,
         date: new Date(transaction.date),
+        recordDate: new Date(transaction.date),
         description: transaction.name,
         transactionCategories: [],
         accountId: transaction.account_id,
