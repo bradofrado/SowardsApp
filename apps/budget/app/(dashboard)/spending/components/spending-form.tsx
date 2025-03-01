@@ -141,9 +141,9 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const onExportClick = () => {
     setShowExportModal(true);
   };
-  const onEdit = (): void => {
+  const onEdit = (transactionId: string): void => {
     setUpdateTransaction(
-      filteredTransactions.find((t) => selected[0] === t.transactionId),
+      filteredTransactions.find((t) => transactionId === t.transactionId),
     );
   };
   const onPickCategory = (
@@ -174,7 +174,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         </div>
         <div className="flex gap-4">
           {selected.length === 1 ? (
-            <Button onClick={onEdit}>Edit</Button>
+            <Button onClick={() => onEdit(selected[0])}>Edit</Button>
           ) : null}
           {selected.length > 0 ? (
             <>
@@ -195,6 +195,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           onSelect={onSelect}
           onSelectAll={onSelectAll}
           setPickCategory={onPickCategory}
+          onEdit={onEdit}
         />
       ) : (
         <>
@@ -208,6 +209,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
               onSelect={onSelect}
               onSelectAll={onSelectAll}
               setPickCategory={onPickCategory}
+              onEdit={onEdit}
             />
           ))}
           <AccountTransactions
@@ -218,6 +220,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             onSelectAll={onSelectAll}
             setPickCategory={onPickCategory}
             manual
+            onEdit={onEdit}
           />
         </>
       )}
@@ -286,6 +289,7 @@ type AccountTransactionProps = {
   setSelected: (selected: string[]) => void;
   onSelect: (checked: boolean, transactionId: string) => void;
   onSelectAll: (checked: boolean) => void;
+  onEdit: (transactionId: string) => void;
   setPickCategory: (
     transaction: SpendingRecord | undefined,
     split: boolean,
@@ -311,6 +315,7 @@ export const AccountTransactions: React.FunctionComponent<
   onSelectAll,
   setSelected,
   setPickCategory,
+  onEdit,
 }) => {
   const balance = manual ? null : account.balances.current;
   const filteredTransactions = transactions.filter((t) =>
@@ -360,6 +365,7 @@ export const AccountTransactions: React.FunctionComponent<
             onSelect={onSelect}
             onSelectAll={onSelectAll}
             setPickCategory={setPickCategory}
+            onEdit={onEdit}
             small
           />
         </AccordionContent>
@@ -373,6 +379,7 @@ interface TransactionTableProps {
   setSelected: (selected: string[]) => void;
   onSelect: (checked: boolean, transactionId: string) => void;
   onSelectAll: (checked: boolean) => void;
+  onEdit: (transactionId: string) => void;
   setPickCategory: (
     transaction: SpendingRecord | undefined,
     split: boolean,
@@ -385,6 +392,7 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
   setSelected,
   onSelect,
   setPickCategory,
+  onEdit,
   small = false,
 }) => {
   const transferTransactions = useMemo(() => {
@@ -445,7 +453,15 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
               />
             </TableCell>
             <TableCell>{displayDate(transaction.date)}</TableCell>
-            <TableCell>{trimText(transaction.description)}</TableCell>
+            <TableCell>
+              <Button
+                className="font-normal"
+                onClick={() => onEdit(transaction.transactionId)}
+                plain
+              >
+                {trimText(transaction.description)}
+              </Button>
+            </TableCell>
             <TableCell>
               {transferTransactions.includes(transaction) ? (
                 <Button disabled plain>
