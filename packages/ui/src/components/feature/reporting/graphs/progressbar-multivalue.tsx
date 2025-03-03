@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../core/tooltip";
-import { type GraphComponent, type GraphComponentProps } from "./types";
-import { classNames } from "model/src/utils";
+import { useMemo } from 'react';
+import { classNames } from 'model/src/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../core/tooltip';
+import { type GraphComponent, type GraphComponentProps } from './types';
 
 export type ProgressBarMultiValueProps = GraphComponentProps;
 export const ProgressBarMultiValue: GraphComponent = ({
@@ -22,8 +22,8 @@ export const ProgressBarMultiValue: GraphComponent = ({
   const ret = (
     <div
       className={classNames(
-        "h-3 rounded-lg overflow-hidden bg-slate-200 relative",
-        className,
+        'h-3 rounded-lg overflow-hidden bg-slate-200 relative',
+        className
       )}
     >
       {sortedValues.map(({ value: absoluteValue, fill, label }, i) => {
@@ -40,7 +40,7 @@ export const ProgressBarMultiValue: GraphComponent = ({
             }}
           />
         );
-        lastValue = value;
+        lastValue += value;
 
         if (label) {
           return (
