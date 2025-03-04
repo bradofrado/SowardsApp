@@ -33,32 +33,18 @@ export const TransactionBarChart: React.FunctionComponent<
     bar1: number;
     bar2: number;
   }>((month) => {
-    const date = new Date();
-    date.setMonth(months.indexOf(month));
     return {
       month,
       bar1: bar1.reduce<number>((prev, curr) => {
         return (
           prev +
-          (curr.date.getMonth() === months.indexOf(month) && curr.amount > 0
-            ? curr.amount
-            : 0)
+          (curr.date.getMonth() === months.indexOf(month) ? curr.amount : 0)
         );
       }, 0),
-      // budget: budgetItems.reduce<number>((prev, currItem) => {
-      //   return (
-      //     prev +
-      //     (isDateInBetween(date, currItem.startDate, currItem.endDate)
-      //       ? currItem.amount
-      //       : 0)
-      //   );
-      // }, 0),
       bar2: bar2.reduce<number>((prev, curr) => {
         return (
           prev +
-          (curr.date.getMonth() === months.indexOf(month) && curr.amount > 0
-            ? curr.amount
-            : 0)
+          (curr.date.getMonth() === months.indexOf(month) ? curr.amount : 0)
         );
       }, 0),
     };
