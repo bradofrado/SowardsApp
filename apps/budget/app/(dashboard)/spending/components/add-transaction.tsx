@@ -192,7 +192,20 @@ const EditTransactionModal: React.FunctionComponent<
           <FormRow label="Amount" description="The amount of the transaction">
             <InputBlur
               value={transaction.amount}
-              onChange={changeProperty.formFuncNumber("amount", transaction)}
+              onChange={(value) => {
+                const ret = changeProperty.formFuncNumber(
+                  "amount",
+                  transaction,
+                )(value);
+                changeProperty(
+                  ret,
+                  "transactionCategories",
+                  transaction.transactionCategories.map((c) => ({
+                    ...c,
+                    amount: Number(value),
+                  })),
+                );
+              }}
             />
           </FormRow>
           <FormDivider />
@@ -214,7 +227,7 @@ const EditTransactionModal: React.FunctionComponent<
                 changeProperty(transaction, "transactionCategories", [
                   {
                     id: "",
-                    amount: 0,
+                    amount: transaction.amount,
                     category,
                     transactionId: transaction.transactionId,
                   },

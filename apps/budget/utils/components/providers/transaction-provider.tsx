@@ -55,9 +55,26 @@ export const TransactionProvider: React.FunctionComponent<
 > = ({ transactions, budget, categories, children }) => {
   const nonTransferTransactions = useMemo(() => {
     const transferCache = transactions.slice();
-    return transactions.filter(
-      (transaction) =>
-        !isTransferTransactionAndUpdateCache(transaction, transferCache),
+    // Filter out transfer transactions and split out transaction categories into their own transactions
+    return transactions.reduce<SpendingRecordWithAccountType[]>(
+      (prev, curr) => {
+        if (isTransferTransactionAndUpdateCache(curr, transferCache)) {
+          return prev;
+        }
+        if (curr.transactionCategories.length > 0) {
+          return [
+            ...prev,
+            ...curr.transactionCategories.map((c) => ({
+              ...curr,
+              amount: c.amount,
+              transactionCategories: [c],
+            })),
+          ];
+        }
+
+        return [...prev, curr];
+      },
+      [],
     );
   }, [transactions]);
   const spendingFilter = useExpenseOrIncome({
