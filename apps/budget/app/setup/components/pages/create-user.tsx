@@ -4,8 +4,8 @@ import { FormSection, FormRow } from "ui/src/components/catalyst/form/form";
 import { Input } from "ui/src/components/core/input";
 import { use, useCallback, useEffect, useState } from "react";
 import { api } from "next-utils/src/utils/api";
-import { useQueryState } from "ui/src/hooks/query-state";
 import { UserVacation } from "model/src/vacation";
+import { useQueryState } from "../../../../utils/hooks/query-state";
 
 export const CreateUser: SetupPage = ({ setShowNext, user }) => {
   const [name, setName] = useQueryState({

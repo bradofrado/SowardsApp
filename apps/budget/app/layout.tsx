@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TrpcProvider } from "next-utils/src/utils/trpc-provider";
-import { QueryStateProvider } from "ui/src/hooks/query-state";
+import { QueryStateProvider } from "../utils/hooks/query-state";
 
 export const metadata: Metadata = {
   title: "plinq",

@@ -44,7 +44,7 @@ export const requireSession = requireRoute({
   },
 });
 
-export interface AuthProps {
+export interface AuthProps extends PageProps {
   ctx: TRPCContextAuth;
 }
 interface PageProps {
@@ -55,7 +55,7 @@ export const withAuth =
   (
     Component: (props: AuthProps) => Promise<JSX.Element> | JSX.Element,
   ): ((props: PageProps) => Promise<JSX.Element | null>) =>
-  async () => {
+  async (props) => {
     const cookie = cookies();
     const mockUserId = cookie.get("harmony-user-id");
     const response = await requireAuth()(mockUserId?.value);
@@ -64,7 +64,10 @@ export const withAuth =
       redirect("/setup");
     }
 
-    return Component({ ctx: { prisma, session: response.session! } });
+    return Component({
+      ctx: { prisma, session: response.session! },
+      ...props,
+    });
   };
 
 export interface SessionProps {

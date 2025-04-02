@@ -42,7 +42,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "ui/src/components/core/accordion";
-import { useQueryState } from "ui/src/hooks/query-state";
 import { usePrevious } from "ui/src/hooks/previous";
 import { Alert } from "ui/src/components/core/alert";
 import { FilterModal, useFilter } from "./filter";
@@ -54,15 +53,26 @@ import {
 } from "ui/src/components/catalyst/dropdown";
 import { EllipsisHorizontalIcon } from "ui/src/components/core/icons";
 import { isTransferTransactionAndUpdateCache } from "../../../../utils/utils";
+import { Pagination } from "ui/src/components/core/pagination";
+import { PaginatedResponse } from "model/src/core/pagination";
+import { useQueryState } from "../../../../utils/hooks/query-state";
+
 interface SpendingFormProps {
   transactions: SpendingRecord[];
   categories: CategoryBudget[];
   accounts: AccountBase[];
+  isPaginated?: boolean;
+  total?: number;
 }
+
+const ITEMS_PER_PAGE = 50;
+
 export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   transactions: origTransactions,
   categories,
   accounts,
+  isPaginated,
+  total,
 }) => {
   const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
@@ -77,6 +87,10 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     key: "grouping",
     defaultValue: "all",
   });
+  const [page, setPage] = useQueryState<number>({
+    key: "page",
+    defaultValue: 1,
+  });
   const prevTransactions = usePrevious(transactions);
   const [error, setError] = useState<string>();
   const {
@@ -88,6 +102,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   } = useFilter({
     transactions,
   });
+
   useEffect(() => {
     if (prevTransactions !== transactions) {
       setSelected(
@@ -97,6 +112,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       );
     }
   }, [transactions, prevTransactions, setSelected, selected]);
+
+  const totalPages = useMemo(() => {
+    if (!isPaginated || grouping !== "all") {
+      return 1;
+    }
+    return Math.ceil((total ?? transactions.length) / ITEMS_PER_PAGE);
+  }, [transactions, isPaginated, grouping]);
+
   const onCategoryChange = (
     index: number,
     categories: TransactionCategory[],
@@ -188,15 +211,25 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         </div>
       </div>
       {grouping === "all" ? (
-        <TransactionTable
-          transactions={filteredTransactions}
-          selected={selected}
-          setSelected={setSelected}
-          onSelect={onSelect}
-          onSelectAll={onSelectAll}
-          setPickCategory={onPickCategory}
-          onEdit={onEdit}
-        />
+        <>
+          <TransactionTable
+            transactions={transactions}
+            selected={selected}
+            setSelected={setSelected}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+            setPickCategory={onPickCategory}
+            onEdit={onEdit}
+          />
+          {isPaginated && totalPages > 1 && (
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-4 justify-center"
+            />
+          )}
+        </>
       ) : (
         <>
           {accounts.map((account) => (

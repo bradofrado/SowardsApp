@@ -1,4 +1,5 @@
 "use client";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -28,31 +29,34 @@ export function useQueryState<T>({
   const { setSearchParam, deleteSearchParam, searchParams } =
     useContext(QueryStateContext);
 
-  const setUrlValue = (value: T | undefined): void => {
-    const encodedValue = encodeState(value);
-    //If stuff is empty, remove it from the url
-    if (
-      value === undefined ||
-      value === "" ||
-      value === null ||
-      (Array.isArray(value) && value.length === 0) ||
-      (!(value instanceof Date) &&
-        typeof value === "object" &&
-        Object.keys(value).length === 0)
-    ) {
-      deleteSearchParam(key);
-    } else {
-      setSearchParam(key, encodedValue);
-    }
-  };
+  const setUrlValue = useCallback(
+    (value: T | undefined): void => {
+      const encodedValue = encodeState(value);
+      //If stuff is empty, remove it from the url
+      if (
+        value === undefined ||
+        value === "" ||
+        value === null ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === "object" && Object.keys(value).length === 0)
+      ) {
+        deleteSearchParam(key);
+      } else {
+        setSearchParam(key, encodedValue);
+      }
+    },
+    [deleteSearchParam, setSearchParam, key],
+  );
 
   useEffect(() => {
-    if (defaultValue && !searchParams.get(key)) {
+    if (defaultValue && !searchParams?.get(key)) {
       setUrlValue(defaultValue);
     }
   }, []);
 
   const value: T | undefined = useMemo(() => {
+    if (!searchParams)
+      throw new Error("Must use QueryStateProvider to use useQueryState");
     const val = searchParams.get(key);
     return val ? decodeState<T>(val) : defaultValue;
   }, [key, searchParams, defaultValue]);
@@ -62,13 +66,13 @@ export function useQueryState<T>({
 
 interface QueryStateContextType {
   url: string;
-  searchParams: URLSearchParams;
+  searchParams?: URLSearchParams;
   setSearchParam: (key: string, value: string) => void;
   deleteSearchParam: (key: string) => void;
 }
 const QueryStateContext = createContext<QueryStateContextType>({
   url: "",
-  searchParams: new URLSearchParams(),
+  searchParams: undefined,
   setSearchParam: () => undefined,
   deleteSearchParam: () => undefined,
 });
@@ -80,12 +84,9 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
     typeof window !== "undefined" ? window.location.href : "",
   );
   const [forceRerender, setForceRerender] = useState(0);
-  const router = window.location;
+  const router = useRouter();
 
-  const searchParams = useMemo(
-    () => new URL(urlRef.current).searchParams,
-    [urlRef.current],
-  );
+  const searchParams = useSearchParams();
 
   const setUrl = useCallback(
     (newUrl: string) => {
@@ -123,7 +124,8 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
     if (window.location.href !== urlRef.current) {
       const url = new URL(urlRef.current);
       const path = url.pathname + url.search + url.hash;
-      window.history.pushState({}, "", path);
+      router.push(path, { scroll: false });
+      //window.history.pushState(null, '', path);
     }
   }, [urlRef, forceRerender, router]);
 

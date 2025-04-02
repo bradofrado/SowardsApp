@@ -1,6 +1,6 @@
-import { useQueryState } from "ui/src/hooks/query-state";
 import { Month, months } from "../components/totals/types";
 import { useMemo } from "react";
+import { useQueryState } from "./query-state";
 
 export const useDateState = () => {
   const [currentMonth, setCurrentMonth] = useQueryState<Month>({

@@ -17,7 +17,6 @@ import { useTransactions } from "../providers/transaction-provider";
 import { CategoryBudget } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
-import { useQueryState } from "ui/src/hooks/query-state";
 import { Header } from "ui/src/components/core/header";
 import { calculateAmount } from "../../utils";
 import { BudgetItemWithTransactions, useExpenses } from "../../hooks/expenses";
