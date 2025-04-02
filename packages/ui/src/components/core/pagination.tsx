@@ -55,7 +55,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     return null;
   }
 
-  const renderPageButton = (pageNum: number) => (
+  const renderPageButton = (pageNum: number): React.JSX.Element => (
     <Button
       className={classNames(
         'min-w-[2.5rem]',
