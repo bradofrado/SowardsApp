@@ -8,6 +8,7 @@ import type {
   SpendingRecord,
 } from "model/src/budget";
 import type { AccountBase, AccountType } from "plaid";
+import type { PaginatedResponse } from "model/src/core/pagination";
 import {
   getLogins,
   updateExternalLoginCursor,
@@ -17,6 +18,7 @@ import type { LoginRequest } from "../repositories/budget/types";
 import {
   createSpendingRecords,
   getSpendingRecords,
+  getPaginatedSpendingRecords,
   getSpendingRecord,
   updateSpendingRecord,
   deleteSpendingRecord,
@@ -27,18 +29,21 @@ import {
   budgetPayload,
   getBudgets as getBudgetsRepo,
 } from "../repositories/budget/template/budget-template";
-import {
-  getBudgetItemsOfType,
-  updateBudgetItemAmount,
-} from "../repositories/budget/template/budget-item";
+import { updateBudgetItemAmount } from "../repositories/budget/template/budget-item";
 
 export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
 };
 
-export const getTransactions = async (
+export function getTransactions(userId: string): Promise<SpendingRecord[]>;
+export function getTransactions(
   userId: string,
-): Promise<SpendingRecord[]> => {
+  pagination: { start: number; count?: number },
+): Promise<PaginatedResponse<SpendingRecord>>;
+export async function getTransactions(
+  userId: string,
+  pagination?: { start: number; count?: number },
+): Promise<SpendingRecord[] | PaginatedResponse<SpendingRecord>> {
   const allTransactionSync = await makeLoginRequest(
     userId,
     getTransactionsSync,
@@ -104,10 +109,17 @@ export const getTransactions = async (
     );
   }
 
-  const spendingRecords = await getSpendingRecords({ db: prisma, userId });
+  if (pagination) {
+    return getPaginatedSpendingRecords({
+      db: prisma,
+      userId,
+      start: pagination.start,
+      count: pagination.count,
+    });
+  }
 
-  return spendingRecords;
-};
+  return getSpendingRecords({ db: prisma, userId });
+}
 
 export interface SpendingRecordWithAccountType extends SpendingRecord {
   accountType?: AccountType | "Savings"; // | "No Account";

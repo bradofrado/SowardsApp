@@ -11,7 +11,7 @@ import {
 } from "ui/src/components/catalyst/dialog";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { Label } from "ui/src/components/core/label";
-import { useQueryState } from "ui/src/hooks/query-state";
+import { useQueryState } from "../../../../utils/hooks/query-state";
 
 const filterQueryKey = "filter";
 

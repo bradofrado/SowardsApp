@@ -1,5 +1,6 @@
 import type { Db, Prisma } from "db/lib/prisma";
 import type { SpendingRecord } from "model/src/budget";
+import type { PaginatedResponse } from "model/src/core/pagination";
 import { v4 as uuidv4 } from "uuid";
 import { prismaToBudgetCategory } from "./category";
 
@@ -262,5 +263,41 @@ export const prismaToSpendingRecord = (
       }),
     ),
     accountId: spendingRecord.accountId,
+  };
+};
+
+export const getPaginatedSpendingRecords = async ({
+  db,
+  userId,
+  start,
+  count,
+}: {
+  db: Db;
+  userId: string;
+  start: number;
+  count?: number;
+}): Promise<PaginatedResponse<SpendingRecord>> => {
+  const [total, records] = await Promise.all([
+    db.spendingRecord.count({
+      where: {
+        userId,
+      },
+    }),
+    db.spendingRecord.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        date: "desc",
+      },
+      skip: start,
+      take: count,
+      ...spendingRecordPayload,
+    }),
+  ]);
+
+  return {
+    total,
+    records: records.map(prismaToSpendingRecord),
   };
 };

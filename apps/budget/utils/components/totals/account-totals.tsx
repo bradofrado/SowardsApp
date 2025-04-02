@@ -7,7 +7,6 @@ import { Card } from "ui/src/components/core/card";
 import { useCallback, useMemo } from "react";
 import { useTransactions } from "../providers/transaction-provider";
 import { Button } from "ui/src/components/catalyst/button";
-import { useQueryState } from "ui/src/hooks/query-state";
 import { AccountLineChart } from "../charts/line-chart";
 import { useAccountTotals } from "../../hooks/account-totals";
 import { useMonthlyAverage } from "./transaction-totals";
@@ -15,6 +14,7 @@ import { useChartTotals } from "./chart-totals";
 import { SavingsAccount } from "../providers/types";
 import { calculateAmount, transactionsOnDate } from "../../utils";
 import { useDebtTotals } from "../../hooks/debt-totals";
+import { useQueryState } from "../../hooks/query-state";
 
 const dateButtons: {
   label: string;

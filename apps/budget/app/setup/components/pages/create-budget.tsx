@@ -41,9 +41,9 @@ import {
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
 import { usePrevious } from "ui/src/hooks/previous";
-import { useQueryState } from "ui/src/hooks/query-state";
 import { api } from "next-utils/src/utils/api";
 import { calculateAmount } from "../../../../utils/utils";
+import { useQueryState } from "../../../../utils/hooks/query-state";
 
 const budgetQueryKey = "budget";
 export const CreateBudget: SetupPage = ({
