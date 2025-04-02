@@ -104,6 +104,9 @@ importers:
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
+      zod:
+        specifier: ^3.22.2
+        version: 3.24.1
     devDependencies:
       '@next/eslint-plugin-next':
         specifier: ^13.4.19
