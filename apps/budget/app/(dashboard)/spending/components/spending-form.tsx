@@ -90,6 +90,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   const [page, setPage] = useQueryState<number>({
     key: "page",
     defaultValue: 1,
+    server: true,
   });
   const prevTransactions = usePrevious(transactions);
   const [error, setError] = useState<string>();

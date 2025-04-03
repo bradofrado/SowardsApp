@@ -14,19 +14,23 @@ import { z } from "zod";
 /** Stores state as search parameter json values in the url */
 export function useQueryState<T = undefined>(props: {
   key: string;
+  server?: boolean;
 }): [T | undefined, (value: T | undefined) => void];
 export function useQueryState<T>(props: {
   key: string;
   defaultValue: T;
+  server?: boolean;
 }): [T, (value: T) => void];
 export function useQueryState<T>({
   key,
   defaultValue,
+  server = false,
 }: {
   key: string;
   defaultValue?: T;
+  server?: boolean;
 }): [T | undefined, (value: T | undefined) => void] {
-  const { setSearchParam, deleteSearchParam, searchParams } =
+  const { setSearchParam, deleteSearchParam, searchParams, addServerKey } =
     useContext(QueryStateContext);
 
   const setUrlValue = useCallback(
@@ -54,6 +58,12 @@ export function useQueryState<T>({
     }
   }, []);
 
+  useEffect(() => {
+    if (server) {
+      addServerKey(key);
+    }
+  }, [server, addServerKey, key]);
+
   const value: T | undefined = useMemo(() => {
     if (!searchParams)
       throw new Error("Must use QueryStateProvider to use useQueryState");
@@ -69,12 +79,14 @@ interface QueryStateContextType {
   searchParams?: URLSearchParams;
   setSearchParam: (key: string, value: string) => void;
   deleteSearchParam: (key: string) => void;
+  addServerKey: (key: string) => void;
 }
 const QueryStateContext = createContext<QueryStateContextType>({
   url: "",
   searchParams: undefined,
   setSearchParam: () => undefined,
   deleteSearchParam: () => undefined,
+  addServerKey: () => undefined,
 });
 
 export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -84,6 +96,8 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
     typeof window !== "undefined" ? window.location.href : "",
   );
   const [forceRerender, setForceRerender] = useState(0);
+  const [serverKeys, setServerKeys] = useState<Set<string>>(new Set());
+
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -119,15 +133,30 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
     [urlRef, setUrl],
   );
 
+  const addServerKey = useCallback((key: string) => {
+    setServerKeys((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(key);
+      return newSet;
+    });
+  }, []);
+
   //Whenever the urlRef changes, update the url
   useEffect(() => {
     if (window.location.href !== urlRef.current) {
       const url = new URL(urlRef.current);
       const path = url.pathname + url.search + url.hash;
-      router.push(path, { scroll: false });
-      //window.history.pushState(null, '', path);
+
+      if (
+        serverKeys.size > 0 &&
+        Array.from(serverKeys).some((key) => url.searchParams.has(key))
+      ) {
+        router.push(path, { scroll: false });
+      } else {
+        window.history.pushState(null, "", path);
+      }
     }
-  }, [urlRef, forceRerender, router]);
+  }, [urlRef, forceRerender, router, serverKeys]);
 
   //Keep the urlRef up to date with the current url
   useEffect(() => {
@@ -143,6 +172,7 @@ export const QueryStateProvider: React.FC<{ children: React.ReactNode }> = ({
         setSearchParam,
         deleteSearchParam,
         searchParams,
+        addServerKey,
       }}
     >
       {children}
