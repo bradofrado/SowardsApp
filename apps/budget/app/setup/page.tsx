@@ -26,7 +26,7 @@ const SetupPage = async () => {
   const categories = userId ? await getCategories({ db: prisma, userId }) : [];
   const budgets = userId ? await getBudgets(userId) : [];
   return (
-    <AccountProvider accounts={accounts} transactions={transactions}>
+    <AccountProvider accounts={accounts}>
       <TransactionProvider
         transactions={transactions}
         categories={categories}
