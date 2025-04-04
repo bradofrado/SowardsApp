@@ -1,23 +1,23 @@
-"use client";
-import { useCallback, useMemo, useState } from "react";
-import { useTransactions } from "../providers/transaction-provider";
-import { ProgressBarMultiValue } from "ui/src/components/feature/reporting/graphs/progressbar-multivalue";
-import { useAccountTotals } from "../../hooks/account-totals";
-import { useAccounts } from "../providers/account-provider";
-import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
-import { calculateAmount } from "../../utils";
-import { FormSection } from "ui/src/components/catalyst/form/form";
-import { displayDate, formatDollarAmount } from "model/src/utils";
-import { ChartLegend } from "ui/src/components/feature/reporting/graphs/chart-legend";
-import { HexColor } from "model/src/core/colors";
-import { Header } from "ui/src/components/core/header";
-import { useExpenses } from "../../hooks/expenses";
-import { BudgetItem } from "model/src/budget";
-import { Button } from "ui/src/components/catalyst/button";
-import { UpdateBudgetModal } from "../budget/update-budget-modal";
-import { useUpdateBudget } from "../../hooks/update-budget";
-import { useDebtTotals } from "../../hooks/debt-totals";
-import { TransferFundsModal } from "../actions/transfer-funds";
+'use client';
+import { useCallback, useMemo, useState } from 'react';
+import { useTransactions } from '../providers/transaction-provider';
+import { ProgressBarMultiValue } from 'ui/src/components/feature/reporting/graphs/progressbar-multivalue';
+import { useAccountTotals } from '../../hooks/account-totals';
+import { useAccounts } from '../providers/account-provider';
+import { GraphValue } from 'ui/src/components/feature/reporting/graphs/types';
+import { calculateAmount } from '../../utils';
+import { FormSection } from 'ui/src/components/catalyst/form/form';
+import { displayDate, formatDollarAmount } from 'model/src/utils';
+import { ChartLegend } from 'ui/src/components/feature/reporting/graphs/chart-legend';
+import { HexColor } from 'model/src/core/colors';
+import { Header } from 'ui/src/components/core/header';
+import { useExpenses } from '../../hooks/expenses';
+import { BudgetItem } from 'model/src/budget';
+import { Button } from 'ui/src/components/catalyst/button';
+import { UpdateBudgetModal } from '../budget/update-budget-modal';
+import { useUpdateBudget } from '../../hooks/update-budget';
+import { useDebtTotals } from '../../hooks/debt-totals';
+import { TransferFundsModal } from '../actions/transfer-funds';
 
 export const SpendingTotals: React.FunctionComponent = () => {
   const { expenses, budget, categories } = useTransactions();
@@ -35,11 +35,11 @@ export const SpendingTotals: React.FunctionComponent = () => {
   const debt = useDebtTotals(accounts);
 
   const expenseFills: Record<string, HexColor> = {
-    shortTerm: "#fe502d",
-    longTerm: "#000",
-    debt: "#8c52ff",
-    savings: "#41b8d5",
-    transfers: "#7ed957",
+    shortTerm: '#fe502d',
+    longTerm: '#000',
+    debt: '#8c52ff',
+    savings: '#41b8d5',
+    transfers: '#7ed957',
   };
 
   const getFill = useCallback(
@@ -54,15 +54,15 @@ export const SpendingTotals: React.FunctionComponent = () => {
         return expenseFills.debt;
       }
     },
-    [shortTermExpenses, longTermExpenses, savingsGoals],
+    [shortTermExpenses, longTermExpenses, savingsGoals]
   );
 
   const unmetGoals = useMemo(
     () =>
       [...shortTermExpenses, ...longTermExpenses, ...savingsGoals].filter(
-        (item) => item.amount < item.targetAmount,
+        (item) => item.amount < item.targetAmount
       ),
-    [],
+    []
   );
 
   const monthlyTransfers = useMemo(() => {
@@ -79,10 +79,10 @@ export const SpendingTotals: React.FunctionComponent = () => {
           calculateAmount(
             longTermExpenses.map((expense) => ({
               amount: calculateAmount(expense.transactions),
-            })),
+            }))
           ),
         fill: expenseFills.longTerm,
-        label: "Long Term Expenses",
+        label: 'Long Term Expenses',
       },
       {
         value:
@@ -90,36 +90,37 @@ export const SpendingTotals: React.FunctionComponent = () => {
           calculateAmount(
             shortTermExpenses.map((expense) => ({
               amount: calculateAmount(expense.transactions),
-            })),
+            }))
           ),
         fill: expenseFills.shortTerm,
-        label: "Monthly Expenses",
+        label: 'Monthly Expenses',
       },
       {
         value: debt,
         fill: expenseFills.debt,
-        label: "Debt",
+        label: 'Debt',
       },
       {
         value: calculateAmount(savingsGoals),
         fill: expenseFills.savings,
-        label: "Savings Goals",
+        label: 'Savings Goals',
       },
       {
         value: calculateAmount(monthlyTransfers),
         fill: expenseFills.transfers,
-        label: "Monthly Transfers",
+        label: 'Monthly Transfers',
       },
     ],
-    [longTermExpenses, shortTermExpenses, savingsGoals, debt, monthlyTransfers],
+
+    [longTermExpenses, shortTermExpenses, savingsGoals, debt, monthlyTransfers]
   );
 
   return (
     <>
       <FormSection
-        label="Spending Totals"
+        label='Budget Totals'
         button={
-          <div className="flex gap-2">
+          <div className='flex gap-2'>
             <Button onClick={() => setShowTransferFunds(true)} plain>
               Transfer Funds
             </Button>
@@ -132,10 +133,10 @@ export const SpendingTotals: React.FunctionComponent = () => {
         }
       >
         <Header level={4}>
-          Total Left:{" "}
+          Total Left:{' '}
           {formatDollarAmount(
             netWorth -
-              calculateAmount(barValues.map((i) => ({ amount: i.value }))),
+              calculateAmount(barValues.map((i) => ({ amount: i.value })))
           )}
         </Header>
         <ProgressBarMultiValue
@@ -145,10 +146,11 @@ export const SpendingTotals: React.FunctionComponent = () => {
           }))}
           total={netWorth}
         />
-        <div className="mt-2">
+
+        <div className='mt-2'>
           <ChartLegend values={barValues} total={netWorth} noSort />
         </div>
-        <div className="mt-2 flex flex-col gap-2">
+        <div className='mt-2 flex flex-col gap-2'>
           {unmetGoals.map((item) => (
             <SavingGoalTotal
               key={item.category.name}
@@ -164,8 +166,8 @@ export const SpendingTotals: React.FunctionComponent = () => {
           onClose={() => setShowEditBudget(false)}
           budget={budget}
           categories={categories}
-          title="Edit Budget"
-          description="Edit the budget to plan for your future!"
+          title='Edit Budget'
+          description='Edit the budget to plan for your future!'
           onSave={async (item) => {
             await updateBudget(item);
             setShowEditBudget(false);
@@ -189,7 +191,7 @@ const SavingGoalTotal: React.FunctionComponent<{
     const today = new Date();
     const months = Math.floor(
       (savingsGoal.targetAmount - savingsGoal.amount) /
-        savingsGoal.cadenceAmount,
+        savingsGoal.cadenceAmount
     );
     const targetDate = new Date(today);
     targetDate.setMonth(today.getMonth() + months);
@@ -198,11 +200,11 @@ const SavingGoalTotal: React.FunctionComponent<{
 
   const targetDate = calculateTargetDate(savingsGoal);
   return (
-    <div className="flex gap-2 items-center" key={savingsGoal.id}>
+    <div className='flex gap-2 items-center' key={savingsGoal.id}>
       <div>{savingsGoal.category.name}</div>
       <div>{formatDollarAmount(savingsGoal.amount)}</div>
       <ProgressBarMultiValue
-        className="flex-1"
+        className='flex-1'
         values={[
           {
             value: savingsGoal.amount,
@@ -212,8 +214,9 @@ const SavingGoalTotal: React.FunctionComponent<{
         ]}
         total={savingsGoal.targetAmount}
       />
+
       <div>
-        <span className="text-sm">left to save:</span>{" "}
+        <span className='text-sm'>left to save:</span>{' '}
         {formatDollarAmount(savingsGoal.targetAmount - savingsGoal.amount)} (
         {displayDate(targetDate)})
       </div>
@@ -221,4 +224,4 @@ const SavingGoalTotal: React.FunctionComponent<{
   );
 };
 
-const fills = ["#41b8d5", "#8c52ff"] as const;
+const fills = ['#41b8d5', '#8c52ff'] as const;

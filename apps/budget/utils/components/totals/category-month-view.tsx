@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "ui/src/components/catalyst/button";
-import React, { useMemo, useState } from "react";
+import { Button } from 'ui/src/components/catalyst/button';
+import React, { useMemo, useState } from 'react';
 import {
   compare,
   displayDate,
@@ -9,24 +9,24 @@ import {
   getEndOfMonthDate,
   getStartOfMonthDate,
   isDateInBetween,
-} from "model/src/utils";
-import { Heading } from "ui/src/components/catalyst/heading";
-import { FormDivider } from "ui/src/components/catalyst/form/form";
-import { Month, months } from "./types";
-import { useTransactions } from "../providers/transaction-provider";
-import { CategoryBudget } from "model/src/budget";
-import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
-import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
-import { Header } from "ui/src/components/core/header";
-import { calculateAmount } from "../../utils";
-import { BudgetItemWithTransactions, useExpenses } from "../../hooks/expenses";
-import { SpendingRecordWithAccountType } from "api/src/services/budget";
+} from 'model/src/utils';
+import { Heading } from 'ui/src/components/catalyst/heading';
+import { FormDivider } from 'ui/src/components/catalyst/form/form';
+import { Month, months } from './types';
+import { useTransactions } from '../providers/transaction-provider';
+import { CategoryBudget } from 'model/src/budget';
+import { TargetBar } from 'ui/src/components/feature/reporting/graphs/targetbar';
+import { GraphValue } from 'ui/src/components/feature/reporting/graphs/types';
+import { Header } from 'ui/src/components/core/header';
+import { calculateAmount } from '../../utils';
+import { BudgetItemWithTransactions, useExpenses } from '../../hooks/expenses';
+import { SpendingRecordWithAccountType } from 'api/src/services/budget';
 import {
   Dialog,
   DialogBody,
   DialogTitle,
-} from "ui/src/components/catalyst/dialog";
-import { useDateState } from "../../hooks/date-state";
+} from 'ui/src/components/catalyst/dialog';
+import { useDateState } from '../../hooks/date-state';
 interface CategoryChartData {
   category: CategoryBudget;
   actual: number;
@@ -50,16 +50,16 @@ export const CategoryMonthView: React.FunctionComponent<
 
   const years = useMemo(
     () => Array.from(new Set(transactions.map((t) => t.date.getFullYear()))),
-    [transactions],
+    [transactions]
   );
   const filteredTransactions = useMemo(
     () =>
       transactions.filter(
         (transaction) =>
           transaction.date.getMonth() === months.indexOf(currentMonth) &&
-          transaction.date.getFullYear() === currentYear,
+          transaction.date.getFullYear() === currentYear
       ),
-    [transactions, currentMonth, currentYear],
+    [transactions, currentMonth, currentYear]
   );
   const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
     budgetItems,
@@ -84,7 +84,7 @@ export const CategoryMonthView: React.FunctionComponent<
 
   const uncategorizedData = useMemo(() => {
     const uncategorizedTransactions = filteredTransactions.filter(
-      (transaction) => transaction.transactionCategories.length === 0,
+      (transaction) => transaction.transactionCategories.length === 0
     );
     if (uncategorizedTransactions.length === 0) return undefined;
     const totalAmount = calculateAmount(uncategorizedTransactions);
@@ -102,11 +102,11 @@ export const CategoryMonthView: React.FunctionComponent<
   };
   return (
     <>
-      <Heading>Spending by Category</Heading>
+      <Heading>Totals by Category</Heading>
       <FormDivider />
-      <div className="flex flex-col">
+      <div className='flex flex-col'>
         {years.length > 1 ? (
-          <div className="flex gap-2 flex-wrap">
+          <div className='flex gap-2 flex-wrap'>
             {years.map((year) => (
               <Button
                 key={year}
@@ -118,7 +118,7 @@ export const CategoryMonthView: React.FunctionComponent<
             ))}
           </div>
         ) : null}
-        <div className="flex gap-2 flex-wrap justify-between mt-2">
+        <div className='flex gap-2 flex-wrap justify-between mt-2'>
           {months.map((month) => (
             <Button
               key={month}
@@ -129,15 +129,15 @@ export const CategoryMonthView: React.FunctionComponent<
             </Button>
           ))}
         </div>
-        <div className="space-y-2">
-          <div className="flex flex-col gap-2">
+        <div className='space-y-2'>
+          <div className='flex flex-col gap-2'>
             {uncategorizedData ? (
               <CategoryTarget
                 data={{
                   category: {
-                    id: "uncategorized",
-                    name: "Uncategorized",
-                    type: "expense",
+                    id: 'uncategorized',
+                    name: 'Uncategorized',
+                    type: 'expense',
                     order: -1,
                   },
                   actual: uncategorizedData.actual || 0,
@@ -149,13 +149,13 @@ export const CategoryMonthView: React.FunctionComponent<
             ) : null}
           </div>
           <Header level={4}>Monthly</Header>
-          <div className="flex flex-col gap-2">
+          <div className='flex flex-col gap-2'>
             <CategoryTarget
               data={{
                 category: {
-                  id: "shortTerm",
-                  name: "Total Monthly Expenses",
-                  type: "expense",
+                  id: 'shortTerm',
+                  name: 'Total Monthly Expenses',
+                  type: 'expense',
                   order: -2,
                 },
                 actual: shortTermActual,
@@ -171,13 +171,13 @@ export const CategoryMonthView: React.FunctionComponent<
             ))}
           </div>
           <Header level={4}>Long Term</Header>
-          <div className="flex flex-col gap-2">
+          <div className='flex flex-col gap-2'>
             <CategoryTarget
               data={{
                 category: {
-                  id: "longTerm",
-                  name: "Total Long Term Expenses",
-                  type: "expense",
+                  id: 'longTerm',
+                  name: 'Total Long Term Expenses',
+                  type: 'expense',
                   order: -2,
                 },
                 actual: longTermActual,
@@ -193,13 +193,13 @@ export const CategoryMonthView: React.FunctionComponent<
             ))}
           </div>
           <Header level={4}>Savings Goals</Header>
-          <div className="flex flex-col gap-2">
+          <div className='flex flex-col gap-2'>
             <CategoryTarget
               data={{
                 category: {
-                  id: "fixed",
-                  name: "Total Savings Goals",
-                  type: "expense",
+                  id: 'fixed',
+                  name: 'Total Savings Goals',
+                  type: 'expense',
                   order: -2,
                 },
                 actual: savingsGoalsActual,
@@ -222,20 +222,20 @@ export const CategoryMonthView: React.FunctionComponent<
 
 const useCategoryChartData = (
   budgetExpenses: BudgetItemWithTransactions[],
-  currentDate: Date,
+  currentDate: Date
 ) => {
   const budgeted = useMemo(
     () => calculateAmount(budgetExpenses),
-    [budgetExpenses],
+    [budgetExpenses]
   );
   const actual = useMemo(
     () =>
       calculateAmount(
         budgetExpenses.map((expense) => ({
           amount: calculateAmount(expense.transactions),
-        })),
+        }))
       ),
-    [budgetExpenses],
+    [budgetExpenses]
   );
 
   const chartData: CategoryChartData[] = useMemo(
@@ -245,8 +245,8 @@ const useCategoryChartData = (
           isDateInBetween(
             t.date,
             getStartOfMonthDate(currentDate),
-            getEndOfMonthDate(currentDate),
-          ),
+            getEndOfMonthDate(currentDate)
+          )
         );
         return {
           category,
@@ -255,13 +255,13 @@ const useCategoryChartData = (
             amount -
             calculateAmount(
               transactions.filter(
-                (t) => t.date < getStartOfMonthDate(currentDate),
-              ),
+                (t) => t.date < getStartOfMonthDate(currentDate)
+              )
             ),
           transactions: currMonthTransactions,
         };
       }),
-    [budgetExpenses, currentDate],
+    [budgetExpenses, currentDate]
   );
 
   return { chartData, budgeted, actual };
@@ -277,19 +277,19 @@ const CategoryTarget: React.FunctionComponent<{
     left > 0
       ? [
           {
-            fill: "#7ed957",
+            fill: '#7ed957',
             value: data.actual,
             label: formatDollarAmount(data.actual),
           },
         ]
       : [
           {
-            fill: "#7ed957",
+            fill: '#7ed957',
             value: data.budgeted,
             label: formatDollarAmount(data.actual),
           },
           {
-            fill: "#fe502d",
+            fill: '#fe502d',
             value: -left,
           },
         ];
@@ -297,28 +297,28 @@ const CategoryTarget: React.FunctionComponent<{
   const label =
     left > 0 ? (
       <div>
-        <span className="text-sm">left to spend </span>
-        {formatDollarAmount(left)}{" "}
+        <span className='text-sm'>left to spend </span>
+        {formatDollarAmount(left)}{' '}
       </div>
     ) : (
       <div>
-        <span className="text-sm">over budget </span>
-        <span className="text-red-400">{formatDollarAmount(-left)}</span>
+        <span className='text-sm'>over budget </span>
+        <span className='text-red-400'>{formatDollarAmount(-left)}</span>
       </div>
     );
 
   return (
     <>
       <button
-        className="flex flex-col gap-2 p-2 hover:bg-gray-100 rounded-md"
+        className='flex flex-col gap-2 p-2 hover:bg-gray-100 rounded-md'
         onClick={() => setIsOpen(true)}
       >
-        <div className="flex justify-between w-full">
+        <div className='flex justify-between w-full'>
           <div>{data.category.name}</div>
           {defaultLabel ?? label}
         </div>
         <TargetBar
-          className="w-full"
+          className='w-full'
           values={values}
           target={data.budgeted}
           total={data.budgeted * 1.25}
@@ -346,23 +346,23 @@ const CategoryTransactionsModal: React.FunctionComponent<
     <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle>Transactions</DialogTitle>
       <DialogBody>
-        <div className="grid grid-cols-2 mb-4">
+        <div className='grid grid-cols-2 mb-4'>
           <div>Budget</div>
 
           <span>{formatDollarAmount(budgeted)}</span>
           <div>Actual</div>
           <span>{formatDollarAmount(actual)}</span>
         </div>
-        <div className="flex flex-col gap-2 max-h-96 overflow-auto">
+        <div className='flex flex-col gap-2 max-h-96 overflow-auto'>
           {transactions
             .slice()
             .sort((a, b) => compare(b.date.getTime(), a.date.getTime()))
             .map((transaction) => (
               <div
                 key={transaction.transactionId}
-                className="flex flex-row justify-between w-full border p-3 rounded-md"
+                className='flex flex-row justify-between w-full border p-3 rounded-md'
               >
-                <div className="flex gap-4">
+                <div className='flex gap-4'>
                   <div>{displayDate(transaction.date)}</div>
                   <span>{transaction.description}</span>
                 </div>
