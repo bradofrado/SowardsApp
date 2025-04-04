@@ -4,6 +4,7 @@ import { getExternalLogins, getTransactions } from "api/src/services/budget";
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
 import { SpendingForm } from "./components/spending-form";
 import { redirect } from "next/navigation";
+import { TransactionProvider } from "../../../utils/components/providers/transaction-provider";
 
 const ITEMS_PER_PAGE = 50;
 
@@ -43,15 +44,16 @@ const SpendingPage = withAuth(async ({ ctx, searchParams }) => {
   }
 
   return (
-    <>
+    <TransactionProvider
+      transactions={transactions.records}
+      categories={categories}
+    >
       <SpendingForm
-        transactions={transactions.records}
-        categories={categories}
         accounts={accounts}
         isPaginated={isPaginated}
         total={transactions.total}
       />
-    </>
+    </TransactionProvider>
   );
 });
 

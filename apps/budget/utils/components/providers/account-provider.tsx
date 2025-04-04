@@ -14,12 +14,10 @@ const AccountContext = createContext<AccountContextState>({
 interface AccountProviderProps {
   children: React.ReactNode;
   accounts: AccountBase[];
-  transactions: SpendingRecord[];
 }
 export const AccountProvider: React.FunctionComponent<AccountProviderProps> = ({
   children,
   accounts,
-  transactions,
 }) => {
   return (
     <AccountContext.Provider value={{ accounts }}>

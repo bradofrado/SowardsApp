@@ -1,28 +1,34 @@
-import dayjs from "dayjs";
+import _dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { z } from "zod";
+_dayjs.extend(utc);
 
-export const displayDate = (date: Date) => {
-  return dayjs(date).format("MM/DD/YY");
+const dayjs = (date: Date, utc: boolean) => {
+  return utc ? _dayjs(date).utc() : _dayjs(date);
 };
 
-export const displayDateAndTime = (date: Date) => {
-  return dayjs(date).format("MMM, DD h:mm A");
+export const displayDate = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("MM/DD/YY");
 };
 
-export const displayTime = (date: Date): string => {
-  return dayjs(date).format("h:mm A");
+export const displayDateAndTime = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("MMM, DD h:mm A");
 };
 
-export const displayDateLong = (date: Date): string => {
-  return dayjs(date).format("MMM, DD YYYY");
+export const displayTime = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("h:mm A");
 };
 
-export const displayWeekDayShort = (date: Date): string => {
-  return dayjs(date).format("dd");
+export const displayDateLong = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("MMM, DD YYYY");
 };
 
-export const displayWeekDay = (date: Date): string => {
-  return dayjs(date).format("ddd");
+export const displayWeekDayShort = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("dd");
+};
+
+export const displayWeekDay = (date: Date, utc = true) => {
+  return dayjs(date, utc).format("ddd");
 };
 
 export const datesEqual = (d1: Date, d2: Date): boolean =>
@@ -211,6 +217,18 @@ export function getStartOfMonthDate(date: Date): Date {
 export function getEndOfMonthDate(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, -1);
 }
+
+export const toUTC = (date: Date) => {
+  return new Date(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+    date.getUTCSeconds(),
+    date.getUTCMilliseconds(),
+  );
+};
 
 export const arrayOfAll =
   <T>() =>

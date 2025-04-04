@@ -35,7 +35,7 @@ const Home = withAuth(async ({ ctx }) => {
         budget={budgets[0]}
         categories={categories}
       >
-        <AccountProvider accounts={accounts} transactions={spending}>
+        <AccountProvider accounts={accounts}>
           <div className="flex flex-col md:flex-row gap-2">
             <AccountTotals />
             <Card className="flex-1" label="Totals">

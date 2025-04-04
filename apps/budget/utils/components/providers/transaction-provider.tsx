@@ -5,9 +5,8 @@ import {
   CategoryBudget,
   SpendingRecord,
 } from "model/src/budget";
-import { day, isDateInBetween } from "model/src/utils";
+import { toUTC } from "model/src/utils";
 import { createContext, useContext, useMemo } from "react";
-import { months } from "../totals/types";
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
 import { AccountType } from "plaid";
 import { isTransferTransactionAndUpdateCache } from "../../utils";
@@ -46,13 +45,22 @@ const TransactionContext = createContext<TransactionContextState>({
 
 interface TransactionProviderProps {
   transactions: SpendingRecordWithAccountType[];
-  budget: Budget | undefined;
+  budget?: Budget;
   categories: CategoryBudget[];
   children: React.ReactNode;
 }
 export const TransactionProvider: React.FunctionComponent<
   TransactionProviderProps
-> = ({ transactions, budget, categories, children }) => {
+> = ({ transactions: transactionsRaw, budget, categories, children }) => {
+  const transactions = useMemo(
+    () =>
+      transactionsRaw.map((t) => ({
+        ...t,
+        date: toUTC(t.date),
+        recordDate: toUTC(t.recordDate),
+      })),
+    [transactionsRaw],
+  );
   const nonTransferTransactions = useMemo(() => {
     const transferCache = transactions.slice();
     // Filter out transfer transactions and split out transaction categories into their own transactions

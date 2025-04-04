@@ -1,18 +1,9 @@
 "use client";
 
-import {
-  CategoryBudget,
-  SpendingRecord,
-  TransactionCategory,
-} from "model/src/budget";
-import {
-  classNames,
-  displayDate,
-  formatDollarAmount,
-  trimText,
-} from "model/src/utils";
+import { SpendingRecord, TransactionCategory } from "model/src/budget";
+import { displayDate, formatDollarAmount, trimText } from "model/src/utils";
 import { api } from "next-utils/src/utils/api";
-import { AccountBase, Transaction } from "plaid";
+import { AccountBase } from "plaid";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Form, FormDivider } from "ui/src/components/catalyst/form/form";
@@ -28,11 +19,7 @@ import {
 import { CheckboxInput } from "ui/src/components/core/input";
 import { useChangeArray } from "ui/src/hooks/change-property";
 import { ExportSpendingModal } from "./export-spending";
-import {
-  CategoryPicker,
-  CategoryPickerModal,
-  CategorySplitModal,
-} from "./category-picker";
+import { CategoryPickerModal, CategorySplitModal } from "./category-picker";
 import { AddTransactionModal, UpdateTransactionModal } from "./add-transaction";
 import { useStateProps } from "ui/src/hooks/state-props";
 import { AccountDisplay } from "../../../(dashboard)/settings/components/account-display";
@@ -54,12 +41,10 @@ import {
 import { EllipsisHorizontalIcon } from "ui/src/components/core/icons";
 import { isTransferTransactionAndUpdateCache } from "../../../../utils/utils";
 import { Pagination } from "ui/src/components/core/pagination";
-import { PaginatedResponse } from "model/src/core/pagination";
 import { useQueryState } from "../../../../utils/hooks/query-state";
+import { useTransactions } from "../../../../utils/components/providers/transaction-provider";
 
 interface SpendingFormProps {
-  transactions: SpendingRecord[];
-  categories: CategoryBudget[];
   accounts: AccountBase[];
   isPaginated?: boolean;
   total?: number;
@@ -68,12 +53,11 @@ interface SpendingFormProps {
 const ITEMS_PER_PAGE = 50;
 
 export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
-  transactions: origTransactions,
-  categories,
   accounts,
   isPaginated,
   total,
 }) => {
+  const { transactions: origTransactions, categories } = useTransactions();
   const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
   const { mutate: saveTransaction } = api.plaid.updateTransaction.useMutation();
