@@ -4,7 +4,7 @@ import {
   TransactionCategory,
 } from "model/src/budget";
 import { Replace } from "model/src/core/utils";
-import { formatDollarAmount, groupBy } from "model/src/utils";
+import { formatDollarAmount, groupBy, round } from "model/src/utils";
 import { useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Dialog, DialogActions } from "ui/src/components/catalyst/dialog";
@@ -155,9 +155,11 @@ export const CategorySplitModal: React.FunctionComponent<
     onClose();
   };
 
-  const remainingAmount =
+  const remainingAmount = round(
     transaction.amount -
-    selectedCategories.reduce((prev, curr) => prev + curr.amount, 0);
+      selectedCategories.reduce((prev, curr) => prev + curr.amount, 0),
+    2,
+  );
 
   return (
     <Dialog open={show} onClose={onClose}>
