@@ -105,16 +105,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
     return Math.ceil((total ?? transactions.length) / ITEMS_PER_PAGE);
   }, [transactions, isPaginated, grouping]);
 
-  const onCategoryChange = (
-    index: number,
-    categories: TransactionCategory[],
-  ) => {
-    const newTransactions = changeProperty(
-      transactions,
-      index,
-      "transactionCategories",
-      categories,
-    );
+  const onSave = (newTransactions: SpendingRecord[], index: number) => {
     saveTransaction(
       {
         transaction: newTransactions[index],
@@ -132,6 +123,33 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
       },
     );
   };
+
+  const onCategoryChange = (
+    index: number,
+    categories: TransactionCategory[],
+  ) => {
+    const newTransactions = changeProperty(
+      transactions,
+      index,
+      "transactionCategories",
+      categories,
+    );
+    onSave(newTransactions, index);
+  };
+
+  const onIsTransferChange = (isTransfer: boolean) => {
+    const index = transactions.findIndex(
+      (t) => t.transactionId === pickCategory?.transactionId,
+    );
+    const newTransactions = changeProperty(
+      transactions,
+      index,
+      "isTransfer",
+      isTransfer,
+    );
+    onSave(newTransactions, index);
+  };
+
   const onSelect = (checked: boolean, transactionId: string) => {
     if (checked) {
       setSelected([...selected, transactionId]);
@@ -275,6 +293,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           );
         }}
         transaction={pickCategory}
+        onIsTransferChange={onIsTransferChange}
       />
       <CategorySplitModal
         key={pickCategory?.transactionId}
@@ -291,6 +310,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
           );
         }}
         transaction={pickCategory}
+        onIsTransferChange={onIsTransferChange}
       />
       <FilterModal
         show={showFilterModal}
@@ -482,7 +502,18 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
             </TableCell>
             <TableCell>
               {transferTransactions.includes(transaction) ? (
-                <Button disabled plain>
+                // Only disable if this is an inferred transfer, not an explicitly set transfer.
+                <Button
+                  disabled={!transaction.isTransfer}
+                  plain
+                  onClick={() =>
+                    transaction.isTransfer &&
+                    setPickCategory(
+                      transaction,
+                      transaction.transactionCategories.length > 1,
+                    )
+                  }
+                >
                   Transfer
                 </Button>
               ) : (

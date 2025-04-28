@@ -46,6 +46,7 @@ model SpendingRecord {
   recordDate            DateTime
   description           String
   accountId             String?
+  isTransfer            Boolean
   userId                String                @db.ObjectId
   user                  UserVacation          @relation(fields: [userId], references: [id])
   transactionCategories TransactionCategory[]

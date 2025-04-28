@@ -69,6 +69,7 @@ export async function getTransactions(
         description: transaction.name,
         transactionCategories: [],
         accountId: transaction.account_id,
+        isTransfer: false,
       })),
     });
 

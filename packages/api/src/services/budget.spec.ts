@@ -28,6 +28,7 @@ describe("Budget Service - Transactions", () => {
       description: `Test Transaction ${i}`,
       transactionCategories: [],
       accountId: null,
+      isTransfer: false,
     }));
 
     await createSpendingRecords({

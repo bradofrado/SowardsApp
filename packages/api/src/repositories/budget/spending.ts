@@ -87,6 +87,7 @@ export const createSpendingRecord = async ({
             }
           : undefined,
       accountId: spendingRecord.accountId,
+      isTransfer: spendingRecord.isTransfer,
     },
     ...spendingRecordPayload,
   });
@@ -132,6 +133,7 @@ export const createSpendingRecords = async ({
                 }
               : undefined,
           accountId: spendingRecord.accountId,
+          isTransfer: spendingRecord.isTransfer,
         },
       });
     }),
@@ -211,6 +213,7 @@ export const updateSpendingRecord = async ({
       recordDate: spendingRecord.recordDate,
       description: spendingRecord.description,
       accountId: spendingRecord.accountId,
+      isTransfer: spendingRecord.isTransfer,
     },
     ...spendingRecordPayload,
   });
@@ -263,6 +266,7 @@ export const prismaToSpendingRecord = (
       }),
     ),
     accountId: spendingRecord.accountId,
+    isTransfer: spendingRecord.isTransfer,
   };
 };
 

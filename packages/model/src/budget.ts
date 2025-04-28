@@ -28,6 +28,7 @@ export const spendingRecordSchema = z.object({
   description: z.string(),
   transactionCategories: z.array(transactionCategorySchema),
   accountId: z.string().nullable(),
+  isTransfer: z.boolean(),
 });
 export type SpendingRecord = z.infer<typeof spendingRecordSchema>;
 

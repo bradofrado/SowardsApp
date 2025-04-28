@@ -28,6 +28,9 @@ export const isTransferTransactionAndUpdateCache = (
   transaction: SpendingRecord,
   transferedCache: SpendingRecord[],
 ) => {
+  if (transaction.isTransfer) {
+    return true;
+  }
   //A transfer transaction is a transaction that has the reverse amount and is within 3 days of each other
   const transferTransactionIndex = transferedCache.findIndex(
     (a) =>

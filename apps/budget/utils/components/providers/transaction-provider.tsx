@@ -66,7 +66,11 @@ export const TransactionProvider: React.FunctionComponent<
     // Filter out transfer transactions and split out transaction categories into their own transactions
     return transactions.reduce<SpendingRecordWithAccountType[]>(
       (prev, curr) => {
-        if (isTransferTransactionAndUpdateCache(curr, transferCache)) {
+        // Only filter out implicit transfer transactions
+        if (
+          !curr.isTransfer &&
+          isTransferTransactionAndUpdateCache(curr, transferCache)
+        ) {
           return prev;
         }
         if (curr.transactionCategories.length > 0) {

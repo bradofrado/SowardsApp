@@ -59,6 +59,7 @@ export const AddTransactionModal: React.FunctionComponent<
         transactionId: "",
         description: "",
         accountId: null,
+        isTransfer: false,
       }}
       onSave={onSave}
     />

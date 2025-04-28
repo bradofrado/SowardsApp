@@ -24,6 +24,7 @@ describe("Spending Records Pagination", () => {
       transactionCategories: [],
       accountId: null,
       userId: testUser.id,
+      isTransfer: false,
     }));
 
     await createSpendingRecords({

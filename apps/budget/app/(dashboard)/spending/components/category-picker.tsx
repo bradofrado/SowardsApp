@@ -9,7 +9,7 @@ import { useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
 import { Dialog, DialogActions } from "ui/src/components/catalyst/dialog";
 import { Heading } from "ui/src/components/catalyst/heading";
-import { InputBlur } from "ui/src/components/core/input";
+import { CheckboxInput, InputBlur } from "ui/src/components/core/input";
 import { Label } from "ui/src/components/core/label";
 import { useChangeArray } from "ui/src/hooks/change-property";
 
@@ -70,10 +70,17 @@ type CategoryPickerModalProps = Replace<
   show: boolean;
   onClose: () => void;
   transaction: SpendingRecord | undefined;
+  onIsTransferChange: (isTransfer: boolean) => void;
 };
 export const CategoryPickerModal: React.FunctionComponent<
   CategoryPickerModalProps
-> = ({ show, onClose, onChange: onChangeProps, ...props }) => {
+> = ({
+  show,
+  onClose,
+  onChange: onChangeProps,
+  onIsTransferChange,
+  ...props
+}) => {
   const transaction = props.transaction;
   if (!transaction) return null;
 
@@ -95,6 +102,15 @@ export const CategoryPickerModal: React.FunctionComponent<
   return (
     <Dialog open={show} onClose={onClose}>
       <CategoryPicker {...props} onChange={onChange} />
+      <Label label="Is Transfer" sameLine>
+        <CheckboxInput
+          value={transaction.isTransfer}
+          onChange={(value) => {
+            onIsTransferChange(value);
+            onClose();
+          }}
+        />
+      </Label>
       <DialogActions>
         <Button onClick={onRemove} plain>
           Remove
