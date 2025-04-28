@@ -136,33 +136,35 @@ export const TransferFundsModal: React.FunctionComponent<
           </Button>
         </DialogActions>
       </Dialog>
-      <TransferItemModal
-        show={transferItem !== null}
-        onClose={() => setTransferItem(null)}
-        onChange={(item) => {
-          if (!transferItem) return;
-          if (transferItem.editIndex === null) {
-            setItems([...items, item]);
-          } else {
-            setItems([
-              ...items.slice(0, transferItem.editIndex),
-              item,
-              ...items.slice(transferItem.editIndex + 1),
-            ]);
+      {currentItems[0] ? (
+        <TransferItemModal
+          show={transferItem !== null}
+          onClose={() => setTransferItem(null)}
+          onChange={(item) => {
+            if (!transferItem) return;
+            if (transferItem.editIndex === null) {
+              setItems([...items, item]);
+            } else {
+              setItems([
+                ...items.slice(0, transferItem.editIndex),
+                item,
+                ...items.slice(transferItem.editIndex + 1),
+              ]);
+            }
+            setTransferItem(null);
+          }}
+          items={currentItems}
+          transfer={
+            transferItem?.item || {
+              id: String(Math.random()),
+              to: currentItems[0],
+              amount: 0,
+              date: new Date(),
+            }
           }
-          setTransferItem(null);
-        }}
-        items={currentItems}
-        transfer={
-          transferItem?.item || {
-            id: String(Math.random()),
-            to: currentItems[0],
-            amount: 0,
-            date: new Date(),
-          }
-        }
-        edit={transferItem?.editIndex !== null}
-      />
+          edit={transferItem?.editIndex !== null}
+        />
+      ) : null}
     </>
   );
 };
