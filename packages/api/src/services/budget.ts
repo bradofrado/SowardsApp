@@ -202,7 +202,10 @@ export const createBudget = async ({
 export const getBudgets = async (userId: string): Promise<Budget[]> => {
   const budgets = await getBudgetsRepo({ db: prisma, userId });
 
-  return budgets;
+  return budgets.map((budget) => ({
+    ...budget,
+    items: budget.items.sort((a, b) => a.category.order - b.category.order),
+  }));
 };
 
 export interface ActionItem {
