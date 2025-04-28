@@ -13,6 +13,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "@clerk/nextjs";
 import type { AuthedSession, Session } from "model/src/auth";
+import { cookies } from "next/headers";
 import { getServerAuthSession } from "./auth";
 /**
  * 1. CONTEXT
@@ -60,7 +61,8 @@ const createInnerTRPCContext = (opts: CreateContextOptions): TRPCContext => {
  */
 export const createTRPCContext = async (): Promise<TRPCContext> => {
   const userId = auth().userId;
-  const session = await getServerAuthSession(userId);
+  const mockUserId = cookies().get("harmony-user-id")?.value;
+  const session = await getServerAuthSession(mockUserId ?? userId);
 
   return createInnerTRPCContext({
     session,

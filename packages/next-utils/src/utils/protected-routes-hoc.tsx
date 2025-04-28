@@ -19,7 +19,7 @@ export const requireRoute =
   () =>
   async (mockUserId?: string) => {
     const { userId } = auth();
-    const session = await getServerAuthSession(userId, mockUserId);
+    const session = await getServerAuthSession(mockUserId ?? userId);
 
     if (check && check(session)) {
       return { redirect, session: undefined };

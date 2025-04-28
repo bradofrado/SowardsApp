@@ -103,15 +103,11 @@ export const connectAccountToUserVacation = async (
 
 export const getServerAuthSession = async (
   userId: string | null,
-  mockUserId?: string,
 ): Promise<Session | undefined> => {
-  //const {userId} = auth()// : {userId: null};
-  //const {userId} = _auth;
   let ourAuth: AuthContext | null = null;
-  const userIdToUse = mockUserId !== "none" ? mockUserId || userId : null;
 
-  if (userIdToUse) {
-    const user = await clerkClient.users.getUser(userIdToUse);
+  if (userId) {
+    const user = await clerkClient.users.getUser(userId);
 
     if (!user.emailAddresses[0].emailAddress) {
       throw new Error("User does not have an email address");
@@ -132,7 +128,7 @@ export const getServerAuthSession = async (
     const vacationAccount = account.userVacation;
     ourAuth = {
       user: account,
-      userId: userIdToUse,
+      userId,
       userVacation: vacationAccount,
     };
   }
