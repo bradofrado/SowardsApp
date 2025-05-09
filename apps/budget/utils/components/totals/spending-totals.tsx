@@ -111,13 +111,14 @@ export const SpendingTotals: React.FunctionComponent = () => {
         label: "Monthly Transfers",
       },
     ],
+
     [longTermExpenses, shortTermExpenses, savingsGoals, debt, monthlyTransfers],
   );
 
   return (
     <>
       <FormSection
-        label="Spending Totals"
+        label="Budget Totals"
         button={
           <div className="flex gap-2">
             <Button onClick={() => setShowTransferFunds(true)} plain>
@@ -145,6 +146,7 @@ export const SpendingTotals: React.FunctionComponent = () => {
           }))}
           total={netWorth}
         />
+
         <div className="mt-2">
           <ChartLegend values={barValues} total={netWorth} noSort />
         </div>
@@ -212,6 +214,7 @@ const SavingGoalTotal: React.FunctionComponent<{
         ]}
         total={savingsGoal.targetAmount}
       />
+
       <div>
         <span className="text-sm">left to save:</span>{" "}
         {formatDollarAmount(savingsGoal.targetAmount - savingsGoal.amount)} (

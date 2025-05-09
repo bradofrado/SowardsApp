@@ -102,7 +102,7 @@ export const CategoryMonthView: React.FunctionComponent<
   };
   return (
     <>
-      <Heading>Spending by Category</Heading>
+      <Heading>Totals by Category</Heading>
       <FormDivider />
       <div className="flex flex-col">
         {years.length > 1 ? (
