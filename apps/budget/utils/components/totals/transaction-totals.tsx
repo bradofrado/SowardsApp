@@ -6,6 +6,7 @@ import { TransactionBarChart } from "../charts/bar-chart";
 import { useMemo } from "react";
 import { day, formatDollarAmount } from "model/src/utils";
 import { SpendingRecord } from "model/src/budget";
+import { useDateState } from "../../hooks/date-state";
 
 interface TransactionTotalsProps {
   type: "expense" | "income";
@@ -19,6 +20,7 @@ export const TransactionTotals: React.FunctionComponent<
     income: { transactions: incomeTransactions },
   } = useTransactions();
   const { avgMonthlyExpense, avgMonthlyIncome } = useMonthlyAverage();
+  const { currentYear } = useDateState();
   return (
     <>
       <Heading>
@@ -33,6 +35,7 @@ export const TransactionTotals: React.FunctionComponent<
       <TransactionBarChart
         bar1={incomeTransactions}
         bar2={expenseTransactions}
+        year={currentYear}
       />
     </>
   );

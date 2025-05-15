@@ -21,13 +21,13 @@ import { isDateInBetween } from "model/src/utils";
 interface TransactionBarChartProps {
   bar1: SpendingRecord[];
   bar2: SpendingRecord[];
-  //budgetItems: BudgetItem[];
   bar1Fill?: string;
   bar2Fill?: string;
+  year: number;
 }
 export const TransactionBarChart: React.FunctionComponent<
   TransactionBarChartProps
-> = ({ bar1, bar2, bar1Fill, bar2Fill }) => {
+> = ({ bar1, bar2, bar1Fill, bar2Fill, year }) => {
   const data = months.map<{
     month: Month;
     bar1: number;
@@ -38,13 +38,19 @@ export const TransactionBarChart: React.FunctionComponent<
       bar1: bar1.reduce<number>((prev, curr) => {
         return (
           prev +
-          (curr.date.getMonth() === months.indexOf(month) ? curr.amount : 0)
+          (curr.date.getMonth() === months.indexOf(month) &&
+          curr.date.getFullYear() === year
+            ? curr.amount
+            : 0)
         );
       }, 0),
       bar2: bar2.reduce<number>((prev, curr) => {
         return (
           prev +
-          (curr.date.getMonth() === months.indexOf(month) ? curr.amount : 0)
+          (curr.date.getMonth() === months.indexOf(month) &&
+          curr.date.getFullYear() === year
+            ? curr.amount
+            : 0)
         );
       }, 0),
     };
