@@ -3,6 +3,7 @@
 import { Button } from "ui/src/components/catalyst/button";
 import React, { useMemo, useState } from "react";
 import {
+  capitalizeFirstLetter,
   compare,
   displayDate,
   formatDollarAmount,
@@ -14,7 +15,11 @@ import { Heading } from "ui/src/components/catalyst/heading";
 import { FormDivider } from "ui/src/components/catalyst/form/form";
 import { Month, months } from "./types";
 import { useTransactions } from "../providers/transaction-provider";
-import { CategoryBudget } from "model/src/budget";
+import {
+  BudgetCadenceType,
+  budgetCadenceTypes,
+  CategoryBudget,
+} from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
 import { Header } from "ui/src/components/core/header";
@@ -61,26 +66,11 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [transactions, currentMonth, currentYear],
   );
-  const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
+  const categorizedExpenses = useExpenses({
     budgetItems,
     transactions,
     date: currentDate,
   });
-  const {
-    chartData: shortTermChartData,
-    budgeted: shortTermBudgeted,
-    actual: shortTermActual,
-  } = useCategoryChartData(shortTermExpenses, currentDate);
-  const {
-    chartData: longTermChartData,
-    budgeted: longTermBudgeted,
-    actual: longTermActual,
-  } = useCategoryChartData(longTermExpenses, currentDate);
-  const {
-    chartData: savingsGoalsChartData,
-    budgeted: savingsGoalsBudgeted,
-    actual: savingsGoalsActual,
-  } = useCategoryChartData(savingsGoals, currentDate);
 
   const uncategorizedData = useMemo(() => {
     const uncategorizedTransactions = filteredTransactions.filter(
@@ -148,73 +138,60 @@ export const CategoryMonthView: React.FunctionComponent<
               />
             ) : null}
           </div>
-          <Header level={4}>Monthly</Header>
-          <div className="flex flex-col gap-2">
-            <CategoryTarget
-              data={{
-                category: {
-                  id: "shortTerm",
-                  name: "Total Monthly Expenses",
-                  type: "expense",
-                  order: -2,
-                },
-                actual: shortTermActual,
-                budgeted: shortTermBudgeted,
-                transactions: shortTermExpenses.reduce<
-                  SpendingRecordWithAccountType[]
-                >((prev, curr) => prev.concat(...curr.transactions), []),
-              }}
+          {budgetCadenceTypes.map((cadenceType) => (
+            <BudgetCadenceMonthView
+              key={cadenceType}
+              budgetExpenses={categorizedExpenses[cadenceType]}
+              currentDate={currentDate}
+              cadenceType={cadenceType}
             />
-
-            {shortTermChartData.map((data) => (
-              <CategoryTarget key={data.category.id} data={data} />
-            ))}
-          </div>
-          <Header level={4}>Long Term</Header>
-          <div className="flex flex-col gap-2">
-            <CategoryTarget
-              data={{
-                category: {
-                  id: "longTerm",
-                  name: "Total Long Term Expenses",
-                  type: "expense",
-                  order: -2,
-                },
-                actual: longTermActual,
-                budgeted: longTermBudgeted,
-                transactions: longTermExpenses.reduce<
-                  SpendingRecordWithAccountType[]
-                >((prev, curr) => prev.concat(...curr.transactions), []),
-              }}
-            />
-
-            {longTermChartData.map((data) => (
-              <CategoryTarget key={data.category.id} data={data} />
-            ))}
-          </div>
-          <Header level={4}>Savings Goals</Header>
-          <div className="flex flex-col gap-2">
-            <CategoryTarget
-              data={{
-                category: {
-                  id: "fixed",
-                  name: "Total Savings Goals",
-                  type: "expense",
-                  order: -2,
-                },
-                actual: savingsGoalsActual,
-                budgeted: savingsGoalsBudgeted,
-                transactions: savingsGoals.reduce<
-                  SpendingRecordWithAccountType[]
-                >((prev, curr) => prev.concat(...curr.transactions), []),
-              }}
-            />
-
-            {savingsGoalsChartData.map((data) => (
-              <CategoryTarget key={data.category.id} data={data} />
-            ))}
-          </div>
+          ))}
         </div>
+      </div>
+    </>
+  );
+};
+
+interface BudgetCadenceMonthViewProps {
+  budgetExpenses: BudgetItemWithTransactions[];
+  currentDate: Date;
+  cadenceType: BudgetCadenceType;
+}
+const BudgetCadenceMonthView: React.FunctionComponent<
+  BudgetCadenceMonthViewProps
+> = ({ budgetExpenses, currentDate, cadenceType }) => {
+  const { chartData, budgeted, actual } = useCategoryChartData(
+    budgetExpenses,
+    currentDate,
+  );
+  const title = formatCadenceType(cadenceType);
+
+  if (budgetExpenses.length === 0) return null;
+
+  return (
+    <>
+      <Header level={4}>{title}</Header>
+      <div className="flex flex-col gap-2">
+        <CategoryTarget
+          data={{
+            category: {
+              id: cadenceType,
+              name: `Total ${title} Expenses`,
+              type: "expense",
+              order: -2,
+            },
+            actual,
+            budgeted,
+            transactions: chartData.reduce<SpendingRecordWithAccountType[]>(
+              (prev, curr) => prev.concat(...curr.transactions),
+              [],
+            ),
+          }}
+        />
+
+        {chartData.map((data) => (
+          <CategoryTarget key={data.category.id} data={data} />
+        ))}
       </div>
     </>
   );
@@ -373,4 +350,10 @@ const CategoryTransactionsModal: React.FunctionComponent<
       </DialogBody>
     </Dialog>
   );
+};
+
+const formatCadenceType = (cadenceType: BudgetCadenceType) => {
+  if (cadenceType === "fixed") return "Savings Goals";
+
+  return capitalizeFirstLetter(cadenceType);
 };

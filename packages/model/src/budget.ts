@@ -86,6 +86,9 @@ export const budgetCadenceSchema = z.union([
   fixedCadence,
 ]);
 export type BudgetCadence = z.infer<typeof budgetCadenceSchema>;
+export type BudgetCadenceType = BudgetCadence["type"];
+export const budgetCadenceTypes: BudgetCadenceType[] =
+  budgetCadenceSchema.options.map((o) => o.shape.type.value);
 
 export const budgetItemSchema = z.object({
   id: z.string(),

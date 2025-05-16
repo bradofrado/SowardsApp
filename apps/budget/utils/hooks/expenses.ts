@@ -1,5 +1,10 @@
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
-import { BudgetCadence, BudgetItem } from "model/src/budget";
+import {
+  BudgetCadence,
+  BudgetCadenceType,
+  budgetCadenceTypes,
+  BudgetItem,
+} from "model/src/budget";
 import { isDateInBetween } from "model/src/utils";
 import { useCallback, useMemo } from "react";
 
@@ -14,11 +19,7 @@ export const useExpenses = ({
   budgetItems: BudgetItem[];
   transactions: SpendingRecordWithAccountType[];
   date: Date;
-}): {
-  longTermExpenses: BudgetItemWithTransactions[];
-  shortTermExpenses: BudgetItemWithTransactions[];
-  savingsGoals: BudgetItemWithTransactions[];
-} => {
+}): Record<BudgetCadenceType, BudgetItemWithTransactions[]> => {
   const createBudgetItemWithTransactions = useCallback(
     (cadenceTypes: BudgetCadence["type"][]) => {
       return budgetItems
@@ -52,17 +53,13 @@ export const useExpenses = ({
     },
     [budgetItems, transactions, date],
   );
-  const longTermExpenses = useMemo(
-    () => createBudgetItemWithTransactions(["yearly", "eventually"]),
-    [budgetItems, transactions, date],
-  );
-  const shortTermExpenses = useMemo(
-    () => createBudgetItemWithTransactions(["monthly", "weekly"]),
-    [budgetItems, transactions, date],
-  );
-  const savingsGoals = useMemo(
-    () => createBudgetItemWithTransactions(["fixed"]),
-    [budgetItems, transactions, date],
-  );
-  return { longTermExpenses, shortTermExpenses, savingsGoals };
+  const expensesByCadenceType = useMemo(() => {
+    return Object.fromEntries(
+      budgetCadenceTypes.map((cadenceType) => [
+        cadenceType,
+        createBudgetItemWithTransactions([cadenceType]),
+      ]),
+    ) as Record<BudgetCadenceType, BudgetItemWithTransactions[]>;
+  }, [createBudgetItemWithTransactions]);
+  return expensesByCadenceType;
 };

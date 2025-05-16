@@ -26,11 +26,20 @@ export const SpendingTotals: React.FunctionComponent = () => {
   const updateBudget = useUpdateBudget();
   const [showEditBudget, setShowEditBudget] = useState(false);
   const [showTransferFunds, setShowTransferFunds] = useState(false);
-  const { longTermExpenses, shortTermExpenses, savingsGoals } = useExpenses({
+  const {
+    eventually,
+    monthly: shortTermExpenses,
+    yearly,
+    fixed: savingsGoals,
+  } = useExpenses({
     budgetItems: expenses.budgetItems,
     transactions: expenses.transactions,
     date: new Date(),
   });
+
+  const longTermExpenses = useMemo(() => {
+    return [...eventually, ...yearly];
+  }, [eventually, yearly]);
 
   const debt = useDebtTotals(accounts);
 
