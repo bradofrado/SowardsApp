@@ -263,6 +263,10 @@ export const makeExpenseTransaction = async ({
     from,
     to,
   };
+  if (from?.id === to.id) {
+    throw new Error("Cannot transfer to the same category");
+  }
+
   await createTransferCategory({
     input: transferCategory,
     db,
