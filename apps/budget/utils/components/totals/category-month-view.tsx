@@ -217,27 +217,21 @@ const useCategoryChartData = (
 
   const chartData: CategoryChartData[] = useMemo(
     () =>
-      budgetExpenses.map(({ category, amount, transactions }) => {
-        const currMonthTransactions = transactions.filter((t) =>
-          isDateInBetween(
-            t.date,
-            getStartOfMonthDate(currentDate),
-            getEndOfMonthDate(currentDate),
-          ),
-        );
-        return {
-          category,
-          actual: calculateAmount(currMonthTransactions),
-          budgeted:
-            amount -
-            calculateAmount(
-              transactions.filter(
-                (t) => t.date < getStartOfMonthDate(currentDate),
-              ),
-            ),
-          transactions: currMonthTransactions,
-        };
-      }),
+      budgetExpenses.map(
+        ({ category, amount, transactions, periodStart, periodEnd }) => {
+          const currMonthTransactions = transactions.filter(
+            (t) =>
+              isDateInBetween(t.date, periodStart, periodEnd) &&
+              t.date <= getEndOfMonthDate(currentDate),
+          );
+          return {
+            category,
+            actual: calculateAmount(currMonthTransactions),
+            budgeted: amount,
+            transactions: currMonthTransactions,
+          };
+        },
+      ),
     [budgetExpenses, currentDate],
   );
 
