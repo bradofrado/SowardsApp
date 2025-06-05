@@ -11,44 +11,50 @@ export const updateExpiredBudgets = async (
   db: Db,
   userVacation: UserVacationWithBudgets,
 ): Promise<number> => {
-  return db.$transaction(async (tx) => {
-    const categories = await getCategories({ db: tx, userId: userVacation.id });
+  return db.$transaction(
+    async (tx) => {
+      const categories = await getCategories({
+        db: tx,
+        userId: userVacation.id,
+      });
 
-    let createdCount = 0;
-    // Process budgets sequentially to avoid race conditions
-    for (const budget of userVacation.budgets) {
-      for (const category of categories) {
-        const budgetItem = budget.items.find(
-          (item) => item.category.id === category.id,
-        );
-        const budgetItemNotExpired = budget.items.find(
-          (item) =>
-            item.category.id === category.id &&
-            isDateInBetween(new Date(), item.periodStart, item.periodEnd),
-        );
-
-        if (budgetItem && budgetItemNotExpired === undefined) {
-          const { periodStart, periodEnd } = getCadenceStartAndEnd(
-            budgetItem.cadence,
+      let createdCount = 0;
+      // Process budgets sequentially to avoid race conditions
+      for (const budget of userVacation.budgets) {
+        for (const category of categories) {
+          const budgetItem = budget.items.find(
+            (item) => item.category.id === category.id,
+          );
+          const budgetItemNotExpired = budget.items.find(
+            (item) =>
+              item.category.id === category.id &&
+              isDateInBetween(new Date(), item.periodStart, item.periodEnd),
           );
 
-          await createBudgetItem({
-            db: tx,
-            budgetId: budget.id,
-            item: {
-              ...budgetItem,
-              amount: budgetItem.targetAmount,
-              periodStart,
-              periodEnd,
-            },
-          });
-          createdCount++;
+          if (budgetItem && budgetItemNotExpired === undefined) {
+            const { periodStart, periodEnd } = getCadenceStartAndEnd(
+              budgetItem.cadence,
+            );
+
+            await createBudgetItem({
+              db: tx,
+              budgetId: budget.id,
+              item: {
+                ...budgetItem,
+                amount: budgetItem.targetAmount,
+                periodStart,
+                periodEnd,
+              },
+            });
+            createdCount++;
+          }
         }
       }
-    }
 
-    return createdCount;
-  });
+      return createdCount;
+    },
+    { timeout: 10000 },
+  );
 };
 
 export const processAutomatedTransfers = async (
