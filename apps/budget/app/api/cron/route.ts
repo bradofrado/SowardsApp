@@ -34,6 +34,10 @@ export async function GET(req: NextRequest) {
     // Process users sequentially to avoid overwhelming the database
     for (const user of users) {
       try {
+        logger.info({
+          message: "Processing user",
+          userId: user.id,
+        });
         const createdCount = await updateExpiredBudgets(prisma, user);
         const processedCount = await processAutomatedTransfers(prisma, user);
         successCount++;
