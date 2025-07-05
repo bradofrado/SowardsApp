@@ -110,7 +110,13 @@ export const SpendingTotals: React.FunctionComponent = () => {
         label: "Debt",
       },
       {
-        value: calculateAmount(savingsGoals),
+        value:
+          calculateAmount(savingsGoals) -
+          calculateAmount(
+            savingsGoals.map((expense) => ({
+              amount: calculateAmount(expense.transactions),
+            })),
+          ),
         fill: expenseFills.savings,
         label: "Savings Goals",
       },
