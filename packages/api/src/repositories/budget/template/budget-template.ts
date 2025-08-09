@@ -6,6 +6,9 @@ export const budgetPayload = {
   include: {
     budgetItems: {
       ...budgetItemPayload,
+      orderBy: {
+        periodStart: "desc",
+      },
     },
   },
 } satisfies Prisma.BudgetTemplateDefaultArgs;

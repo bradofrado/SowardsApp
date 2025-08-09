@@ -9,6 +9,7 @@ import {
   type YearlyCadence,
   type FixedCadence,
   getCadenceStartAndEnd,
+  BudgetCadenceType,
 } from "model/src/budget";
 import { Replace } from "model/src/core/utils";
 import {
@@ -175,6 +176,9 @@ export const BudgetForm: React.FunctionComponent<BudgetFormProps> = ({
   );
 };
 
+// These types don't let you adjust a monthly cadence amount different than the target amount
+const syncWithCadenceTypes: BudgetCadenceType[] = ["weekly", "monthly"];
+
 export const BudgetItemForm: React.FunctionComponent<
   Replace<
     BudgetItemProps,
@@ -227,6 +231,19 @@ export const BudgetItemForm: React.FunctionComponent<
         return { type };
       case "fixed":
         return { type, date: new Date() };
+    }
+  };
+
+  const onAmountChange = (amount: string) => {
+    const amountNumber = Number(amount);
+    if (isNaN(amountNumber)) {
+      setError("Please enter a valid number");
+      return;
+    }
+
+    let changed = changeProperty(item, "targetAmount", amountNumber);
+    if (syncWithCadenceTypes.includes(item.cadence.type)) {
+      changed = changeProperty(changed, "cadenceAmount", amountNumber);
     }
   };
 
@@ -327,7 +344,7 @@ export const BudgetItemForm: React.FunctionComponent<
         <InputBlur
           className="h-fit"
           value={item.targetAmount}
-          onChange={changeProperty.formFuncNumber("targetAmount", item)}
+          onChange={onAmountChange}
         />
         {calculatedRenewingAllotment !== undefined ? (
           <Label label="Estimated Renewing Allotment">
@@ -347,7 +364,7 @@ export const BudgetItemForm: React.FunctionComponent<
         ) : null}
       </FormRow>
       <FormDivider />
-      {!["weekly", "monthly"].includes(item.cadence.type) ? (
+      {!syncWithCadenceTypes.includes(item.cadence.type) ? (
         <>
           <FormRow
             label="Renewing Allotment"
@@ -376,7 +393,7 @@ export const BudgetItemForm: React.FunctionComponent<
         </>
       ) : null}
       <FormRow
-        label="Current Allotment"
+        label="Current Balance"
         description="The amount of money you want to put into this category right now. It can be less than the target amount if you do not have the funds currently."
       >
         <InputBlur
