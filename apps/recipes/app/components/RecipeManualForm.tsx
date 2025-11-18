@@ -45,19 +45,27 @@ export function RecipeManualForm({
 }: RecipeManualFormProps) {
   const [recipeText, setRecipeText] = useState("");
   const [title, setTitle] = useState(defaultValues?.title || "");
-  const [description, setDescription] = useState(defaultValues?.description || "");
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-    defaultValues?.categoryIds || []
+  const [description, setDescription] = useState(
+    defaultValues?.description || "",
   );
-  const [prepTime, setPrepTime] = useState(defaultValues?.prepTime?.toString() || "");
-  const [cookTime, setCookTime] = useState(defaultValues?.cookTime?.toString() || "");
-  const [servings, setServings] = useState(defaultValues?.servings?.toString() || "");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+    defaultValues?.categoryIds || [],
+  );
+  const [prepTime, setPrepTime] = useState(
+    defaultValues?.prepTime?.toString() || "",
+  );
+  const [cookTime, setCookTime] = useState(
+    defaultValues?.cookTime?.toString() || "",
+  );
+  const [servings, setServings] = useState(
+    defaultValues?.servings?.toString() || "",
+  );
   const [imageUrl, setImageUrl] = useState(defaultValues?.imageUrl || "");
   const [ingredients, setIngredients] = useState<string[]>(
-    defaultValues?.ingredients || [""]
+    defaultValues?.ingredients || [""],
   );
   const [instructions, setInstructions] = useState<string[]>(
-    defaultValues?.instructions || [""]
+    defaultValues?.instructions || [""],
   );
   const [notes, setNotes] = useState(defaultValues?.notes || "");
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -82,13 +90,19 @@ export function RecipeManualForm({
       setPrepTime(parsedRecipe.prepTime?.toString() || "");
       setCookTime(parsedRecipe.cookTime?.toString() || "");
       setServings(parsedRecipe.servings?.toString() || "");
-      setIngredients(parsedRecipe.ingredients.length > 0 ? parsedRecipe.ingredients : [""]);
-      setInstructions(parsedRecipe.instructions.length > 0 ? parsedRecipe.instructions : [""]);
+      setIngredients(
+        parsedRecipe.ingredients.length > 0 ? parsedRecipe.ingredients : [""],
+      );
+      setInstructions(
+        parsedRecipe.instructions.length > 0 ? parsedRecipe.instructions : [""],
+      );
       setNotes(parsedRecipe.notes || "");
       setRecipeText("");
     },
     onError: () => {
-      toast.error("Failed to parse recipe text. Please try again or enter manually.");
+      toast.error(
+        "Failed to parse recipe text. Please try again or enter manually.",
+      );
     },
   });
 
@@ -159,7 +173,8 @@ export function RecipeManualForm({
     onSubmit({
       title: title.trim(),
       description: description.trim() || undefined,
-      categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+      categoryIds:
+        selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       prepTime: prepTime ? parseInt(prepTime) : undefined,
       cookTime: cookTime ? parseInt(cookTime) : undefined,
       servings: servings ? parseInt(servings) : undefined,
@@ -175,7 +190,7 @@ export function RecipeManualForm({
     setSelectedCategoryIds((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -218,7 +233,9 @@ export function RecipeManualForm({
             variant="default"
           >
             <Sparkles className="h-4 w-4" />
-            {parseRecipeTextMutation.isLoading ? "Parsing..." : "Auto-fill with AI"}
+            {parseRecipeTextMutation.isLoading
+              ? "Parsing your schema..."
+              : "Auto-fill with AI"}
           </Button>
         </div>
       </div>

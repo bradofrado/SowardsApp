@@ -13,9 +13,9 @@ export const recipeRouter = createTRPCRouter({
   // Category operations
   getCategories: protectedProcedure.query(async ({ ctx }) => {
     const results = await ctx.prisma.recipeCategory.findMany({
-      where: {
-        userId: ctx.session.auth.userVacation.id,
-      },
+      // where: {
+      //   userId: ctx.session.auth.userVacation.id,
+      // },
       orderBy: {
         name: "asc",
       },
@@ -51,7 +51,7 @@ export const recipeRouter = createTRPCRouter({
       return ctx.prisma.recipeCategory.update({
         where: {
           id,
-          userId: ctx.session.auth.userVacation.id,
+          //userId: ctx.session.auth.userVacation.id,
         },
         data,
       });
@@ -63,7 +63,7 @@ export const recipeRouter = createTRPCRouter({
       return ctx.prisma.recipeCategory.delete({
         where: {
           id: input.id,
-          userId: ctx.session.auth.userVacation.id,
+          //userId: ctx.session.auth.userVacation.id,
         },
       });
     }),
@@ -79,7 +79,7 @@ export const recipeRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const where: Prisma.RecipeWhereInput = {
-        userId: ctx.session.auth.userVacation.id,
+        //userId: ctx.session.auth.userVacation.id,
         isPublic: true,
       };
 
@@ -106,7 +106,7 @@ export const recipeRouter = createTRPCRouter({
       return ctx.prisma.recipe.findUnique({
         where: {
           id: input.id,
-          userId: ctx.session.auth.userVacation.id,
+          //userId: ctx.session.auth.userVacation.id,
         },
         include: {
           categories: true,
@@ -145,7 +145,7 @@ export const recipeRouter = createTRPCRouter({
       return ctx.prisma.recipe.update({
         where: {
           id,
-          userId: ctx.session.auth.userVacation.id,
+          //userId: ctx.session.auth.userVacation.id,
         },
         data,
         include: {
@@ -160,7 +160,7 @@ export const recipeRouter = createTRPCRouter({
       return ctx.prisma.recipe.delete({
         where: {
           id: input.id,
-          userId: ctx.session.auth.userVacation.id,
+          //userId: ctx.session.auth.userVacation.id,
         },
       });
     }),
