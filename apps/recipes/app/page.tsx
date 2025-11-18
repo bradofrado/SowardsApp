@@ -2,20 +2,36 @@ import Link from "next/link";
 import { Plus, ChefHat, FolderTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryGrid } from "@/components/CategoryGrid";
+import { RecipeCard } from "@/components/RecipeCard";
 import {
   withAuth,
   type AuthProps,
 } from "next-utils/src/utils/protected-routes-hoc";
 
 async function Home({ ctx }: AuthProps) {
-  const categories = await ctx.prisma.recipeCategory.findMany({
-    where: {
-      userId: ctx.session.auth.userVacation.id,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const [categories, recentRecipes] = await Promise.all([
+    ctx.prisma.recipeCategory.findMany({
+      where: {
+        userId: ctx.session.auth.userVacation.id,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+    ctx.prisma.recipe.findMany({
+      where: {
+        userId: ctx.session.auth.userVacation.id,
+        isPublic: true,
+      },
+      include: {
+        categories: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 6,
+    }),
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent">
@@ -66,6 +82,24 @@ async function Home({ ctx }: AuthProps) {
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               No categories found
+            </div>
+          )}
+        </section>
+
+        {/* All Recipes */}
+        <section className="mt-16">
+          <h2 className="text-3xl font-semibold text-foreground mb-6">
+            All Recipes
+          </h2>
+          {recentRecipes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recentRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              No recipes found yet
             </div>
           )}
         </section>
