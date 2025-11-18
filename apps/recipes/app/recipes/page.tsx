@@ -1,13 +1,22 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCard } from "@/components/RecipeCard";
-import { api } from "next-utils/src/utils/api";
+import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
 
-export default function RecipeList() {
-  const { data: recipes, isLoading } = api.recipe.getRecipes.useQuery();
+async function RecipeList({ ctx }: AuthProps) {
+  const recipes = await ctx.prisma.recipe.findMany({
+    where: {
+      userId: ctx.session.auth.userVacation.id,
+      isPublic: true,
+    },
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent">
@@ -24,17 +33,13 @@ export default function RecipeList() {
             All Recipes
           </h1>
           <p className="text-xl text-muted-foreground">
-            {recipes?.length || 0} {recipes?.length === 1 ? "recipe" : "recipes"} found
+            {recipes.length} {recipes.length === 1 ? "recipe" : "recipes"} found
           </p>
         </header>
 
         {/* Recipes Grid */}
         <section>
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Loading recipes...
-            </div>
-          ) : recipes && recipes.length > 0 ? (
+          {recipes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recipes.map((recipe) => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
@@ -55,3 +60,5 @@ export default function RecipeList() {
     </div>
   );
 }
+
+export default withAuth(RecipeList);

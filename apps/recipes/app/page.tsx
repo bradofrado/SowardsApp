@@ -1,13 +1,18 @@
-"use client";
-
 import Link from "next/link";
 import { Plus, ChefHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryGrid } from "@/components/CategoryGrid";
-import { api } from "next-utils/src/utils/api";
+import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
 
-export default function Home() {
-  const { data: categories, isLoading } = api.recipe.getCategories.useQuery();
+async function Home({ ctx }: AuthProps) {
+  const categories = await ctx.prisma.recipeCategory.findMany({
+    where: {
+      userId: ctx.session.auth.userVacation.id,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-accent">
@@ -38,11 +43,7 @@ export default function Home() {
           <h2 className="text-3xl font-semibold text-foreground mb-6">
             Browse by Category
           </h2>
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Loading categories...
-            </div>
-          ) : categories && categories.length > 0 ? (
+          {categories.length > 0 ? (
             <CategoryGrid categories={categories} />
           ) : (
             <div className="text-center py-12 text-muted-foreground">
@@ -63,3 +64,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuth(Home);

@@ -1,47 +1,20 @@
-"use client";
-
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, Users, Share2, Trash2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Clock, Users, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
-import { api } from "next-utils/src/utils/api";
+import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
+import { RecipeActions } from "./components/RecipeActions";
 
-export default function RecipeDetail() {
-  const params = useParams();
-  const router = useRouter();
-  const id = params.id as string;
-
-  const { data: recipe, isLoading } = api.recipe.getRecipe.useQuery({ id });
-  const deleteRecipeMutation = api.recipe.deleteRecipe.useMutation({
-    onSuccess: () => {
-      toast.success("Recipe deleted successfully");
-      router.push("/");
+async function RecipeDetail({ ctx, params }: AuthProps) {
+  const recipe = await ctx.prisma.recipe.findUnique({
+    where: {
+      id: params.id,
+      userId: ctx.session.auth.userVacation.id,
     },
-    onError: () => {
-      toast.error("Failed to delete recipe");
+    include: {
+      category: true,
     },
   });
-
-  const handleShare = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    toast.success("Recipe link copied to clipboard!");
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this recipe?")) return;
-    deleteRecipeMutation.mutate({ id });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-accent flex items-center justify-center">
-        <p className="text-muted-foreground">Loading recipe...</p>
-      </div>
-    );
-  }
 
   if (!recipe) {
     return (
@@ -90,14 +63,7 @@ export default function RecipeDetail() {
                   <p className="text-primary font-medium">{recipe.category.name}</p>
                 )}
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={handleShare}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleDelete}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <RecipeActions recipeId={recipe.id} />
             </div>
 
             {recipe.description && (
@@ -186,3 +152,5 @@ export default function RecipeDetail() {
     </div>
   );
 }
+
+export default withAuth(RecipeDetail);
