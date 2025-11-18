@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Share2, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Share2, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { api } from "next-utils/src/utils/api";
@@ -35,6 +36,11 @@ export function RecipeActions({ recipeId }: RecipeActionsProps) {
 
   return (
     <div className="flex gap-2">
+      <Link href={`/recipe/${recipeId}/edit`}>
+        <Button variant="outline" size="icon">
+          <Edit className="h-4 w-4" />
+        </Button>
+      </Link>
       <Button variant="outline" size="icon" onClick={handleShare}>
         <Share2 className="h-4 w-4" />
       </Button>
