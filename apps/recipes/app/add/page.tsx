@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, X, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,8 @@ export default function AddRecipe() {
   const router = useRouter();
   const { data: categories } = api.recipe.getCategories.useQuery();
 
+  const [mode, setMode] = useState<"url" | "manual">("url");
+  const [recipeUrl, setRecipeUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -41,6 +44,16 @@ export default function AddRecipe() {
     },
     onError: () => {
       toast.error("Failed to add recipe");
+    },
+  });
+
+  const scrapeRecipeMutation = api.recipe.scrapeRecipeFromUrl.useMutation({
+    onSuccess: (data) => {
+      toast.success("Recipe imported successfully!");
+      router.push(`/recipe/${data.id}`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to import recipe from URL");
     },
   });
 
@@ -72,7 +85,28 @@ export default function AddRecipe() {
     setInstructions(updated);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUrlSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!recipeUrl.trim()) {
+      toast.error("Please enter a recipe URL");
+      return;
+    }
+
+    try {
+      new URL(recipeUrl);
+    } catch {
+      toast.error("Please enter a valid URL");
+      return;
+    }
+
+    scrapeRecipeMutation.mutate({
+      url: recipeUrl.trim(),
+      categoryId: categoryId || undefined,
+    });
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -123,7 +157,83 @@ export default function AddRecipe() {
             Add New Recipe
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <Tabs
+            value={mode}
+            onValueChange={(value) => setMode(value as "url" | "manual")}
+            className="space-y-6"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="url" className="gap-2">
+                <LinkIcon className="h-4 w-4" />
+                Import from URL
+              </TabsTrigger>
+              <TabsTrigger value="manual" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Manual Entry
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="url" className="space-y-6">
+              <form onSubmit={handleUrlSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="recipeUrl">Recipe URL *</Label>
+                    <Input
+                      id="recipeUrl"
+                      type="url"
+                      value={recipeUrl}
+                      onChange={(e) => setRecipeUrl(e.target.value)}
+                      placeholder="https://www.allrecipes.com/recipe/..."
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Paste a URL from popular recipe sites like AllRecipes,
+                      Food Network, NYT Cooking, and more.
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="categoryUrl">Category (Optional)</Label>
+                    <Select value={categoryId} onValueChange={setCategoryId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={scrapeRecipeMutation.isLoading}
+                    className="flex-1"
+                  >
+                    {scrapeRecipeMutation.isLoading
+                      ? "Importing Recipe..."
+                      : "Import Recipe"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={() => router.push("/")}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="manual">
+              <form onSubmit={handleManualSubmit} className="space-y-8">
             {/* Basic Info */}
             <div className="space-y-4">
               <div>
@@ -304,28 +414,30 @@ export default function AddRecipe() {
               />
             </div>
 
-            {/* Submit */}
-            <div className="flex gap-4">
-              <Button
-                type="submit"
-                size="lg"
-                disabled={createRecipeMutation.isLoading}
-                className="flex-1"
-              >
-                {createRecipeMutation.isLoading
-                  ? "Adding Recipe..."
-                  : "Add Recipe"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="lg"
-                onClick={() => router.push("/")}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
+                {/* Submit */}
+                <div className="flex gap-4">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={createRecipeMutation.isLoading}
+                    className="flex-1"
+                  >
+                    {createRecipeMutation.isLoading
+                      ? "Adding Recipe..."
+                      : "Add Recipe"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={() => router.push("/")}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
+          </Tabs>
         </Card>
       </div>
     </div>
