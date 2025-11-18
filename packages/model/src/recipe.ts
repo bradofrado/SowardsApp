@@ -22,8 +22,8 @@ export const recipeSchema = z.object({
   imageUrl: z.string().nullable().optional(),
   sourceUrl: z.string().nullable().optional(),
   isPublic: z.boolean().default(true),
-  categoryId: z.string().nullable().optional(),
-  category: recipeCategorySchema.nullable().optional(),
+  categoryIds: z.array(z.string()).default([]),
+  categories: z.array(recipeCategorySchema).optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -34,7 +34,7 @@ export const createRecipeSchema = recipeSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  category: true,
+  categories: true,
 });
 
 export type CreateRecipe = z.infer<typeof createRecipeSchema>;
@@ -43,7 +43,7 @@ export const updateRecipeSchema = recipeSchema
   .omit({
     createdAt: true,
     updatedAt: true,
-    category: true,
+    categories: true,
   })
   .partial()
   .required({ id: true });

@@ -52,14 +52,14 @@ export default function AddRecipe() {
     },
   });
 
-  const handleUrlSubmit = (data: { url: string; categoryId?: string }) => {
+  const handleUrlSubmit = (data: { url: string; categoryIds?: string[] }) => {
     scrapeRecipeMutation.mutate(data);
   };
 
   const handleManualSubmit = (data: {
     title: string;
     description?: string;
-    categoryId?: string;
+    categoryIds?: string[];
     prepTime?: number;
     cookTime?: number;
     servings?: number;
@@ -106,7 +106,7 @@ export default function AddRecipe() {
             <TabsContent value="url" className="space-y-6">
               <RecipeUrlForm
                 categories={categories}
-                defaultCategoryId={defaultCategoryId}
+                defaultCategoryIds={defaultCategoryId ? [defaultCategoryId] : undefined}
                 onSubmit={handleUrlSubmit}
                 isLoading={scrapeRecipeMutation.isLoading}
                 submitLabel="Import Recipe"
@@ -119,7 +119,7 @@ export default function AddRecipe() {
               <RecipeManualForm
                 categories={categories}
                 defaultValues={
-                  defaultCategoryId ? { categoryId: defaultCategoryId } : undefined
+                  defaultCategoryId ? { categoryIds: [defaultCategoryId] } : undefined
                 }
                 onSubmit={handleManualSubmit}
                 isLoading={createRecipeMutation.isLoading}

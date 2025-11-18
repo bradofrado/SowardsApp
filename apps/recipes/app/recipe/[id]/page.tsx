@@ -12,7 +12,7 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
       userId: ctx.session.auth.userVacation.id,
     },
     include: {
-      category: true,
+      categories: true,
     },
   });
 
@@ -59,8 +59,18 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
                 <h1 className="text-4xl font-bold text-foreground mb-2">
                   {recipe.title}
                 </h1>
-                {recipe.category && (
-                  <p className="text-primary font-medium">{recipe.category.name}</p>
+                {recipe.categories && recipe.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {recipe.categories.map((category) => (
+                      <span
+                        key={category.id}
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary font-medium text-sm"
+                      >
+                        {category.icon && <span>{category.icon}</span>}
+                        {category.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
               <RecipeActions recipeId={recipe.id} />

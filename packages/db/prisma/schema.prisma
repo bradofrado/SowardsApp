@@ -78,14 +78,14 @@ model BudgetCategory {
 
 //Savings goal or variable expense
 model SavingsTransaction {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
-  amount        Float
-  description   String
-  budgetId      String?      @db.ObjectId
-  budget        BudgetItem?  @relation(fields: [budgetId], references: [id])
-  userId        String       @db.ObjectId
-  user          UserVacation @relation(fields: [userId], references: [id])
-  date          DateTime
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  description String
+  budgetId    String?      @db.ObjectId
+  budget      BudgetItem?  @relation(fields: [budgetId], references: [id])
+  userId      String       @db.ObjectId
+  user        UserVacation @relation(fields: [userId], references: [id])
+  date        DateTime
 }
 
 //Transfer overflows from one category to another
@@ -101,11 +101,11 @@ model TransferCategory {
 }
 
 model BudgetTemplate {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  name         String
-  userId       String        @db.ObjectId
-  user         UserVacation  @relation(fields: [userId], references: [id])
-  budgetItems  BudgetItem[]
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  userId      String       @db.ObjectId
+  user        UserVacation @relation(fields: [userId], references: [id])
+  budgetItems BudgetItem[]
 }
 
 model BudgetItem {
@@ -181,36 +181,37 @@ model VacationGroup {
 }
 
 model RecipeCategory {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
   icon        String?
-  userId      String   @db.ObjectId
+  userId      String       @db.ObjectId
   user        UserVacation @relation(fields: [userId], references: [id])
-  recipes     Recipe[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  recipeIds   String[]     @db.ObjectId
+  recipes     Recipe[]     @relation(fields: [recipeIds], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([userId, name])
 }
 
 model Recipe {
-  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
   title        String
   description  String?
-  prepTime     Int?            @map("prep_time")
-  cookTime     Int?            @map("cook_time")
+  prepTime     Int?             @map("prep_time")
+  cookTime     Int?             @map("cook_time")
   servings     Int?
   ingredients  String[]
   instructions String[]
   notes        String?
-  imageUrl     String?         @map("image_url")
-  sourceUrl    String?         @map("source_url")
-  isPublic     Boolean         @default(true) @map("is_public")
-  categoryId   String?         @db.ObjectId
-  category     RecipeCategory? @relation(fields: [categoryId], references: [id])
-  userId       String          @db.ObjectId
-  user         UserVacation    @relation(fields: [userId], references: [id])
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  imageUrl     String?          @map("image_url")
+  sourceUrl    String?          @map("source_url")
+  isPublic     Boolean          @default(true) @map("is_public")
+  categoryIds  String[]         @db.ObjectId
+  categories   RecipeCategory[] @relation(fields: [categoryIds], references: [id])
+  userId       String           @db.ObjectId
+  user         UserVacation     @relation(fields: [userId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 }

@@ -12,10 +12,12 @@ async function CategoryRecipeList({ ctx, params }: AuthProps) {
       where: {
         userId: ctx.session.auth.userVacation.id,
         isPublic: true,
-        categoryId,
+        categoryIds: {
+          has: categoryId,
+        },
       },
       include: {
-        category: true,
+        categories: true,
       },
       orderBy: {
         createdAt: "desc",

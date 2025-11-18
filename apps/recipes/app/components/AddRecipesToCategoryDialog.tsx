@@ -19,7 +19,7 @@ import { toast } from "sonner";
 interface Recipe {
   id: string;
   title: string;
-  categoryId?: string | null;
+  categoryIds?: string[];
 }
 
 interface AddRecipesToCategoryDialogProps {
@@ -48,7 +48,7 @@ export function AddRecipesToCategoryDialog({
 
   // Filter out recipes that are already in this category
   const availableRecipes = recipes.filter(
-    (recipe) => recipe.categoryId !== categoryId
+    (recipe) => !recipe.categoryIds?.includes(categoryId)
   );
 
   // Filter by search query
@@ -131,9 +131,9 @@ export function AddRecipesToCategoryDialog({
                       className="flex-1 text-sm font-medium leading-none cursor-pointer"
                     >
                       {recipe.title}
-                      {recipe.categoryId && (
+                      {recipe.categoryIds && recipe.categoryIds.length > 0 && (
                         <span className="text-xs text-muted-foreground ml-2">
-                          (currently in another category)
+                          ({recipe.categoryIds.length} {recipe.categoryIds.length === 1 ? "category" : "categories"})
                         </span>
                       )}
                     </label>

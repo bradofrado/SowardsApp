@@ -5,21 +5,15 @@ import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { api } from "next-utils/src/utils/api";
 import { CategoryDialog } from "@/components/CategoryDialog";
 
 interface RecipeUrlFormProps {
   categories?: Array<{ id: string; name: string }>;
-  defaultCategoryId?: string;
-  onSubmit: (data: { url: string; categoryId?: string }) => void;
+  defaultCategoryIds?: string[];
+  onSubmit: (data: { url: string; categoryIds?: string[] }) => void;
   isLoading: boolean;
   submitLabel: string;
   onCancel: () => void;
@@ -28,7 +22,7 @@ interface RecipeUrlFormProps {
 
 export function RecipeUrlForm({
   categories,
-  defaultCategoryId,
+  defaultCategoryIds,
   onSubmit,
   isLoading,
   submitLabel,
@@ -36,13 +30,15 @@ export function RecipeUrlForm({
   onCategoryCreated,
 }: RecipeUrlFormProps) {
   const [recipeUrl, setRecipeUrl] = useState("");
-  const [categoryId, setCategoryId] = useState(defaultCategoryId || "");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+    defaultCategoryIds || []
+  );
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   const createCategoryMutation = api.recipe.createCategory.useMutation({
     onSuccess: (newCategory) => {
       toast.success("Category created successfully!");
-      setCategoryId(newCategory.id);
+      setSelectedCategoryIds([...selectedCategoryIds, newCategory.id]);
       setCategoryDialogOpen(false);
       onCategoryCreated?.();
     },
@@ -68,8 +64,16 @@ export function RecipeUrlForm({
 
     onSubmit({
       url: recipeUrl.trim(),
-      categoryId: categoryId || undefined,
+      categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
     });
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
   };
 
   const handleCreateCategory = (data: {
@@ -99,32 +103,58 @@ export function RecipeUrlForm({
           </p>
         </div>
 
-        <div>
-          <Label htmlFor="categoryUrl">Category (Optional)</Label>
-          <div className="flex gap-2">
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
+        {categories && categories.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Categories (Optional)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCategoryDialogOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Category
+              </Button>
+            </div>
+            <div className="border rounded-md p-4 space-y-3 max-h-48 overflow-y-auto">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-url-${category.id}`}
+                    checked={selectedCategoryIds.includes(category.id)}
+                    onCheckedChange={() => toggleCategory(category.id)}
+                  />
+                  <label
+                    htmlFor={`category-url-${category.id}`}
+                    className="text-sm font-medium leading-none cursor-pointer"
+                  >
                     {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setCategoryDialogOpen(true)}
-              title="Create new category"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {(!categories || categories.length === 0) && (
+          <div>
+            <Label>Categories (Optional)</Label>
+            <div className="flex items-center justify-center border rounded-md p-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCategoryDialogOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create First Category
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">

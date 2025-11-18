@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { api } from "next-utils/src/utils/api";
 import { CategoryDialog } from "@/components/CategoryDialog";
@@ -20,7 +14,7 @@ import { CategoryDialog } from "@/components/CategoryDialog";
 interface RecipeData {
   title: string;
   description?: string;
-  categoryId?: string;
+  categoryIds?: string[];
   prepTime?: number;
   cookTime?: number;
   servings?: number;
@@ -51,7 +45,9 @@ export function RecipeManualForm({
 }: RecipeManualFormProps) {
   const [title, setTitle] = useState(defaultValues?.title || "");
   const [description, setDescription] = useState(defaultValues?.description || "");
-  const [categoryId, setCategoryId] = useState(defaultValues?.categoryId || "");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+    defaultValues?.categoryIds || []
+  );
   const [prepTime, setPrepTime] = useState(defaultValues?.prepTime?.toString() || "");
   const [cookTime, setCookTime] = useState(defaultValues?.cookTime?.toString() || "");
   const [servings, setServings] = useState(defaultValues?.servings?.toString() || "");
@@ -68,7 +64,7 @@ export function RecipeManualForm({
   const createCategoryMutation = api.recipe.createCategory.useMutation({
     onSuccess: (newCategory) => {
       toast.success("Category created successfully!");
-      setCategoryId(newCategory.id);
+      setSelectedCategoryIds([...selectedCategoryIds, newCategory.id]);
       setCategoryDialogOpen(false);
       onCategoryCreated?.();
     },
@@ -81,7 +77,7 @@ export function RecipeManualForm({
     if (defaultValues) {
       setTitle(defaultValues.title || "");
       setDescription(defaultValues.description || "");
-      setCategoryId(defaultValues.categoryId || "");
+      setSelectedCategoryIds(defaultValues.categoryIds || []);
       setPrepTime(defaultValues.prepTime?.toString() || "");
       setCookTime(defaultValues.cookTime?.toString() || "");
       setServings(defaultValues.servings?.toString() || "");
@@ -144,7 +140,7 @@ export function RecipeManualForm({
     onSubmit({
       title: title.trim(),
       description: description.trim() || undefined,
-      categoryId: categoryId || undefined,
+      categoryIds: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
       prepTime: prepTime ? parseInt(prepTime) : undefined,
       cookTime: cookTime ? parseInt(cookTime) : undefined,
       servings: servings ? parseInt(servings) : undefined,
@@ -154,6 +150,14 @@ export function RecipeManualForm({
       imageUrl: imageUrl.trim() || undefined,
       isPublic: true,
     });
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
   };
 
   const handleCreateCategory = (data: {
@@ -190,32 +194,58 @@ export function RecipeManualForm({
           />
         </div>
 
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <div className="flex gap-2">
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
+        {categories && categories.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Categories</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCategoryDialogOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Category
+              </Button>
+            </div>
+            <div className="border rounded-md p-4 space-y-3 max-h-48 overflow-y-auto">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-${category.id}`}
+                    checked={selectedCategoryIds.includes(category.id)}
+                    onCheckedChange={() => toggleCategory(category.id)}
+                  />
+                  <label
+                    htmlFor={`category-${category.id}`}
+                    className="text-sm font-medium leading-none cursor-pointer"
+                  >
                     {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setCategoryDialogOpen(true)}
-              title="Create new category"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+                  </label>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {(!categories || categories.length === 0) && (
+          <div>
+            <Label>Categories</Label>
+            <div className="flex items-center justify-center border rounded-md p-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCategoryDialogOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create First Category
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-4">
           <div>

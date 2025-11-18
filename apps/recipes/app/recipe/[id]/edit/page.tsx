@@ -17,9 +17,10 @@ export default function EditRecipe() {
   const params = useParams();
   const id = params.id as string;
 
-  const [mode, setMode] = useState<"url" | "manual">("url");
+  const [mode, setMode] = useState<"url" | "manual">("manual");
 
-  const { data: categories, refetch: refetchCategories } = api.recipe.getCategories.useQuery();
+  const { data: categories, refetch: refetchCategories } =
+    api.recipe.getCategories.useQuery();
   const { data: recipe, isLoading: recipeLoading } =
     api.recipe.getRecipe.useQuery({ id });
 
@@ -43,19 +44,19 @@ export default function EditRecipe() {
     },
   });
 
-  const handleUrlSubmit = (data: { url: string; categoryId?: string }) => {
+  const handleUrlSubmit = (data: { url: string; categoryIds?: string[] }) => {
     // For URL updates, we'll delete the old recipe and create a new one
     // This ensures we get fresh data from the URL
     scrapeRecipeMutation.mutate({
       url: data.url,
-      categoryId: data.categoryId,
+      categoryIds: data.categoryIds,
     });
   };
 
   const handleManualSubmit = (data: {
     title: string;
     description?: string;
-    categoryId?: string;
+    categoryIds?: string[];
     prepTime?: number;
     cookTime?: number;
     servings?: number;
@@ -129,7 +130,7 @@ export default function EditRecipe() {
                 defaultValues={{
                   title: recipe.title,
                   description: recipe.description || undefined,
-                  categoryId: recipe.categoryId || undefined,
+                  categoryIds: recipe.categoryIds || [],
                   prepTime: recipe.prepTime || undefined,
                   cookTime: recipe.cookTime || undefined,
                   servings: recipe.servings || undefined,
@@ -156,7 +157,7 @@ export default function EditRecipe() {
               </div>
               <RecipeUrlForm
                 categories={categories}
-                defaultCategoryId={recipe.categoryId || undefined}
+                defaultCategoryIds={recipe.categoryIds || []}
                 onSubmit={handleUrlSubmit}
                 isLoading={scrapeRecipeMutation.isLoading}
                 submitLabel="Update from URL"

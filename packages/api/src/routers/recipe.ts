@@ -83,13 +83,15 @@ export const recipeRouter = createTRPCRouter({
       };
 
       if (input?.categoryId) {
-        where.categoryId = input.categoryId;
+        where.categoryIds = {
+          has: input.categoryId,
+        };
       }
 
       return ctx.prisma.recipe.findMany({
         where,
         include: {
-          category: true,
+          categories: true,
         },
         orderBy: {
           createdAt: "desc",
@@ -106,7 +108,7 @@ export const recipeRouter = createTRPCRouter({
           userId: ctx.session.auth.userVacation.id,
         },
         include: {
-          category: true,
+          categories: true,
         },
       });
     }),
@@ -126,11 +128,11 @@ export const recipeRouter = createTRPCRouter({
           notes: input.notes,
           imageUrl: input.imageUrl,
           isPublic: input.isPublic,
-          categoryId: input.categoryId,
+          categoryIds: input.categoryIds || [],
           userId: ctx.session.auth.userVacation.id,
         },
         include: {
-          category: true,
+          categories: true,
         },
       });
     }),
@@ -146,7 +148,7 @@ export const recipeRouter = createTRPCRouter({
         },
         data,
         include: {
-          category: true,
+          categories: true,
         },
       });
     }),
@@ -166,7 +168,7 @@ export const recipeRouter = createTRPCRouter({
     .input(
       z.object({
         url: z.string().url(),
-        categoryId: z.string().optional(),
+        categoryIds: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -207,11 +209,11 @@ export const recipeRouter = createTRPCRouter({
           imageUrl: scrapedRecipe.image,
           sourceUrl: input.url,
           isPublic: true,
-          categoryId: input.categoryId,
+          categoryIds: input.categoryIds || [],
           userId: ctx.session.auth.userVacation.id,
         },
         include: {
-          category: true,
+          categories: true,
         },
       });
     }),
