@@ -26,6 +26,7 @@
     "@trpc/client": "^10.38.3",
     "@trpc/server": "^10.38.3",
     "axios": "^1.7.2",
+    "cheerio": "^1.1.2",
     "db": "workspace:^",
     "dotenv": "^16.4.7",
     "model": "workspace:^",

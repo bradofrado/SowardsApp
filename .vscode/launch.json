@@ -14,6 +14,13 @@
       "request": "launch",
       "command": "pnpm run dev",
       "cwd": "${workspaceFolder}/apps/budget"
+    },
+    {
+      "name": "Recipes",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm run dev",
+      "cwd": "${workspaceFolder}/apps/recipes"
     }
   ]
 }

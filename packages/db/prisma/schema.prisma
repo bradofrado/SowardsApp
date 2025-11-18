@@ -23,20 +23,22 @@ model User {
 }
 
 model UserVacation {
-  id              String               @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  users           User[]
-  groupIds        String[]             @db.ObjectId
-  groups          VacationGroup[]      @relation(fields: [groupIds], references: [id])
-  eventIds        String[]             @db.ObjectId
-  events          VacationEvent[]      @relation(fields: [eventIds], references: [id])
-  created         VacationEvent[]      @relation(name: "created")
-  dependents      VacationDependent[]
-  spendingRecords SpendingRecord[]
-  externalLogins  ExternalLogin[]
-  categories      BudgetCategory[]
-  savings         SavingsTransaction[]
-  budgets         BudgetTemplate[]
+  id               String               @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  users            User[]
+  groupIds         String[]             @db.ObjectId
+  groups           VacationGroup[]      @relation(fields: [groupIds], references: [id])
+  eventIds         String[]             @db.ObjectId
+  events           VacationEvent[]      @relation(fields: [eventIds], references: [id])
+  created          VacationEvent[]      @relation(name: "created")
+  dependents       VacationDependent[]
+  spendingRecords  SpendingRecord[]
+  externalLogins   ExternalLogin[]
+  categories       BudgetCategory[]
+  savings          SavingsTransaction[]
+  budgets          BudgetTemplate[]
+  recipes          Recipe[]
+  recipeCategories RecipeCategory[]
 }
 
 model SpendingRecord {
@@ -176,4 +178,38 @@ model VacationGroup {
   eventIds  String[]        @db.ObjectId
   events    VacationEvent[] @relation(fields: [eventIds], references: [id])
   is_public Boolean
+}
+
+model RecipeCategory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  icon        String?
+  userId      String   @db.ObjectId
+  user        UserVacation @relation(fields: [userId], references: [id])
+  recipes     Recipe[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Recipe {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String?
+  prepTime     Int?            @map("prep_time")
+  cookTime     Int?            @map("cook_time")
+  servings     Int?
+  ingredients  String[]
+  instructions String[]
+  notes        String?
+  imageUrl     String?         @map("image_url")
+  isPublic     Boolean         @default(true) @map("is_public")
+  categoryId   String?         @db.ObjectId
+  category     RecipeCategory? @relation(fields: [categoryId], references: [id])
+  userId       String          @db.ObjectId
+  user         UserVacation    @relation(fields: [userId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 }
