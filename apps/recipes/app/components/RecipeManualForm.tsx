@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,6 +43,7 @@ export function RecipeManualForm({
   onCancel,
   onCategoryCreated,
 }: RecipeManualFormProps) {
+  const [recipeText, setRecipeText] = useState("");
   const [title, setTitle] = useState(defaultValues?.title || "");
   const [description, setDescription] = useState(defaultValues?.description || "");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
@@ -70,6 +71,24 @@ export function RecipeManualForm({
     },
     onError: () => {
       toast.error("Failed to create category");
+    },
+  });
+
+  const parseRecipeTextMutation = api.recipe.parseRecipeText.useMutation({
+    onSuccess: (parsedRecipe) => {
+      toast.success("Recipe parsed successfully!");
+      setTitle(parsedRecipe.title);
+      setDescription(parsedRecipe.description || "");
+      setPrepTime(parsedRecipe.prepTime?.toString() || "");
+      setCookTime(parsedRecipe.cookTime?.toString() || "");
+      setServings(parsedRecipe.servings?.toString() || "");
+      setIngredients(parsedRecipe.ingredients.length > 0 ? parsedRecipe.ingredients : [""]);
+      setInstructions(parsedRecipe.instructions.length > 0 ? parsedRecipe.instructions : [""]);
+      setNotes(parsedRecipe.notes || "");
+      setRecipeText("");
+    },
+    onError: () => {
+      toast.error("Failed to parse recipe text. Please try again or enter manually.");
     },
   });
 
@@ -168,8 +187,42 @@ export function RecipeManualForm({
     createCategoryMutation.mutate(data);
   };
 
+  const handleAutoFill = () => {
+    if (!recipeText.trim()) {
+      toast.error("Please paste recipe text first");
+      return;
+    }
+    parseRecipeTextMutation.mutate({ recipeText: recipeText.trim() });
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* AI Auto-fill Section */}
+      <div className="border-2 border-dashed border-primary/30 rounded-lg p-6 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Paste a recipe in any format and let AI parse it for you
+          </p>
+          <Textarea
+            value={recipeText}
+            onChange={(e) => setRecipeText(e.target.value)}
+            placeholder="Paste your recipe text here... (e.g., from a website, book, or notes)"
+            rows={8}
+            className="font-mono text-sm"
+          />
+          <Button
+            type="button"
+            onClick={handleAutoFill}
+            disabled={parseRecipeTextMutation.isLoading || !recipeText.trim()}
+            className="w-full gap-2"
+            variant="default"
+          >
+            <Sparkles className="h-4 w-4" />
+            {parseRecipeTextMutation.isLoading ? "Parsing..." : "Auto-fill with AI"}
+          </Button>
+        </div>
+      </div>
+
       {/* Basic Info */}
       <div className="space-y-4">
         <div>

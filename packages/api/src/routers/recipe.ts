@@ -7,6 +7,7 @@ import {
 import type { Prisma } from "db/lib/prisma";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { RecipeScraper } from "../services/recipe/scrape-website";
+import { parseRecipeText } from "../repositories/openai";
 
 export const recipeRouter = createTRPCRouter({
   // Category operations
@@ -216,5 +217,15 @@ export const recipeRouter = createTRPCRouter({
           categories: true,
         },
       });
+    }),
+
+  parseRecipeText: protectedProcedure
+    .input(
+      z.object({
+        recipeText: z.string().min(1, "Recipe text cannot be empty"),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return parseRecipeText(input.recipeText);
     }),
 });

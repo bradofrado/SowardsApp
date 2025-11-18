@@ -132,3 +132,50 @@ ${events
 
   return content;
 };
+
+const parseRecipeResponseSchema = z.object({
+  title: z.string(),
+  description: z.string().optional().nullable(),
+  prepTime: z.number().optional().nullable(),
+  cookTime: z.number().optional().nullable(),
+  servings: z.number().optional().nullable(),
+  ingredients: z.array(z.string()),
+  instructions: z.array(z.string()),
+  notes: z.string().optional().nullable(),
+});
+
+export const parseRecipeText = async (
+  recipeText: string,
+): Promise<z.infer<typeof parseRecipeResponseSchema>> => {
+  const prompt = `Parse the following recipe text and extract the information into a structured format. Return the data as valid JSON with these fields:
+- title (string, required): The name of the recipe
+- description (string, optional): A brief description of the recipe
+- prepTime (number, optional): Prep time in minutes
+- cookTime (number, optional): Cook time in minutes
+- servings (number, optional): Number of servings
+- ingredients (array of strings, required): List of ingredients with measurements
+- instructions (array of strings, required): Step-by-step cooking instructions
+- notes (string, optional): Any additional notes or tips
+
+Recipe text:
+${recipeText}
+
+Return ONLY valid JSON, no comments or extra text.`;
+
+  const context =
+    "You are a helpful assistant that parses recipe text and extracts structured information. Always return valid JSON.";
+
+  let content = await generateFromPrompt({ prompt, context });
+
+  // Extract JSON from the response
+  const firstChar = content.indexOf("{");
+  const lastChar = content.lastIndexOf("}");
+  content = content.slice(firstChar, lastChar + 1);
+
+  const parsed = parseRecipeResponseSchema.safeParse(JSON.parse(content));
+  if (!parsed.success) {
+    throw new Error(`Invalid response from OpenAI: ${parsed.error.message}`);
+  }
+
+  return parsed.data;
+};
