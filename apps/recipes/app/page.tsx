@@ -11,16 +11,16 @@ import {
 async function Home({ ctx }: AuthProps) {
   const [categories, recentRecipes] = await Promise.all([
     ctx.prisma.recipeCategory.findMany({
-      where: {
-        userId: ctx.session.auth.userVacation.id,
-      },
+      // where: {
+      //   userId: ctx.session.auth.userVacation.id,
+      // },
       orderBy: {
         name: "asc",
       },
     }),
     ctx.prisma.recipe.findMany({
       where: {
-        userId: ctx.session.auth.userVacation.id,
+        //userId: ctx.session.auth.userVacation.id,
         isPublic: true,
       },
       include: {

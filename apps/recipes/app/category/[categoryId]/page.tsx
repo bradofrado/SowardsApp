@@ -2,7 +2,10 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCard } from "@/components/RecipeCard";
-import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
+import {
+  withAuth,
+  type AuthProps,
+} from "next-utils/src/utils/protected-routes-hoc";
 
 async function CategoryRecipeList({ ctx, params }: AuthProps) {
   const categoryId = params.categoryId;
@@ -10,7 +13,7 @@ async function CategoryRecipeList({ ctx, params }: AuthProps) {
   const [recipes, category] = await Promise.all([
     ctx.prisma.recipe.findMany({
       where: {
-        userId: ctx.session.auth.userVacation.id,
+        //userId: ctx.session.auth.userVacation.id,
         isPublic: true,
         categoryIds: {
           has: categoryId,
@@ -26,7 +29,7 @@ async function CategoryRecipeList({ ctx, params }: AuthProps) {
     ctx.prisma.recipeCategory.findUnique({
       where: {
         id: categoryId,
-        userId: ctx.session.auth.userVacation.id,
+        //userId: ctx.session.auth.userVacation.id,
       },
     }),
   ]);

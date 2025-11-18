@@ -12,16 +12,16 @@ import { AddCategoryButton } from "./components/AddCategoryButton";
 async function CategoriesPage({ ctx }: AuthProps) {
   const [categories, allRecipes] = await Promise.all([
     ctx.prisma.recipeCategory.findMany({
-      where: {
-        userId: ctx.session.auth.userVacation.id,
-      },
+      // where: {
+      //   userId: ctx.session.auth.userVacation.id,
+      // },
       orderBy: {
         name: "asc",
       },
     }),
     ctx.prisma.recipe.findMany({
       where: {
-        userId: ctx.session.auth.userVacation.id,
+        //userId: ctx.session.auth.userVacation.id,
         isPublic: true,
       },
       select: {
@@ -69,7 +69,8 @@ async function CategoriesPage({ ctx }: AuthProps) {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FolderOpen className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground text-center mb-4">
-                No categories yet. Create your first category to organize recipes.
+                No categories yet. Create your first category to organize
+                recipes.
               </p>
               <AddCategoryButton />
             </CardContent>

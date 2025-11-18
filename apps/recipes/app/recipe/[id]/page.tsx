@@ -2,14 +2,17 @@ import Link from "next/link";
 import { ArrowLeft, Clock, Users, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
+import {
+  withAuth,
+  type AuthProps,
+} from "next-utils/src/utils/protected-routes-hoc";
 import { RecipeActions } from "./components/RecipeActions";
 
 async function RecipeDetail({ ctx, params }: AuthProps) {
   const recipe = await ctx.prisma.recipe.findUnique({
     where: {
       id: params.id,
-      userId: ctx.session.auth.userVacation.id,
+      //userId: ctx.session.auth.userVacation.id,
     },
     include: {
       categories: true,

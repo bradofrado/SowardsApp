@@ -2,12 +2,15 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCard } from "@/components/RecipeCard";
-import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
+import {
+  withAuth,
+  type AuthProps,
+} from "next-utils/src/utils/protected-routes-hoc";
 
 async function RecipeList({ ctx }: AuthProps) {
   const recipes = await ctx.prisma.recipe.findMany({
     where: {
-      userId: ctx.session.auth.userVacation.id,
+      //userId: ctx.session.auth.userVacation.id,
       isPublic: true,
     },
     include: {
@@ -47,9 +50,7 @@ async function RecipeList({ ctx }: AuthProps) {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">
-                No recipes found yet
-              </p>
+              <p className="text-muted-foreground mb-4">No recipes found yet</p>
               <Link href="/add">
                 <Button>Add Your First Recipe</Button>
               </Link>
