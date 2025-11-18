@@ -57,6 +57,7 @@ export function CategoryDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!name.trim()) {
       toast.error("Please enter a category name");
@@ -138,8 +139,8 @@ export function CategoryDialog({
                   ? "Updating..."
                   : "Creating..."
                 : category
-                  ? "Update Category"
-                  : "Create Category"}
+                ? "Update Category"
+                : "Create Category"}
             </Button>
           </DialogFooter>
         </form>
