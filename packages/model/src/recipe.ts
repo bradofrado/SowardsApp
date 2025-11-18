@@ -20,6 +20,7 @@ export const recipeSchema = z.object({
   instructions: z.array(z.string()),
   notes: z.string().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  sourceUrl: z.string().nullable().optional(),
   isPublic: z.boolean().default(true),
   categoryId: z.string().nullable().optional(),
   category: recipeCategorySchema.nullable().optional(),

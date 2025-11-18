@@ -205,6 +205,7 @@ model Recipe {
   instructions String[]
   notes        String?
   imageUrl     String?         @map("image_url")
+  sourceUrl    String?         @map("source_url")
   isPublic     Boolean         @default(true) @map("is_public")
   categoryId   String?         @db.ObjectId
   category     RecipeCategory? @relation(fields: [categoryId], references: [id])

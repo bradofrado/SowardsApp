@@ -205,6 +205,7 @@ export const recipeRouter = createTRPCRouter({
           instructions: scrapedRecipe.instructions,
           notes: scrapedRecipe.keywords?.join(", "),
           imageUrl: scrapedRecipe.image,
+          sourceUrl: input.url,
           isPublic: true,
           categoryId: input.categoryId,
           userId: ctx.session.auth.userVacation.id,

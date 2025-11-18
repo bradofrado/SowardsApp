@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, Users, Share2, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Users, Share2, Trash2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -106,7 +106,7 @@ export default function RecipeDetail() {
               </p>
             )}
 
-            <div className="flex gap-6 text-muted-foreground">
+            <div className="flex gap-6 text-muted-foreground flex-wrap">
               {totalTime > 0 && (
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
@@ -120,6 +120,20 @@ export default function RecipeDetail() {
                 </div>
               )}
             </div>
+
+            {recipe.sourceUrl && (
+              <div className="mt-6 pt-6 border-t border-border">
+                <a
+                  href={recipe.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  View Original Recipe
+                </a>
+              </div>
+            )}
           </div>
         </Card>
 
