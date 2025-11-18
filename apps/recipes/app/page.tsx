@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Plus, ChefHat } from "lucide-react";
+import { Plus, ChefHat, FolderTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategoryGrid } from "@/components/CategoryGrid";
-import { withAuth, type AuthProps } from "next-utils/src/utils/protected-routes-hoc";
+import {
+  withAuth,
+  type AuthProps,
+} from "next-utils/src/utils/protected-routes-hoc";
 
 async function Home({ ctx }: AuthProps) {
   const categories = await ctx.prisma.recipeCategory.findMany({
@@ -23,15 +26,30 @@ async function Home({ ctx }: AuthProps) {
             <div className="flex items-center gap-3">
               <ChefHat className="h-10 w-10 text-primary" />
               <h1 className="text-4xl md:text-5xl font-bold text-foreground">
-                My Recipe Collection
+                Sowards Sweets
               </h1>
             </div>
-            <Link href="/add">
-              <Button size="lg" className="gap-2 shadow-md hover:shadow-lg transition-shadow">
-                <Plus className="h-5 w-5" />
-                <span className="hidden sm:inline">Add Recipe</span>
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/categories">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <FolderTree className="h-5 w-5" />
+                  <span className="hidden sm:inline">Manage Categories</span>
+                </Button>
+              </Link>
+              <Link href="/add">
+                <Button
+                  size="lg"
+                  className="gap-2 shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span className="hidden sm:inline">Add Recipe</span>
+                </Button>
+              </Link>
+            </div>
           </div>
           <p className="text-xl text-muted-foreground">
             Discover and organize your favorite recipes by category

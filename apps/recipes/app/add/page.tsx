@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,23 @@ import { RecipeManualForm } from "@/components/RecipeManualForm";
 
 export default function AddRecipe() {
   const router = useRouter();
-  const { data: categories } = api.recipe.getCategories.useQuery();
+  const searchParams = useSearchParams();
+  const categoryIdParam = searchParams.get("categoryId");
+
+  const { data: categories, refetch: refetchCategories } = api.recipe.getCategories.useQuery();
 
   const [mode, setMode] = useState<"url" | "manual">("url");
+  const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(
+    categoryIdParam || undefined
+  );
+
+  useEffect(() => {
+    if (categoryIdParam) {
+      setDefaultCategoryId(categoryIdParam);
+      // Switch to manual mode if a category is pre-selected
+      setMode("manual");
+    }
+  }, [categoryIdParam]);
 
   const createRecipeMutation = api.recipe.createRecipe.useMutation({
     onSuccess: (data) => {
@@ -92,20 +106,26 @@ export default function AddRecipe() {
             <TabsContent value="url" className="space-y-6">
               <RecipeUrlForm
                 categories={categories}
+                defaultCategoryId={defaultCategoryId}
                 onSubmit={handleUrlSubmit}
                 isLoading={scrapeRecipeMutation.isLoading}
                 submitLabel="Import Recipe"
                 onCancel={() => router.push("/")}
+                onCategoryCreated={() => refetchCategories()}
               />
             </TabsContent>
 
             <TabsContent value="manual">
               <RecipeManualForm
                 categories={categories}
+                defaultValues={
+                  defaultCategoryId ? { categoryId: defaultCategoryId } : undefined
+                }
                 onSubmit={handleManualSubmit}
                 isLoading={createRecipeMutation.isLoading}
                 submitLabel="Add Recipe"
                 onCancel={() => router.push("/")}
+                onCategoryCreated={() => refetchCategories()}
               />
             </TabsContent>
           </Tabs>

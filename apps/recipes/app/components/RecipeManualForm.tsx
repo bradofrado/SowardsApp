@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { api } from "next-utils/src/utils/api";
+import { CategoryDialog } from "@/components/CategoryDialog";
 
 interface RecipeData {
   title: string;
@@ -35,6 +37,7 @@ interface RecipeManualFormProps {
   isLoading: boolean;
   submitLabel: string;
   onCancel: () => void;
+  onCategoryCreated?: () => void;
 }
 
 export function RecipeManualForm({
@@ -44,6 +47,7 @@ export function RecipeManualForm({
   isLoading,
   submitLabel,
   onCancel,
+  onCategoryCreated,
 }: RecipeManualFormProps) {
   const [title, setTitle] = useState(defaultValues?.title || "");
   const [description, setDescription] = useState(defaultValues?.description || "");
@@ -59,6 +63,19 @@ export function RecipeManualForm({
     defaultValues?.instructions || [""]
   );
   const [notes, setNotes] = useState(defaultValues?.notes || "");
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+
+  const createCategoryMutation = api.recipe.createCategory.useMutation({
+    onSuccess: (newCategory) => {
+      toast.success("Category created successfully!");
+      setCategoryId(newCategory.id);
+      setCategoryDialogOpen(false);
+      onCategoryCreated?.();
+    },
+    onError: () => {
+      toast.error("Failed to create category");
+    },
+  });
 
   useEffect(() => {
     if (defaultValues) {
@@ -139,6 +156,14 @@ export function RecipeManualForm({
     });
   };
 
+  const handleCreateCategory = (data: {
+    name: string;
+    description?: string;
+    icon?: string;
+  }) => {
+    createCategoryMutation.mutate(data);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Basic Info */}
@@ -165,23 +190,32 @@ export function RecipeManualForm({
           />
         </div>
 
-        {categories && categories.length > 0 && (
-          <div>
-            <Label htmlFor="category">Category</Label>
+        <div>
+          <Label htmlFor="category">Category</Label>
+          <div className="flex gap-2">
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category) => (
+                {categories?.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setCategoryDialogOpen(true)}
+              title="Create new category"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
-        )}
+        </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -338,6 +372,13 @@ export function RecipeManualForm({
           Cancel
         </Button>
       </div>
+
+      <CategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        onSubmit={handleCreateCategory}
+        isLoading={createCategoryMutation.isLoading}
+      />
     </form>
   );
 }

@@ -19,7 +19,7 @@ export default function EditRecipe() {
 
   const [mode, setMode] = useState<"url" | "manual">("url");
 
-  const { data: categories } = api.recipe.getCategories.useQuery();
+  const { data: categories, refetch: refetchCategories } = api.recipe.getCategories.useQuery();
   const { data: recipe, isLoading: recipeLoading } =
     api.recipe.getRecipe.useQuery({ id });
 
@@ -142,6 +142,7 @@ export default function EditRecipe() {
                 isLoading={updateRecipeMutation.isLoading}
                 submitLabel="Update Recipe"
                 onCancel={() => router.push(`/recipe/${id}`)}
+                onCategoryCreated={() => refetchCategories()}
               />
             </TabsContent>
 
@@ -160,6 +161,7 @@ export default function EditRecipe() {
                 isLoading={scrapeRecipeMutation.isLoading}
                 submitLabel="Update from URL"
                 onCancel={() => router.push(`/recipe/${id}`)}
+                onCategoryCreated={() => refetchCategories()}
               />
             </TabsContent>
           </Tabs>
