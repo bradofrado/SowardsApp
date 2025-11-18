@@ -2,21 +2,16 @@ import { z } from "zod";
 import { spendingRecordSchema } from "model/src/budget";
 import {
   createLinkToken,
-  getAccounts,
-  removeAccount,
   setAccessToken,
 } from "../../repositories/budget/plaid";
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
-import {
-  addExternalLogin,
-  deleteExternalLogin,
-} from "../../repositories/budget/external-login";
+import { addExternalLogin } from "../../repositories/budget/external-login";
 import {
   createSpendingRecord,
   deleteSpendingRecord,
-  deleteSpendingRecords,
   updateSpendingRecord,
 } from "../../repositories/budget/spending";
+import { removeExternalLogin } from "../../services/external-login";
 
 export const plaidRouter = createTRPCRouter({
   createLinkToken: protectedProcedure
@@ -50,24 +45,10 @@ export const plaidRouter = createTRPCRouter({
   removeAccount: protectedProcedure
     .input(z.object({ accessToken: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      const accounts = await getAccounts({
+      await removeExternalLogin({
         accessToken: input.accessToken,
-        cursor: null,
-      });
-      await Promise.all(
-        accounts.map((account) =>
-          deleteSpendingRecords({
-            db: ctx.prisma,
-            accountId: account.account_id,
-          }),
-        ),
-      );
-
-      await deleteExternalLogin({
         db: ctx.prisma,
-        accessToken: input.accessToken,
       });
-      await removeAccount({ accessToken: input.accessToken });
     }),
   updateTransactions: protectedProcedure
     .input(z.object({ transactions: z.array(spendingRecordSchema) }))
