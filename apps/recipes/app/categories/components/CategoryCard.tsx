@@ -3,9 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Edit, Trash2, FolderOpen, FilePlus, ListPlus } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  FolderOpen,
+  FilePlus,
+  ListPlus,
+  ImageIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { api } from "next-utils/src/utils/api";
 import { CategoryDialog } from "@/components/CategoryDialog";
@@ -67,7 +80,7 @@ export function CategoryCard({ category, allRecipes }: CategoryCardProps) {
   const handleDeleteCategory = async () => {
     if (
       !confirm(
-        `Are you sure you want to delete "${category.name}"? This will not delete the recipes in this category.`
+        `Are you sure you want to delete "${category.name}"? This will not delete the recipes in this category.`,
       )
     ) {
       return;
@@ -110,11 +123,15 @@ export function CategoryCard({ category, allRecipes }: CategoryCardProps) {
 
     if (successCount > 0) {
       toast.success(
-        `${successCount} recipe${successCount !== 1 ? "s" : ""} added to ${category.name}`
+        `${successCount} recipe${successCount !== 1 ? "s" : ""} added to ${
+          category.name
+        }`,
       );
     }
     if (errorCount > 0) {
-      toast.error(`Failed to add ${errorCount} recipe${errorCount !== 1 ? "s" : ""}`);
+      toast.error(
+        `Failed to add ${errorCount} recipe${errorCount !== 1 ? "s" : ""}`,
+      );
     }
 
     setAddRecipesDialogOpen(false);
@@ -122,38 +139,40 @@ export function CategoryCard({ category, allRecipes }: CategoryCardProps) {
 
   return (
     <>
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              {category.image && (
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="w-8 h-8 object-cover rounded"
-                />
-              )}
-              <CardTitle className="text-lg">{category.name}</CardTitle>
+      <Card className="overflow-hidden border-border bg-card">
+        <div className="aspect-[4/3] overflow-hidden bg-muted relative group">
+          {category.image ? (
+            <img
+              src={category.image}
+              alt={category.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <ImageIcon className="w-16 h-16 text-muted-foreground" />
             </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setEditDialogOpen(true)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive"
-                onClick={handleDeleteCategory}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+          )}
+          <div className="absolute top-2 right-2 flex gap-1">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 opacity-90 hover:opacity-100"
+              onClick={() => setEditDialogOpen(true)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 text-destructive opacity-90 hover:opacity-100"
+              onClick={handleDeleteCategory}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">{category.name}</CardTitle>
           {category.description && (
             <CardDescription className="mt-2">
               {category.description}
