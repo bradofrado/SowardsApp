@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, Users, ExternalLink } from "lucide-react";
+import { ArrowLeft, Clock, Users, ExternalLink, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,6 +16,7 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
     },
     include: {
       categories: true,
+      user: true,
     },
   });
 
@@ -96,6 +97,12 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   <span>{recipe.servings} servings</span>
+                </div>
+              )}
+              {recipe.user && (
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  <span>Created by {recipe.user.name}</span>
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { Clock, Users } from "lucide-react";
+import { Clock, User, Users } from "lucide-react";
 
 interface Recipe {
   id: string;
@@ -10,6 +10,7 @@ interface Recipe {
   cookTime: number | null | undefined;
   servings: number | null | undefined;
   imageUrl: string | null | undefined;
+  user: { name: string };
 }
 
 interface RecipeCardProps {
@@ -55,6 +56,12 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
               <div className="flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 <span>{recipe.servings} servings</span>
+              </div>
+            )}
+            {recipe.user && (
+              <div className="flex items-center gap-1">
+                <User className="h-4 w-4" />
+                <span>{recipe.user.name}</span>
               </div>
             )}
           </div>

@@ -25,6 +25,7 @@ async function Home({ ctx }: AuthProps) {
       },
       include: {
         categories: true,
+        user: true,
       },
       orderBy: {
         createdAt: "desc",

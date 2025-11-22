@@ -15,6 +15,7 @@ async function RecipeList({ ctx }: AuthProps) {
     },
     include: {
       categories: true,
+      user: true,
     },
     orderBy: {
       createdAt: "desc",
