@@ -30,6 +30,7 @@ export const budgetRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         type: z.union([z.literal("income"), z.literal("expense")]),
+        rollover: z.boolean().default(false),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -46,6 +47,7 @@ export const budgetRouter = createTRPCRouter({
           name: input.name,
           type: input.type,
           order: currCategories.length,
+          rollover: input.rollover,
         },
         userId: ctx.session.auth.userVacation.id,
       });

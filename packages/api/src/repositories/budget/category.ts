@@ -35,6 +35,7 @@ export const createCategory = async ({
       name: category.name,
       type: category.type,
       order: category.order,
+      rollover: category.rollover,
     },
   });
   return prismaToBudgetCategory(newCategory);
@@ -85,6 +86,7 @@ export const updateCategory = async ({
       name: category.name,
       type: category.type,
       order: category.order,
+      rollover: category.rollover,
     },
   });
   return prismaToBudgetCategory(updatedCategory);
@@ -112,5 +114,6 @@ export const prismaToBudgetCategory = (
     name: category.name,
     type: category.type as "income" | "expense", // | "transfer",
     order: category.order,
+    rollover: category.rollover,
   };
 };

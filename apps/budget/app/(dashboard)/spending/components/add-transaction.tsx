@@ -19,11 +19,13 @@ import { useChangeProperty } from "ui/src/hooks/change-property";
 import { DatePicker } from "ui/src/components/core/calendar/date-picker";
 import { api } from "next-utils/src/utils/api";
 import { useRouter } from "next/navigation";
+import { AccountBase } from "plaid";
 
 interface EditTransactionModalBaseProps {
   show: boolean;
   onClose: () => void;
   categories: CategoryBudget[];
+  accounts?: AccountBase[];
 }
 export const AddTransactionModal: React.FunctionComponent<
   EditTransactionModalBaseProps
@@ -138,6 +140,7 @@ const EditTransactionModal: React.FunctionComponent<
   onClose,
   onDelete,
   categories,
+  accounts = [],
   transaction: transactionProps,
   onSave: onSaveProps,
   label,
@@ -150,6 +153,10 @@ const EditTransactionModal: React.FunctionComponent<
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const account = accounts.find(
+    (acc) => acc.account_id === transaction.accountId
+  );
 
   const onSave = () => {
     if (transaction.transactionCategories.length === 0) {
@@ -190,6 +197,35 @@ const EditTransactionModal: React.FunctionComponent<
       <DialogDescription>{description}</DialogDescription>
       <DialogBody>
         <Form>
+          {account && (
+            <>
+              <FormRow
+                label="Source"
+                description="The account this transaction is from"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
+                    <div className="text-sm font-medium">{account.name}</div>
+                    <div className="text-xs text-gray-500">
+                      {account.subtype} ••••{account.mask}
+                    </div>
+                  </div>
+                </div>
+              </FormRow>
+              <FormDivider />
+            </>
+          )}
+          {!account && transaction.accountId === null && (
+            <>
+              <FormRow
+                label="Source"
+                description="The account this transaction is from"
+              >
+                <span className="text-sm text-gray-500">Manual Transaction</span>
+              </FormRow>
+              <FormDivider />
+            </>
+          )}
           <FormRow label="Amount" description="The amount of the transaction">
             <InputBlur
               value={transaction.amount}

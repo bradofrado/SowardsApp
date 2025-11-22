@@ -9,6 +9,7 @@ export const categoryBudgetSchema = z.object({
     //z.literal("transfer"),
   ]),
   order: z.number(),
+  rollover: z.boolean().default(false),
 });
 export type CategoryBudget = z.infer<typeof categoryBudgetSchema>;
 

@@ -223,6 +223,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             onSelectAll={onSelectAll}
             setPickCategory={onPickCategory}
             onEdit={onEdit}
+            accounts={accounts}
           />
           {isPaginated && totalPages > 1 && (
             <Pagination
@@ -272,12 +273,14 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         show={showAddTransactionModal}
         onClose={() => setShowAddTransactionModal(false)}
         categories={categories}
+        accounts={accounts}
       />
       <UpdateTransactionModal
         show={updateTransaction !== undefined}
         onClose={() => setUpdateTransaction(undefined)}
         transaction={updateTransaction}
         categories={categories}
+        accounts={accounts}
       />
       <CategoryPickerModal
         show={pickCategory !== undefined && !split}
@@ -423,6 +426,7 @@ interface TransactionTableProps {
     split: boolean,
   ) => void;
   small?: boolean;
+  accounts?: AccountBase[];
 }
 const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
   transactions,
@@ -432,6 +436,7 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
   setPickCategory,
   onEdit,
   small = false,
+  accounts = [],
 }) => {
   const transferTransactions = useMemo(() => {
     const transferCache = transactions.slice();
@@ -439,6 +444,11 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
       isTransferTransactionAndUpdateCache(transaction, transferCache),
     );
   }, [transactions]);
+
+  const getAccountForTransaction = (transaction: SpendingRecord) => {
+    if (!transaction.accountId) return null;
+    return accounts.find((acc) => acc.account_id === transaction.accountId);
+  };
   const onSelectAll = (checked: boolean) => {
     setSelected(
       checked
@@ -471,6 +481,7 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
           </TableHeader>
           <TableHeader>Date</TableHeader>
           <TableHeader>Name</TableHeader>
+          <TableHeader>Source</TableHeader>
           <TableHeader>Category</TableHeader>
           <TableHeader>Amount</TableHeader>
           <TableHeader className="relative w-0">
@@ -479,89 +490,106 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
         </TableRow>
       </TableHead>
       <TableBody>
-        {transactions.map((transaction, i) => (
-          <TableRow key={transaction.transactionId}>
-            <TableCell>
-              <CheckboxInput
-                className="w-fit"
-                value={selected.includes(transaction.transactionId)}
-                onChange={(checked) =>
-                  onSelect(checked, transaction.transactionId)
-                }
-              />
-            </TableCell>
-            <TableCell>{displayDate(transaction.date)}</TableCell>
-            <TableCell>
-              <Button
-                className="font-normal"
-                onClick={() => onEdit(transaction.transactionId)}
-                plain
-              >
-                {trimText(transaction.description)}
-              </Button>
-            </TableCell>
-            <TableCell>
-              {transferTransactions.includes(transaction) ? (
-                // Only disable if this is an inferred transfer, not an explicitly set transfer.
-                <Button
-                  disabled={!transaction.isTransfer}
-                  plain
-                  onClick={() =>
-                    transaction.isTransfer &&
-                    setPickCategory(
-                      transaction,
-                      transaction.transactionCategories.length > 1,
-                    )
+        {transactions.map((transaction) => {
+          const account = getAccountForTransaction(transaction);
+          return (
+            <TableRow key={transaction.transactionId}>
+              <TableCell>
+                <CheckboxInput
+                  className="w-fit"
+                  value={selected.includes(transaction.transactionId)}
+                  onChange={(checked) =>
+                    onSelect(checked, transaction.transactionId)
                   }
+                />
+              </TableCell>
+              <TableCell>{displayDate(transaction.date)}</TableCell>
+              <TableCell>
+                <Button
+                  className="font-normal"
+                  onClick={() => onEdit(transaction.transactionId)}
+                  plain
                 >
-                  Transfer
+                  {trimText(transaction.description)}
                 </Button>
-              ) : (
-                (transaction.transactionCategories.length > 0
-                  ? transaction.transactionCategories
-                  : [undefined]
-                ).map((transactionCategory) => (
+              </TableCell>
+              <TableCell>
+                {account ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col">
+                      <div className="text-sm">{account.name}</div>
+                      <div className="text-xs text-gray-400">
+                        {account.subtype} ••••{account.mask}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-500">Manual</span>
+                )}
+              </TableCell>
+              <TableCell>
+                {transferTransactions.includes(transaction) ? (
+                  // Only disable if this is an inferred transfer, not an explicitly set transfer.
                   <Button
-                    key={transactionCategory?.id || "none"}
+                    disabled={!transaction.isTransfer}
+                    plain
                     onClick={() =>
+                      transaction.isTransfer &&
                       setPickCategory(
                         transaction,
                         transaction.transactionCategories.length > 1,
                       )
                     }
-                    plain
                   >
-                    {transactionCategory?.category.name ?? (
-                      <span className="text-blue-400">Select Category</span>
-                    )}
+                    Transfer
                   </Button>
-                ))
-              )}
-            </TableCell>
-            <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
-            <TableCell className="pl-1">
-              <div className="-my-1.5">
-                <Dropdown>
-                  <DropdownButton plain aria-label="More options">
-                    <EllipsisHorizontalIcon className="h-4 w-4" />
-                  </DropdownButton>
-                  <DropdownMenu anchor="bottom end">
-                    <DropdownItem
-                      onClick={() => setPickCategory(transaction, true)}
+                ) : (
+                  (transaction.transactionCategories.length > 0
+                    ? transaction.transactionCategories
+                    : [undefined]
+                  ).map((transactionCategory) => (
+                    <Button
+                      key={transactionCategory?.id || "none"}
+                      onClick={() =>
+                        setPickCategory(
+                          transaction,
+                          transaction.transactionCategories.length > 1,
+                        )
+                      }
+                      plain
                     >
-                      Split Cost
-                    </DropdownItem>
-                    <DropdownItem
-                      onClick={() => onEdit(transaction.transactionId)}
-                    >
-                      Edit
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
+                      {transactionCategory?.category.name ?? (
+                        <span className="text-blue-400">Select Category</span>
+                      )}
+                    </Button>
+                  ))
+                )}
+              </TableCell>
+              <TableCell>{formatDollarAmount(transaction.amount)}</TableCell>
+              <TableCell className="pl-1">
+                <div className="-my-1.5">
+                  <Dropdown>
+                    <DropdownButton plain aria-label="More options">
+                      <EllipsisHorizontalIcon className="h-4 w-4" />
+                    </DropdownButton>
+                    <DropdownMenu anchor="bottom end">
+                      <DropdownItem
+                        onClick={() => setPickCategory(transaction, true)}
+                      >
+                        Split Cost
+                      </DropdownItem>
+                      <DropdownItem
+                        onClick={() => onEdit(transaction.transactionId)}
+                      >
+                        Edit
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

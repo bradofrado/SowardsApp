@@ -20,6 +20,7 @@ import {
 import { api } from "next-utils/src/utils/api";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "ui/src/components/catalyst/button";
+import { Checkbox, CheckboxField } from "ui/src/components/catalyst/checkbox";
 import {
   Dialog,
   DialogActions,
@@ -31,6 +32,10 @@ import {
   FormDivider,
   FormRow,
 } from "ui/src/components/catalyst/form/form";
+import {
+  Description,
+  Label as CatalystLabel,
+} from "ui/src/components/catalyst/fieldset";
 import {
   Accordion,
   AccordionContent,
@@ -300,6 +305,7 @@ export const BudgetItemForm: React.FunctionComponent<
               id: "",
               type: "expense",
               order: 0,
+              rollover: item.category?.rollover ?? false,
               ...item.category,
               name: value,
             })
@@ -401,6 +407,33 @@ export const BudgetItemForm: React.FunctionComponent<
           value={item.amount}
           onChange={changeProperty.formFuncNumber("amount", item)}
         />
+      </FormRow>
+      <FormDivider />
+      <FormRow
+        label="Rollover"
+        description="If enabled, remaining balance will carry over to the next period"
+        sameLine
+      >
+        <CheckboxField>
+          <Checkbox
+            checked={item.category?.rollover ?? false}
+            onChange={(checked) =>
+              changeProperty(item, "category", {
+                id: "",
+                type: "expense",
+                order: 0,
+                ...item.category,
+                name: item.category?.name ?? "",
+                rollover: checked,
+              })
+            }
+          />
+          <CatalystLabel>Roll over remaining balance</CatalystLabel>
+          <Description>
+            When this category renews, any remaining balance will be added to
+            the next period's budget
+          </Description>
+        </CheckboxField>
       </FormRow>
       {error ? <p className="text-red-400 text-sm">{error}</p> : null}
       {onRemove ? (
@@ -615,13 +648,14 @@ const CreateCategoryModal: React.FunctionComponent<{
 }> = ({ show, onClose, onCreate }) => {
   const [name, setName] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
+  const [rollover, setRollover] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
   const { mutate: createCategory } = api.budget.createCategory.useMutation();
 
   const onCreateClick = (): void => {
     createCategory(
-      { name, type },
+      { name, type, rollover },
       {
         onSuccess: (category) => {
           onCreate(category);
@@ -653,6 +687,21 @@ const CreateCategoryModal: React.FunctionComponent<{
               ]}
               onChange={(type) => setType(type.id)}
             />
+          </FormRow>
+          <FormDivider />
+          <FormRow
+            label="Rollover"
+            description="If enabled, remaining balance will carry over to the next period"
+            sameLine
+          >
+            <CheckboxField>
+              <Checkbox checked={rollover} onChange={setRollover} />
+              <CatalystLabel>Roll over remaining balance</CatalystLabel>
+              <Description>
+                When this category renews, any remaining balance will be added
+                to the next period's budget
+              </Description>
+            </CheckboxField>
           </FormRow>
         </Form>
         {error ? <p className="text-red-400 text-sm">{error}</p> : null}

@@ -36,12 +36,20 @@ export const updateExpiredBudgets = async (
               budgetItem.cadence,
             );
 
+            // Calculate rollover amount if category has rollover enabled
+            let newAmount = budgetItem.targetAmount;
+            if (category.rollover && budgetItem.amount > 0) {
+              // For rollover categories, add the remaining balance from the previous period
+              const remainingBalance = budgetItem.amount;
+              newAmount = budgetItem.targetAmount + remainingBalance;
+            }
+
             await createBudgetItem({
               db: tx,
               budgetId: budget.id,
               item: {
                 ...budgetItem,
-                amount: budgetItem.targetAmount,
+                amount: newAmount,
                 periodStart,
                 periodEnd,
               },

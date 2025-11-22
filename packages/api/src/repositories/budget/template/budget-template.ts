@@ -176,6 +176,38 @@ export const updateBudget = async ({
     });
   }
 
+  const currentCategories = await db.budgetCategory.findMany({
+    where: {
+      id: {
+        in: budget.items.map((item) => item.category.id),
+      },
+    },
+  });
+  const categories = budget.items.map((item) => item.category);
+
+  // Update categories that have changed
+  await Promise.all(
+    categories.map((category) => {
+      const currentCategory = currentCategories.find(
+        (c) => c.id === category.id,
+      );
+      if (
+        currentCategory &&
+        (category.rollover !== currentCategory.rollover ||
+          category.name !== currentCategory.name)
+      ) {
+        return db.budgetCategory.update({
+          where: { id: category.id },
+          data: omit(category, ["id"]),
+        });
+      }
+
+      return new Promise((resolve) => {
+        resolve(undefined);
+      });
+    }),
+  );
+
   return prismaToBudget(
     await db.budgetTemplate.update({
       where: {
@@ -187,6 +219,15 @@ export const updateBudget = async ({
       ...budgetPayload,
     }),
   );
+};
+
+const omit = <T extends object, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Omit<T, K> => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keys.includes(key as K)),
+  ) as Omit<T, K>;
 };
 
 export const deleteBudget = async ({

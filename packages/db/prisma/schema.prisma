@@ -70,6 +70,7 @@ model BudgetCategory {
   name            String
   type            String //Income or Expense
   order           Int
+  rollover        Boolean               @default(false)
   spendingRecords TransactionCategory[]
   budgetItems     BudgetItem[]
 
