@@ -6,7 +6,7 @@ import {
   SpendingRecord,
 } from "model/src/budget";
 import { toUTC } from "model/src/utils";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { SpendingRecordWithAccountType } from "api/src/services/budget";
 import { AccountType } from "plaid";
 import { isTransferTransactionAndUpdateCache } from "../../utils";
@@ -24,6 +24,13 @@ interface TransactionContextState {
   transactions: SpendingRecordWithAccountType[];
   budget: Budget | undefined;
   categories: CategoryBudget[];
+  setTransactions: (
+    transactions:
+      | SpendingRecordWithAccountType[]
+      | ((
+          transactions: SpendingRecordWithAccountType[],
+        ) => SpendingRecordWithAccountType[]),
+  ) => void;
 }
 const TransactionContext = createContext<TransactionContextState>({
   expenses: {
@@ -41,6 +48,7 @@ const TransactionContext = createContext<TransactionContextState>({
   transactions: [],
   budget: undefined,
   categories: [],
+  setTransactions: () => {},
 });
 
 interface TransactionProviderProps {
@@ -52,15 +60,16 @@ interface TransactionProviderProps {
 export const TransactionProvider: React.FunctionComponent<
   TransactionProviderProps
 > = ({ transactions: transactionsRaw, budget, categories, children }) => {
-  const transactions = useMemo(
-    () =>
-      transactionsRaw.map((t) => ({
-        ...t,
-        date: toUTC(t.date),
-        recordDate: toUTC(t.recordDate),
-      })),
-    [transactionsRaw],
+  const [transactions, setTransactions] = useState<
+    SpendingRecordWithAccountType[]
+  >(
+    transactionsRaw.map((t) => ({
+      ...t,
+      date: toUTC(t.date),
+      recordDate: toUTC(t.recordDate),
+    })),
   );
+
   const nonTransferTransactions = useMemo(() => {
     const transferCache = transactions.slice();
     // Filter out transfer transactions and split out transaction categories into their own transactions
@@ -110,6 +119,7 @@ export const TransactionProvider: React.FunctionComponent<
         transactions: nonTransferTransactions,
         budget,
         categories,
+        setTransactions,
       }}
     >
       {children}

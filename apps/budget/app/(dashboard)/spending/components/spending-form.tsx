@@ -220,7 +220,6 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
             selected={selected}
             setSelected={setSelected}
             onSelect={onSelect}
-            onSelectAll={onSelectAll}
             setPickCategory={onPickCategory}
             onEdit={onEdit}
             accounts={accounts}
@@ -404,7 +403,6 @@ export const AccountTransactions: React.FunctionComponent<
             transactions={filteredTransactions}
             selected={selected}
             onSelect={onSelect}
-            onSelectAll={onSelectAll}
             setPickCategory={setPickCategory}
             onEdit={onEdit}
             small
@@ -414,30 +412,39 @@ export const AccountTransactions: React.FunctionComponent<
     </Accordion>
   );
 };
-interface TransactionTableProps {
+export type TransactionTableProps = {
   transactions: SpendingRecord[];
-  selected: string[];
-  setSelected: (selected: string[]) => void;
-  onSelect: (checked: boolean, transactionId: string) => void;
-  onSelectAll: (checked: boolean) => void;
-  onEdit: (transactionId: string) => void;
+
+  onEdit?: (transactionId: string) => void;
   setPickCategory: (
     transaction: SpendingRecord | undefined,
     split: boolean,
   ) => void;
   small?: boolean;
   accounts?: AccountBase[];
-}
-const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
+} & (
+  | {
+      selected: string[];
+      setSelected: (selected: string[]) => void;
+      onSelect: (checked: boolean, transactionId: string) => void;
+    }
+  | { selected?: undefined; setSelected?: undefined; onSelect?: undefined }
+);
+export const TransactionTable: React.FunctionComponent<
+  TransactionTableProps
+> = ({
   transactions,
-  selected,
-  setSelected,
-  onSelect,
   setPickCategory,
   onEdit,
   small = false,
   accounts = [],
+  ...selectedPropsActual
 }) => {
+  const selectedProps =
+    "selected" in selectedPropsActual &&
+    selectedPropsActual.selected !== undefined
+      ? selectedPropsActual
+      : undefined;
   const transferTransactions = useMemo(() => {
     const transferCache = transactions.slice();
     return transactions.filter((transaction) =>
@@ -450,35 +457,44 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
     return accounts.find((acc) => acc.account_id === transaction.accountId);
   };
   const onSelectAll = (checked: boolean) => {
-    setSelected(
-      checked
-        ? [
-            ...selected,
-            ...transactions
-              .filter((t) => !selected.find((id) => t.transactionId === id))
-              .map((t) => t.transactionId),
-          ]
-        : selected.filter(
-            (id) => !transactions.find((t) => t.transactionId === id),
-          ),
-    );
+    if (selectedProps) {
+      selectedProps.setSelected(
+        checked
+          ? [
+              ...selectedProps.selected,
+              ...transactions
+                .filter(
+                  (t) =>
+                    !selectedProps.selected.find(
+                      (id) => t.transactionId === id,
+                    ),
+                )
+                .map((t) => t.transactionId),
+            ]
+          : selectedProps.selected.filter(
+              (id) => !transactions.find((t) => t.transactionId === id),
+            ),
+      );
+    }
   };
   return (
-    <Table sticky={small}>
+    <Table sticky={small} className="w-full">
       <TableHead>
         <TableRow>
-          <TableHeader>
-            <CheckboxInput
-              className="w-fit"
-              value={
-                transactions.length ===
-                selected.filter((id) =>
-                  transactions.find((t) => t.transactionId === id),
-                ).length
-              }
-              onChange={onSelectAll}
-            />
-          </TableHeader>
+          {selectedProps ? (
+            <TableHeader>
+              <CheckboxInput
+                className="w-fit"
+                value={
+                  transactions.length ===
+                  selectedProps.selected.filter((id) =>
+                    transactions.find((t) => t.transactionId === id),
+                  ).length
+                }
+                onChange={onSelectAll}
+              />
+            </TableHeader>
+          ) : null}
           <TableHeader>Date</TableHeader>
           <TableHeader>Name</TableHeader>
           <TableHeader>Source</TableHeader>
@@ -494,24 +510,34 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
           const account = getAccountForTransaction(transaction);
           return (
             <TableRow key={transaction.transactionId}>
-              <TableCell>
-                <CheckboxInput
-                  className="w-fit"
-                  value={selected.includes(transaction.transactionId)}
-                  onChange={(checked) =>
-                    onSelect(checked, transaction.transactionId)
-                  }
-                />
-              </TableCell>
+              {selectedProps ? (
+                <TableCell>
+                  <CheckboxInput
+                    className="w-fit"
+                    value={selectedProps.selected.includes(
+                      transaction.transactionId,
+                    )}
+                    onChange={(checked) =>
+                      selectedProps.onSelect(checked, transaction.transactionId)
+                    }
+                  />
+                </TableCell>
+              ) : null}
               <TableCell>{displayDate(transaction.date)}</TableCell>
               <TableCell>
-                <Button
-                  className="font-normal"
-                  onClick={() => onEdit(transaction.transactionId)}
-                  plain
-                >
-                  {trimText(transaction.description)}
-                </Button>
+                {onEdit ? (
+                  <Button
+                    className="font-normal"
+                    onClick={() => onEdit(transaction.transactionId)}
+                    plain
+                  >
+                    {trimText(transaction.description)}
+                  </Button>
+                ) : (
+                  <span className="font-normal">
+                    {trimText(transaction.description)}
+                  </span>
+                )}
               </TableCell>
               <TableCell>
                 {account ? (
@@ -578,11 +604,13 @@ const TransactionTable: React.FunctionComponent<TransactionTableProps> = ({
                       >
                         Split Cost
                       </DropdownItem>
-                      <DropdownItem
-                        onClick={() => onEdit(transaction.transactionId)}
-                      >
-                        Edit
-                      </DropdownItem>
+                      {onEdit ? (
+                        <DropdownItem
+                          onClick={() => onEdit(transaction.transactionId)}
+                        >
+                          Edit
+                        </DropdownItem>
+                      ) : null}
                     </DropdownMenu>
                   </Dropdown>
                 </div>

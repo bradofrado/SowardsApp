@@ -5,7 +5,6 @@ import React, { useMemo, useState } from "react";
 import {
   capitalizeFirstLetter,
   compare,
-  displayDate,
   formatDollarAmount,
   getEndOfMonthDate,
   getStartOfMonthDate,
@@ -19,6 +18,7 @@ import {
   BudgetCadenceType,
   budgetCadenceTypes,
   CategoryBudget,
+  TransactionCategory,
 } from "model/src/budget";
 import { TargetBar } from "ui/src/components/feature/reporting/graphs/targetbar";
 import { GraphValue } from "ui/src/components/feature/reporting/graphs/types";
@@ -32,6 +32,15 @@ import {
   DialogTitle,
 } from "ui/src/components/catalyst/dialog";
 import { useDateState } from "../../hooks/date-state";
+import { TransactionTable } from "../../../app/(dashboard)/spending/components/spending-form";
+import {
+  CategoryPickerModal,
+  CategorySplitModal,
+} from "../../../app/(dashboard)/spending/components/category-picker";
+import { api } from "next-utils/src/utils/api";
+import { router } from "@trpc/server";
+import { useRouter } from "next/navigation";
+import { useAccounts } from "../providers/account-provider";
 interface CategoryChartData {
   category: CategoryBudget;
   actual: number;
@@ -299,6 +308,7 @@ const CategoryTarget: React.FunctionComponent<{
         />
       </button>
       <CategoryTransactionsModal
+        key={data.category.id}
         data={data}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -314,37 +324,127 @@ interface CategoryTransactionsModalProps {
 }
 const CategoryTransactionsModal: React.FunctionComponent<
   CategoryTransactionsModalProps
-> = ({ isOpen, onClose, data: { transactions, budgeted, actual } }) => {
-  return (
-    <Dialog open={isOpen} onClose={onClose}>
-      <DialogTitle>Transactions</DialogTitle>
-      <DialogBody>
-        <div className="grid grid-cols-2 mb-4">
-          <div>Budget</div>
+> = ({
+  isOpen,
+  onClose,
+  data: { transactions, budgeted, actual, category },
+}) => {
+  const { setTransactions } = useTransactions();
+  const { categories } = useTransactions();
+  const { accounts } = useAccounts();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [pickCategory, setPickCategory] =
+    useState<SpendingRecordWithAccountType>();
+  const [split, setSplit] = useState(false);
+  const { mutate: saveTransaction } = api.plaid.updateTransaction.useMutation();
 
-          <span>{formatDollarAmount(budgeted)}</span>
-          <div>Actual</div>
-          <span>{formatDollarAmount(actual)}</span>
-        </div>
-        <div className="flex flex-col gap-2 max-h-96 overflow-auto">
-          {transactions
-            .slice()
-            .sort((a, b) => compare(b.date.getTime(), a.date.getTime()))
-            .map((transaction) => (
-              <div
-                key={transaction.transactionId}
-                className="flex flex-row justify-between w-full border p-3 rounded-md"
-              >
-                <div className="flex gap-4">
-                  <div>{displayDate(transaction.date)}</div>
-                  <span>{transaction.description}</span>
-                </div>
-                <span>{formatDollarAmount(transaction.amount)}</span>
-              </div>
-            ))}
-        </div>
-      </DialogBody>
-    </Dialog>
+  const sortedTransactions = useMemo(
+    () =>
+      transactions
+        .slice()
+        .sort((a, b) => compare(b.date.getTime(), a.date.getTime())),
+    [transactions],
+  );
+
+  const onCategoryChange = async (
+    transactionId: string,
+    categories: TransactionCategory[],
+  ) => {
+    const transaction = sortedTransactions.find(
+      (t) => t.transactionId === transactionId,
+    );
+    if (!transaction) return;
+
+    const updatedTransaction = {
+      ...transaction,
+      transactionCategories: categories,
+    };
+
+    saveTransaction({
+      transaction: updatedTransaction,
+    });
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.transactionId === transaction.transactionId ? updatedTransaction : t,
+      ),
+    );
+  };
+
+  const onIsTransferChange = (isTransfer: boolean) => {
+    if (!pickCategory) return;
+
+    const updatedTransaction = {
+      ...pickCategory,
+      isTransfer,
+    };
+
+    saveTransaction({
+      transaction: updatedTransaction,
+    });
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.transactionId === pickCategory.transactionId ? updatedTransaction : t,
+      ),
+    );
+  };
+
+  const onPickCategory = (
+    transaction: SpendingRecordWithAccountType | undefined,
+    split: boolean,
+  ) => {
+    setPickCategory(transaction);
+    setSplit(split);
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onClose={onClose} size="5xl">
+        <DialogTitle>{category.name} Transactions</DialogTitle>
+        <DialogBody>
+          <div className="grid grid-cols-2 mb-4">
+            <div>Budget</div>
+            <span>{formatDollarAmount(budgeted)}</span>
+            <div>Actual</div>
+            <span>{formatDollarAmount(actual)}</span>
+          </div>
+          <div className="max-h-96 overflow-auto">
+            <TransactionTable
+              transactions={sortedTransactions}
+              setPickCategory={onPickCategory}
+              accounts={accounts}
+              small
+            />
+          </div>
+        </DialogBody>
+      </Dialog>
+      <CategoryPickerModal
+        show={pickCategory !== undefined && !split}
+        onClose={() => setPickCategory(undefined)}
+        values={pickCategory?.transactionCategories ?? []}
+        categories={categories}
+        onChange={(categories) => {
+          if (pickCategory) {
+            onCategoryChange(pickCategory.transactionId, categories);
+          }
+        }}
+        transaction={pickCategory}
+        onIsTransferChange={onIsTransferChange}
+      />
+      <CategorySplitModal
+        key={pickCategory?.transactionId}
+        show={pickCategory !== undefined && split}
+        onClose={() => setPickCategory(undefined)}
+        values={pickCategory?.transactionCategories ?? []}
+        categories={categories}
+        onChange={(transactionCategories) => {
+          if (pickCategory) {
+            onCategoryChange(pickCategory.transactionId, transactionCategories);
+          }
+        }}
+        transaction={pickCategory}
+        onIsTransferChange={onIsTransferChange}
+      />
+    </>
   );
 };
 
