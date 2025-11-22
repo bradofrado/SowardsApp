@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { ImageIcon } from "lucide-react";
 
 interface Category {
   id: string;
   name: string;
   description: string | null;
-  icon: string | null;
+  image: string | null;
 }
 
 interface CategoryGridProps {
@@ -19,8 +20,18 @@ export const CategoryGrid = ({ categories }: CategoryGridProps) => {
         <Link key={category.id} href={`/category/${category.id}`}>
           <Card className="p-8 hover:shadow-[var(--shadow-hover)] transition-all duration-300 cursor-pointer group border-border bg-card">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="text-6xl group-hover:scale-110 transition-transform duration-300">
-                {category.icon || "🍽️"}
+              <div className="w-24 h-24 group-hover:scale-110 transition-transform duration-300 relative">
+                {category.image ? (
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg">
+                    <ImageIcon className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
               </div>
               <div>
                 <h3 className="text-2xl font-semibold text-foreground mb-2">

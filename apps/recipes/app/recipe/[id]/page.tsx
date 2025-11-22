@@ -70,7 +70,13 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
                         key={category.id}
                         className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary font-medium text-sm"
                       >
-                        {category.icon && <span>{category.icon}</span>}
+                        {category.image && (
+                          <img
+                            src={category.image}
+                            alt={category.name}
+                            className="w-4 h-4 object-cover rounded"
+                          />
+                        )}
                         {category.name}
                       </span>
                     ))}

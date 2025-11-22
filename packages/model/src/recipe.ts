@@ -4,7 +4,7 @@ export const recipeCategorySchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable().optional(),
-  icon: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
 });
 
 export type RecipeCategory = z.infer<typeof recipeCategorySchema>;

@@ -15,7 +15,7 @@ interface Category {
   id: string;
   name: string;
   description?: string | null;
-  icon?: string | null;
+  image?: string | null;
 }
 
 interface Recipe {
@@ -78,7 +78,7 @@ export function CategoryCard({ category, allRecipes }: CategoryCardProps) {
   const handleUpdateCategory = (data: {
     name: string;
     description?: string;
-    icon?: string;
+    image?: string;
   }) => {
     updateCategoryMutation.mutate({
       id: category.id,
@@ -126,8 +126,12 @@ export function CategoryCard({ category, allRecipes }: CategoryCardProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              {category.icon && (
-                <span className="text-2xl">{category.icon}</span>
+              {category.image && (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-8 h-8 object-cover rounded"
+                />
               )}
               <CardTitle className="text-lg">{category.name}</CardTitle>
             </div>

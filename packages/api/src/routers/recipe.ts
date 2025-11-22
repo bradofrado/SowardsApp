@@ -31,7 +31,7 @@ export const recipeRouter = createTRPCRouter({
         data: {
           name: input.name,
           description: input.description,
-          icon: input.icon,
+          image: input.image,
           userId: ctx.session.auth.userVacation.id,
         },
       });
@@ -43,7 +43,7 @@ export const recipeRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().optional(),
         description: z.string().nullable().optional(),
-        icon: z.string().nullable().optional(),
+        image: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {

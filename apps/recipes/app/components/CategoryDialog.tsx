@@ -22,12 +22,12 @@ interface CategoryDialogProps {
     id: string;
     name: string;
     description?: string | null;
-    icon?: string | null;
+    image?: string | null;
   };
   onSubmit: (data: {
     name: string;
     description?: string;
-    icon?: string;
+    image?: string;
   }) => void;
   isLoading: boolean;
 }
@@ -41,17 +41,17 @@ export function CategoryDialog({
 }: CategoryDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [icon, setIcon] = useState("");
+  const [image, setImage] = useState("");
 
   useEffect(() => {
     if (category) {
       setName(category.name);
       setDescription(category.description || "");
-      setIcon(category.icon || "");
+      setImage(category.image || "");
     } else {
       setName("");
       setDescription("");
-      setIcon("");
+      setImage("");
     }
   }, [category, open]);
 
@@ -67,7 +67,7 @@ export function CategoryDialog({
     onSubmit({
       name: name.trim(),
       description: description.trim() || undefined,
-      icon: icon.trim() || undefined,
+      image: image.trim() || undefined,
     });
   };
 
@@ -110,16 +110,16 @@ export function CategoryDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="icon">Icon (Emoji)</Label>
+              <Label htmlFor="image">Image URL</Label>
               <Input
-                id="icon"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                placeholder="e.g., 🍰, 🍕, 🥗"
-                maxLength={2}
+                id="image"
+                value={image}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                type="url"
               />
               <p className="text-sm text-muted-foreground">
-                Optional emoji to represent this category
+                Optional image URL to represent this category
               </p>
             </div>
           </div>

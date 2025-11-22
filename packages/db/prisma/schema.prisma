@@ -185,7 +185,7 @@ model RecipeCategory {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
-  icon        String?
+  image       String?
   userId      String       @db.ObjectId
   user        UserVacation @relation(fields: [userId], references: [id])
   recipeIds   String[]     @db.ObjectId
