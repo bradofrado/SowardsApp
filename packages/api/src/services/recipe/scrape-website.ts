@@ -72,7 +72,11 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isRecipeType(data: unknown): data is JsonLdRecipe {
-  return isObject(data) && data["@type"] === "Recipe";
+  return (
+    isObject(data) &&
+    (data["@type"] === "Recipe" ||
+      (Array.isArray(data["@type"]) && data["@type"].includes("Recipe")))
+  );
 }
 
 function hasGraph(data: unknown): data is { "@graph": JsonLdRecipe[] } {
@@ -159,7 +163,7 @@ export class RecipeScraper {
     // Check in @graph array
     if (hasGraph(data)) {
       for (const item of data["@graph"]) {
-        if (item["@type"] === "Recipe") {
+        if (isRecipeType(item)) {
           return item;
         }
       }
