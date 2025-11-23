@@ -7,6 +7,7 @@ import {
   type AuthProps,
 } from "next-utils/src/utils/protected-routes-hoc";
 import { RecipeActions } from "./components/RecipeActions";
+import { formatIngredientWithFractions } from "@/lib/utils/fractions";
 
 async function RecipeDetail({ ctx, params }: AuthProps) {
   const recipe = await ctx.prisma.recipe.findUnique({
@@ -139,7 +140,9 @@ async function RecipeDetail({ ctx, params }: AuthProps) {
               {recipe.ingredients.map((ingredient, index) => (
                 <li key={index} className="flex items-start gap-3">
                   <span className="text-primary mt-1">•</span>
-                  <span className="text-foreground">{ingredient}</span>
+                  <span className="text-foreground">
+                    {formatIngredientWithFractions(ingredient)}
+                  </span>
                 </li>
               ))}
             </ul>

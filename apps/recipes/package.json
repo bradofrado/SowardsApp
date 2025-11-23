@@ -9,7 +9,9 @@
     "start": "pnpm withenv next start",
     "lint": "pnpm withenv next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\" && eslint --fix .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.0.12",
@@ -86,7 +88,8 @@
     "postcss": "^8",
     "prettier-config": "workspace:*",
     "tailwindcss": "^3.4.1",
-    "typescript": "5.7.0-dev.20240821"
+    "typescript": "5.7.0-dev.20240821",
+    "vitest": "^3.0.5"
   },
   "prettier": "prettier-config"
 }
