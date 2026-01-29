@@ -53,6 +53,7 @@ export const CategoryMonthView: React.FunctionComponent<
 > = () => {
   const {
     expenses: { budgetItems, transactions },
+    income: { transactions: incomeTransactions },
   } = useTransactions();
   const {
     currentMonth,
@@ -75,6 +76,14 @@ export const CategoryMonthView: React.FunctionComponent<
       ),
     [transactions, currentMonth, currentYear],
   );
+  const filterdIncomeTransactions = useMemo(() => {
+    return incomeTransactions.filter(
+      (transaction) =>
+        transaction.date.getMonth() === months.indexOf(currentMonth) &&
+        transaction.date.getFullYear() === currentYear,
+    );
+  }, [incomeTransactions, currentMonth, currentYear]);
+
   const categorizedExpenses = useExpenses({
     budgetItems,
     transactions,
@@ -93,6 +102,17 @@ export const CategoryMonthView: React.FunctionComponent<
       transactions: uncategorizedTransactions,
     };
   }, [filteredTransactions]);
+
+  const incomeData = useMemo(() => {
+    if (filterdIncomeTransactions.length === 0) return undefined;
+    const totalAmount = calculateAmount(filterdIncomeTransactions);
+    return {
+      actual: totalAmount,
+      budgeted: 0,
+      transactions: filterdIncomeTransactions,
+    };
+  }, [filterdIncomeTransactions]);
+
   const onMonthClick = (month: Month) => {
     setCurrentMonth(month);
   };
@@ -145,6 +165,25 @@ export const CategoryMonthView: React.FunctionComponent<
                   transactions: uncategorizedData.transactions,
                 }}
                 defaultLabel={formatDollarAmount(uncategorizedData.actual)}
+              />
+            ) : null}
+          </div>
+          <div className="flex flex-col gap-2">
+            {incomeData ? (
+              <CategoryTarget
+                data={{
+                  category: {
+                    id: "uncategorized-income",
+                    name: "Income",
+                    type: "income",
+                    order: -1,
+                    rollover: false,
+                  },
+                  actual: incomeData.actual || 0,
+                  budgeted: incomeData.actual || 0,
+                  transactions: incomeData.transactions,
+                }}
+                defaultLabel={formatDollarAmount(incomeData.actual)}
               />
             ) : null}
           </div>
