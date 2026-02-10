@@ -368,7 +368,7 @@ const CategoryTransactionsModal: React.FunctionComponent<
   onClose,
   data: { transactions, budgeted, actual, category },
 }) => {
-  const { setTransactions } = useTransactions();
+  const { setTransactions, getOriginalTransaction } = useTransactions();
   const { categories } = useTransactions();
   const { accounts } = useAccounts();
   const [selected, setSelected] = useState<string[]>([]);
@@ -381,7 +381,8 @@ const CategoryTransactionsModal: React.FunctionComponent<
     () =>
       transactions
         .slice()
-        .sort((a, b) => compare(b.date.getTime(), a.date.getTime())),
+        .sort((a, b) => compare(b.date.getTime(), a.date.getTime()))
+        .map((t) => getOriginalTransaction(t.transactionId) ?? t),
     [transactions],
   );
 

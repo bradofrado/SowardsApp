@@ -31,6 +31,9 @@ interface TransactionContextState {
           transactions: SpendingRecordWithAccountType[],
         ) => SpendingRecordWithAccountType[]),
   ) => void;
+  getOriginalTransaction: (
+    transactionId: string,
+  ) => SpendingRecordWithAccountType | undefined;
 }
 const TransactionContext = createContext<TransactionContextState>({
   expenses: {
@@ -49,6 +52,7 @@ const TransactionContext = createContext<TransactionContextState>({
   budget: undefined,
   categories: [],
   setTransactions: () => {},
+  getOriginalTransaction: () => undefined,
 });
 
 interface TransactionProviderProps {
@@ -111,6 +115,10 @@ export const TransactionProvider: React.FunctionComponent<
     budgetItems: budget?.items || [],
   });
 
+  const getOriginalTransaction = (transactionId: string) => {
+    return transactions.find((t) => t.transactionId === transactionId);
+  };
+
   return (
     <TransactionContext.Provider
       value={{
@@ -120,6 +128,7 @@ export const TransactionProvider: React.FunctionComponent<
         budget,
         categories,
         setTransactions,
+        getOriginalTransaction,
       }}
     >
       {children}
