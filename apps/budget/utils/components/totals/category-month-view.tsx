@@ -368,8 +368,8 @@ const CategoryTransactionsModal: React.FunctionComponent<
   onClose,
   data: { transactions, budgeted, actual, category },
 }) => {
-  const { setTransactions, getOriginalTransaction } = useTransactions();
-  const { categories } = useTransactions();
+  const { setTransactions, getOriginalTransaction, budget } = useTransactions();
+  const { budgetCategories } = useTransactions();
   const { accounts } = useAccounts();
   const [selected, setSelected] = useState<string[]>([]);
   const [pickCategory, setPickCategory] =
@@ -461,7 +461,7 @@ const CategoryTransactionsModal: React.FunctionComponent<
         show={pickCategory !== undefined && !split}
         onClose={() => setPickCategory(undefined)}
         values={pickCategory?.transactionCategories ?? []}
-        categories={categories}
+        categories={budgetCategories}
         onChange={(categories) => {
           if (pickCategory) {
             onCategoryChange(pickCategory.transactionId, categories);
@@ -475,7 +475,7 @@ const CategoryTransactionsModal: React.FunctionComponent<
         show={pickCategory !== undefined && split}
         onClose={() => setPickCategory(undefined)}
         values={pickCategory?.transactionCategories ?? []}
-        categories={categories}
+        categories={budgetCategories}
         onChange={(transactionCategories) => {
           if (pickCategory) {
             onCategoryChange(pickCategory.transactionId, transactionCategories);

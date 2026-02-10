@@ -24,6 +24,7 @@ interface TransactionContextState {
   transactions: SpendingRecordWithAccountType[];
   budget: Budget | undefined;
   categories: CategoryBudget[];
+  budgetCategories: CategoryBudget[];
   setTransactions: (
     transactions:
       | SpendingRecordWithAccountType[]
@@ -51,6 +52,7 @@ const TransactionContext = createContext<TransactionContextState>({
   transactions: [],
   budget: undefined,
   categories: [],
+  budgetCategories: [],
   setTransactions: () => {},
   getOriginalTransaction: () => undefined,
 });
@@ -115,6 +117,17 @@ export const TransactionProvider: React.FunctionComponent<
     budgetItems: budget?.items || [],
   });
 
+  // Only show categories that are apart of the budget
+  const budgetCategories = useMemo(
+    () =>
+      categories.filter(
+        (c) =>
+          c.type === "income" ||
+          budget?.items.some((i) => i.category.id === c.id),
+      ),
+    [categories, budget],
+  );
+
   const getOriginalTransaction = (transactionId: string) => {
     return transactions.find((t) => t.transactionId === transactionId);
   };
@@ -127,6 +140,7 @@ export const TransactionProvider: React.FunctionComponent<
         transactions: nonTransferTransactions,
         budget,
         categories,
+        budgetCategories,
         setTransactions,
         getOriginalTransaction,
       }}

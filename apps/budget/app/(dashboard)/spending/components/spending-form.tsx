@@ -57,7 +57,8 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
   isPaginated,
   total,
 }) => {
-  const { transactions: origTransactions, categories } = useTransactions();
+  const { transactions: origTransactions, budgetCategories } =
+    useTransactions();
   const [transactions, setTransactions] = useStateProps(origTransactions);
   const changeProperty = useChangeArray(setTransactions);
   const { mutate: saveTransaction } = api.plaid.updateTransaction.useMutation();
@@ -266,26 +267,26 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         transactions={filteredTransactions.filter((t) =>
           selected.includes(t.transactionId),
         )}
-        categories={categories}
+        categories={budgetCategories}
       />
       <AddTransactionModal
         show={showAddTransactionModal}
         onClose={() => setShowAddTransactionModal(false)}
-        categories={categories}
+        categories={budgetCategories}
         accounts={accounts}
       />
       <UpdateTransactionModal
         show={updateTransaction !== undefined}
         onClose={() => setUpdateTransaction(undefined)}
         transaction={updateTransaction}
-        categories={categories}
+        categories={budgetCategories}
         accounts={accounts}
       />
       <CategoryPickerModal
         show={pickCategory !== undefined && !split}
         onClose={() => setPickCategory(undefined)}
         values={pickCategory?.transactionCategories ?? []}
-        categories={categories}
+        categories={budgetCategories}
         onChange={(categories) => {
           onCategoryChange(
             transactions.findIndex(
@@ -302,7 +303,7 @@ export const SpendingForm: React.FunctionComponent<SpendingFormProps> = ({
         show={pickCategory !== undefined && split}
         onClose={() => setPickCategory(undefined)}
         values={pickCategory?.transactionCategories ?? []}
-        categories={categories}
+        categories={budgetCategories}
         onChange={(transactionCategories) => {
           onCategoryChange(
             transactions.findIndex(
