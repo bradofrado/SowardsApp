@@ -220,24 +220,26 @@ const BudgetCadenceMonthView: React.FunctionComponent<
   return (
     <>
       <Header level={4}>{title}</Header>
-      <div className="flex flex-col gap-2">
-        <CategoryTarget
-          data={{
-            category: {
-              id: cadenceType,
-              name: `Total ${title} Expenses`,
-              type: "expense",
-              order: -2,
-              rollover: false,
-            },
-            actual,
-            budgeted,
-            transactions: chartData.reduce<SpendingRecordWithAccountType[]>(
-              (prev, curr) => prev.concat(...curr.transactions),
-              [],
-            ),
-          }}
-        />
+      <div className="flex flex-col md:grid md:grid-cols-3 gap-2">
+        <div className="col-span-3">
+          <CategoryTarget
+            data={{
+              category: {
+                id: cadenceType,
+                name: `Total ${title} Expenses`,
+                type: "expense",
+                order: -2,
+                rollover: false,
+              },
+              actual,
+              budgeted,
+              transactions: chartData.reduce<SpendingRecordWithAccountType[]>(
+                (prev, curr) => prev.concat(...curr.transactions),
+                [],
+              ),
+            }}
+          />
+        </div>
 
         {chartData.map((data) => (
           <CategoryTarget key={data.category.id} data={data} />
@@ -331,12 +333,16 @@ const CategoryTarget: React.FunctionComponent<{
   return (
     <>
       <button
-        className="flex flex-col gap-2 p-2 hover:bg-gray-100 rounded-md"
+        className="flex flex-col items-start gap-3 rounded-lg border border-solid border-neutral-border bg-default-background px-4 py-4 hover:shadow-md w-full"
         onClick={() => setIsOpen(true)}
       >
-        <div className="flex justify-between w-full">
-          <div>{data.category.name}</div>
-          {defaultLabel ?? label}
+        <div className="flex w-full items-center gap-3">
+          <div className="flex grow shrink-0 basis-0 justify-between items-start">
+            <span className="text-body-bold font-body-bold text-default-font">
+              {data.category.name}
+            </span>
+            {label}
+          </div>
         </div>
         <TargetBar
           className="w-full"
