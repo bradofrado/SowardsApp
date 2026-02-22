@@ -117,7 +117,7 @@ export const TransactionProvider: React.FunctionComponent<
     budgetItems: budget?.items || [],
   });
 
-  // Only show categories that are apart of the budget
+  // Only show categories that are a part of the budget
   const budgetCategories = useMemo(
     () =>
       categories.filter(

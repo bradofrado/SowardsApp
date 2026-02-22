@@ -1,6 +1,10 @@
 import { getCategories } from "api/src/repositories/budget/category";
 import { prisma } from "db/lib/prisma";
-import { getExternalLogins, getTransactions } from "api/src/services/budget";
+import {
+  getBudgets,
+  getExternalLogins,
+  getTransactions,
+} from "api/src/services/budget";
 import { withAuth } from "next-utils/src/utils/protected-routes-hoc";
 import { SpendingForm } from "./components/spending-form";
 import { redirect } from "next/navigation";
@@ -43,10 +47,13 @@ const SpendingPage = withAuth(async ({ ctx, searchParams }) => {
     }
   }
 
+  const budgets = await getBudgets(userId);
+
   return (
     <TransactionProvider
       transactions={transactions.records}
       categories={categories}
+      budget={budgets[0]}
     >
       <SpendingForm
         accounts={accounts}
