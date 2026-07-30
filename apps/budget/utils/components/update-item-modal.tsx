@@ -9,9 +9,11 @@ import { PlaidLink } from "./plaid";
 
 export const UpdateItemModal: React.FunctionComponent<{
   accessToken: string;
-}> = ({ accessToken }) => {
+  open?: boolean;
+  onClose?: () => void;
+}> = ({ accessToken, open = true, onClose = () => undefined }) => {
   return (
-    <Dialog open={true} onClose={() => undefined}>
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>Update Account Login</DialogTitle>
       <DialogDescription>
         One or more of your accounts needs you to reauthenticate

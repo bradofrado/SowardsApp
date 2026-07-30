@@ -17,6 +17,8 @@ import type { LoginRequest } from "./types";
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
 const PLAID_SECRET = process.env.PLAID_SECRET;
+// Public URL Plaid calls with item webhooks (e.g. SYNC_UPDATES_AVAILABLE).
+const PLAID_WEBHOOK_URL = process.env.PLAID_WEBHOOK_URL;
 
 const configuration = new Configuration({
   basePath: PlaidEnvironments[PLAID_ENV],
@@ -62,6 +64,7 @@ export const createLinkToken = async (
     country_codes: [CountryCode.Us],
     language: "en",
     access_token: accessToken,
+    webhook: PLAID_WEBHOOK_URL,
   };
 
   const createTokenResponse = await plaidClient.linkTokenCreate(configs);
@@ -95,17 +98,16 @@ export const compareTxnsByDateAscending = (
   b: Transaction,
 ): number => (a.date > b.date ? 1 : 0) - (a.date < b.date ? 1 : 0);
 
+export interface TransactionSync {
+  added: Transaction[];
+  removed: RemovedTransaction[];
+  modified: Transaction[];
+  cursor: string | null;
+  accessToken: string;
+}
+
 export const getTransactionsSync = handleUpdateItemError(
-  async ({
-    accessToken,
-    cursor,
-  }: LoginRequest): Promise<{
-    added: Transaction[];
-    removed: RemovedTransaction[];
-    modified: Transaction[];
-    cursor: string | null;
-    accessToken: string;
-  }> => {
+  async ({ accessToken, cursor }: LoginRequest): Promise<TransactionSync> => {
     const added: Transaction[] = [];
     const removed: RemovedTransaction[] = [];
     const modified: Transaction[] = [];
@@ -130,6 +132,15 @@ export const getTransactionsSync = handleUpdateItemError(
       cursor: currCursor,
       accessToken,
     };
+  },
+);
+
+export const updateItemWebhook = handleUpdateItemError(
+  async ({ accessToken }: LoginRequest): Promise<void> => {
+    await plaidClient.itemWebhookUpdate({
+      access_token: accessToken,
+      webhook: PLAID_WEBHOOK_URL,
+    });
   },
 );
 

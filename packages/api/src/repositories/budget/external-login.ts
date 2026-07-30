@@ -63,3 +63,19 @@ export const getLogins = async ({
 
   return logins;
 };
+
+export const getLoginByItemId = async ({
+  db,
+  itemId,
+}: {
+  db: Db;
+  itemId: string;
+}): Promise<ExternalLogin | null> => {
+  const login = await db.externalLogin.findFirst({
+    where: {
+      itemId,
+    },
+  });
+
+  return login;
+};
