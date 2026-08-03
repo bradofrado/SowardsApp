@@ -13,7 +13,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AccountDisplay } from "../../../app/(dashboard)/settings/components/account-display";
 import { Alert } from "ui/src/components/core/alert";
-import { UpdateItemModal } from "../update-item-modal";
 
 export type ExternalAccount = AccountBase & { access_token: string };
 interface ConnectExternalAccountFormProps {
@@ -42,7 +41,6 @@ const AccountItem: React.FunctionComponent<{ account: ExternalAccount }> = ({
 }) => {
   const { mutate: removeAccount } = api.plaid.removeAccount.useMutation();
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
   const [label, setLabel] = useState<string | undefined>();
   const router = useRouter();
   const onRemove = () => {
@@ -65,18 +63,10 @@ const AccountItem: React.FunctionComponent<{ account: ExternalAccount }> = ({
     <>
       <div className="flex justify-between items-center">
         <AccountDisplay account={account} />
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setOpen(true)}>Update Account</Button>
-          <Button onClick={onRemove} loading={loading}>
-            Remove
-          </Button>
-        </div>
+        <Button onClick={onRemove} loading={loading}>
+          Remove
+        </Button>
       </div>
-      <UpdateItemModal
-        accessToken={account.access_token}
-        open={open}
-        onClose={() => setOpen(false)}
-      />
       <Alert label={label} setLabel={setLabel} type="info" />
     </>
   );

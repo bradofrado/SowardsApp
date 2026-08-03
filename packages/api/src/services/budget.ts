@@ -10,16 +10,10 @@ import type {
 import type { AccountBase, AccountType } from "plaid";
 import type { PaginatedResponse } from "model/src/core/pagination";
 import {
-  getLoginByItemId,
   getLogins,
   updateExternalLoginCursor,
 } from "../repositories/budget/external-login";
-import type { TransactionSync } from "../repositories/budget/plaid";
-import {
-  getAccounts,
-  getTransactionsSync,
-  updateItemWebhook,
-} from "../repositories/budget/plaid";
+import { getAccounts, getTransactionsSync } from "../repositories/budget/plaid";
 import type { LoginRequest } from "../repositories/budget/types";
 import {
   createSpendingRecords,
@@ -41,112 +35,6 @@ export const getExternalLogins = async (userId: string) => {
   return makeLoginRequest(userId, getAccounts);
 };
 
-/**
- * Point all of a user's linked Plaid items at the configured PLAID_WEBHOOK_URL.
- * Run manually to migrate existing items onto the webhook.
- */
-export const updateItemWebhooks = async (userId: string): Promise<void> => {
-  await makeLoginRequest(userId, updateItemWebhook);
-};
-
-export const syncTransactions = async (userId: string): Promise<void> => {
-  const allTransactionSync = await makeLoginRequest(
-    userId,
-    getTransactionsSync,
-  );
-
-  for (const transactionSync of allTransactionSync) {
-    await createSpendingRecordsFromTransactionSync(userId, transactionSync);
-  }
-};
-
-const createSpendingRecordsFromTransactionSync = async (
-  userId: string,
-  transactionSync: TransactionSync,
-): Promise<void> => {
-  // Update login cursor
-  await updateExternalLoginCursor({
-    db: prisma,
-    accessToken: transactionSync.accessToken,
-    cursor: transactionSync.cursor,
-  });
-
-  // Add new transactions
-  await createSpendingRecords({
-    db: prisma,
-    userId,
-    spendingRecords: transactionSync.added.map((transaction) => ({
-      transactionId: transaction.transaction_id,
-      amount: transaction.amount,
-      date: new Date(transaction.date),
-      recordDate: new Date(transaction.date),
-      description: transaction.name,
-      transactionCategories: [],
-      accountId: transaction.account_id,
-      isTransfer: false,
-    })),
-  });
-
-  // Update modified transactions
-  await Promise.all(
-    transactionSync.modified.map(async (transaction) => {
-      const modifiedRecord = await getSpendingRecord({
-        db: prisma,
-        transactionId: transaction.transaction_id,
-      });
-
-      if (!modifiedRecord) {
-        return null;
-      }
-
-      return updateSpendingRecord({
-        db: prisma,
-        userId,
-        spendingRecord: {
-          ...modifiedRecord,
-          amount: transaction.amount,
-          date: new Date(transaction.date),
-          description: transaction.name,
-          accountId: transaction.account_id,
-        },
-      });
-    }),
-  );
-
-  // Remove deleted transactions
-  await Promise.all(
-    transactionSync.removed.map(async (transaction) => {
-      return deleteSpendingRecord({
-        db: prisma,
-        transactionId: transaction.transaction_id,
-      });
-    }),
-  );
-};
-
-/**
- * Sync transactions for the item referenced by a Plaid webhook. Resolves the
- * item to its owning user, then runs the normal transaction sync for that user.
- * Returns false when the item is not linked to any user.
- */
-export const syncTransactionsForItem = async (
-  itemId: string,
-): Promise<boolean> => {
-  const login = await getLoginByItemId({ db: prisma, itemId });
-
-  if (!login) {
-    return false;
-  }
-  const transactionSync = await getTransactionsSync({
-    accessToken: login.accessToken,
-    cursor: login.cursor,
-  });
-
-  await createSpendingRecordsFromTransactionSync(login.userId, transactionSync);
-
-  return true;
-};
-
 export function getTransactions(userId: string): Promise<SpendingRecord[]>;
 export function getTransactions(
   userId: string,
@@ -156,8 +44,72 @@ export async function getTransactions(
   userId: string,
   pagination?: { start: number; count?: number },
 ): Promise<SpendingRecord[] | PaginatedResponse<SpendingRecord>> {
-  // Transactions are kept up to date via the Plaid SYNC_UPDATES_AVAILABLE
-  // webhook (see apps/budget/app/api/plaid/webhook), so no sync is needed here.
+  const allTransactionSync = await makeLoginRequest(
+    userId,
+    getTransactionsSync,
+  );
+
+  for (const transactionSync of allTransactionSync) {
+    // Update login cursor
+    await updateExternalLoginCursor({
+      db: prisma,
+      accessToken: transactionSync.accessToken,
+      cursor: transactionSync.cursor,
+    });
+
+    // Add new transactions
+    await createSpendingRecords({
+      db: prisma,
+      userId,
+      spendingRecords: transactionSync.added.map((transaction) => ({
+        transactionId: transaction.transaction_id,
+        amount: transaction.amount,
+        date: new Date(transaction.date),
+        recordDate: new Date(transaction.date),
+        description: transaction.name,
+        transactionCategories: [],
+        accountId: transaction.account_id,
+        isTransfer: false,
+      })),
+    });
+
+    // Update modified transactions
+    await Promise.all(
+      transactionSync.modified.map(async (transaction) => {
+        const modifiedRecord = await getSpendingRecord({
+          db: prisma,
+          transactionId: transaction.transaction_id,
+        });
+
+        if (!modifiedRecord) {
+          return null;
+        }
+
+        return updateSpendingRecord({
+          db: prisma,
+          userId,
+          spendingRecord: {
+            ...modifiedRecord,
+            amount: transaction.amount,
+            date: new Date(transaction.date),
+            description: transaction.name,
+            accountId: transaction.account_id,
+          },
+        });
+      }),
+    );
+
+    // Remove deleted transactions
+    await Promise.all(
+      transactionSync.removed.map(async (transaction) => {
+        return deleteSpendingRecord({
+          db: prisma,
+          transactionId: transaction.transaction_id,
+        });
+      }),
+    );
+  }
+
   if (pagination) {
     return getPaginatedSpendingRecords({
       db: prisma,
