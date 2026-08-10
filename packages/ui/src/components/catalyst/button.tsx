@@ -3,7 +3,6 @@ import clsx from "clsx";
 import React, { forwardRef } from "react";
 import { Link } from "./link";
 import { Spinner } from "../core/spinner";
-
 const styles = {
   base: [
     // Base
@@ -159,20 +158,30 @@ const styles = {
     ],
   },
 };
-
 type ButtonProps = (
   | {
       color?: keyof typeof styles.colors;
       outline?: never;
       plain?: undefined | false;
     }
-  | { color?: never; outline: true; plain?: undefined | false }
-  | { color?: never; outline?: never; plain: true }
-) & { className?: string; children: React.ReactNode; loading?: boolean } & (
+  | {
+      color?: never;
+      outline: true;
+      plain?: undefined | false;
+    }
+  | {
+      color?: never;
+      outline?: never;
+      plain: true;
+    }
+) & {
+  className?: string;
+  children: React.ReactNode;
+  loading?: boolean;
+} & (
     | Omit<Headless.ButtonProps, "className">
     | Omit<React.ComponentPropsWithoutRef<typeof Link>, "className">
   );
-
 export const Button = forwardRef(function Button(
   {
     color,
@@ -183,7 +192,7 @@ export const Button = forwardRef(function Button(
     loading,
     ...props
   }: ButtonProps,
-  ref: React.ForwardedRef<HTMLElement>,
+  ref: React.ForwardedRef<HTMLElement>
 ) {
   const classes = clsx(
     className,
@@ -191,11 +200,10 @@ export const Button = forwardRef(function Button(
     outline
       ? styles.outline
       : plain
-      ? styles.plain
-      : clsx(styles.solid, styles.colors[color ?? "dark/zinc"]),
-    "cursor-pointer",
+        ? styles.plain
+        : clsx(styles.solid, styles.colors[color ?? "dark/zinc"]),
+    "cursor-pointer"
   );
-
   return "href" in props ? (
     <Link
       {...props}
@@ -213,7 +221,7 @@ export const Button = forwardRef(function Button(
   ) : (
     <Headless.Button
       {...(props as Omit<Headless.ButtonProps, "className">)}
-      className={clsx(classes, "cursor-default")}
+      className={clsx(classes, "cursor-default mt-2")}
       ref={ref}
     >
       <TouchTarget>
